@@ -1,10 +1,7 @@
 package frc.robot;
 
 import com.pathplanner.lib.util.PIDConstants;
-import com.revrobotics.CANSparkLowLevel;
 import com.revrobotics.CANSparkLowLevel.MotorType;
-import com.revrobotics.CANSparkMaxLowLevel;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveMode;
@@ -17,7 +14,6 @@ import frc.robot.util.swerve.SwerveModule;
 import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.function.Supplier;
 
 import static java.util.Map.entry;
@@ -145,7 +141,7 @@ public class Constants {
         public static final GearRatio DRIVE_TURN_RATIO = GearRatio.from(12.8, 1);
 
         /** The maximum speed of the Swerve Drive system in meters per second. */
-        public static final double MAX_SPEED = 12;
+        public static final double MAX_SPEED_MPS = 12;
 
         public static final PIDConstants DRIVE_PID_CONFIG = new PIDConstants(0.05, 0, 0);
         public static final PIDConstants TURN_PID_CONFIG = new PIDConstants(5, 0, 0);

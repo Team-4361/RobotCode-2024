@@ -109,7 +109,7 @@ public class SwerveModule {
 
             driveController.setReference(MathUtil.clamp(desiredRPM, -maxRPM, maxRPM), kVelocity);
         } else {
-            driveMotor.set(MathUtil.clamp(state.speedMetersPerSecond * MAX_SPEED, -1, 1));
+            driveMotor.set(MathUtil.clamp(state.speedMetersPerSecond * MAX_SPEED_MPS, -1, 1));
         }
 
         turnMotor.set(MathUtil.clamp(turnController.calculate(getTurnAngle(), state.angle.getRadians()), -1, 1));

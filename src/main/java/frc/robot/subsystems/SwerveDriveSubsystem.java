@@ -3,14 +3,18 @@ package frc.robot.subsystems;
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.util.joystick.DriveHIDBase;
 import frc.robot.util.swerve.SwerveChassis;
 import frc.robot.util.swerve.SwerveModule;
 import frc.robot.util.swerve.SwerveOdometry;
+
+import static frc.robot.Constants.Chassis.MAX_SPEED_MPS;
 
 /**
  * This {@link SwerveDriveSubsystem} is designed to be used for controlling the {@link SwerveChassis}, and utilizing
@@ -56,5 +60,23 @@ public class SwerveDriveSubsystem {
         frontRight.setState(states[1], isClosedLoop);
         backLeft.setState(states[2], isClosedLoop);
         backRight.setState(states[3], isClosedLoop);
+    }
+
+    /**
+     * Drives the Robot using one Joystick.
+     * @param stick The {@link DriveHIDBase} to use.
+     */
+    public void drive(DriveHIDBase stick, boolean fieldRelative, boolean isOpenLoop) {
+        // Calculate the maximum speed based on XY and Twist.
+        double xS = stick.getRobotX() * MAX_SPEED_MPS;
+        double yS = stick.getRobotY() * MAX_SPEED_MPS;
+        double tS = stick.getRobotTwist() * swerveDrive.swerveController.config.maxAngularVelocity;
+
+        ChassisSpeeds speeds = new ChassisSpeeds(xS, yS, tS);
+
+        if (fieldRelative)
+            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, swerveDrive.getYaw());
+
+        swerveDrive.drive(speeds, isOpenLoop, new Translation2d());
     }
 }
