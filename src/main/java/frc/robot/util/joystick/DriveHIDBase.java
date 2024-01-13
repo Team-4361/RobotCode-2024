@@ -140,7 +140,7 @@ public abstract class DriveHIDBase extends CommandGenericHID implements IPresetC
      */
     @Override
     public boolean nextPreset(boolean loop) {
-        if (index + 1 <= modes.size() - 1) {
+        if (index + 1 < modes.size()) {
             return setPreset(index+1);
         }
         if (loop)

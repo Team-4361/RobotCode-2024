@@ -11,7 +11,6 @@ import frc.robot.util.preset.PresetGroup;
 import frc.robot.util.preset.PresetMap;
 import frc.robot.util.preset.PresetMode;
 import frc.robot.util.swerve.SwerveModule;
-import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 
 import java.time.Duration;
 import java.util.function.Supplier;
@@ -44,7 +43,8 @@ public class Constants {
         /** The default Drive Modes to use on the Primary Joysticks (left/right). */
         public static final IDriveMode[] DRIVE_MODES = new IDriveMode[]{
                 DriveMode.SMOOTH_MAP,
-                DriveMode.LINEAR_MAP
+                DriveMode.LINEAR_MAP,
+                DriveMode.SLOW_MODE
         };
     }
 

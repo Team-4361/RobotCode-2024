@@ -5,9 +5,6 @@
 
 package frc.robot;
 
-import com.revrobotics.CANSparkMaxLowLevel;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -17,28 +14,21 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.subsystems.SwerveSubsystem;
+import frc.robot.subsystems.SwerveDriveSubsystem;
 import frc.robot.util.io.*;
-import frc.robot.util.joystick.DriveHIDBase;
 import frc.robot.util.joystick.DriveJoystick;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.DriveXboxController;
-import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.preset.PresetGroup;
 import frc.robot.util.preset.PresetMode;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
-import swervelib.motors.SparkMaxSwerve;
-import swervelib.parser.SwerveDriveConfiguration;
-import swervelib.parser.SwerveModulePhysicalCharacteristics;
-
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
-import static com.revrobotics.CANSparkMaxLowLevel.MotorType.kBrushless;
+import static frc.robot.Constants.Chassis.*;
 import static frc.robot.Constants.ClimberPresets.*;
 import static frc.robot.Constants.Control.*;
 
@@ -56,7 +46,7 @@ public class Robot extends LoggedRobot {
     public static DriveXboxController xbox;
     public static DriveJoystick leftStick;
     public static DriveJoystick rightStick;
-    public static SwerveSubsystem swerve;
+    public static SwerveDriveSubsystem swerve;
     public static PresetGroup drivePresets;
 
     /**
@@ -137,7 +127,7 @@ public class Robot extends LoggedRobot {
             drivePresets.add(xbox); // only add the Xbox Controller if used for driving.
 
         pdh = new PowerDistribution();
-        swerve = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(), "swerve"));
+        swerve = new SwerveDriveSubsystem(FL_MODULE, FR_MODULE, BL_MODULE, BR_MODULE);
 
         BiConsumer<Command, Boolean> logCommandFunction = getCommandActivity();
         CommandScheduler.getInstance().onCommandInitialize(c -> logCommandFunction.accept(c, true));
@@ -175,13 +165,13 @@ public class Robot extends LoggedRobot {
         if (xboxOnly) {
             IOManager.debug(this, "Xbox-only/Simulation mode detected.");
             Robot.swerve.setDefaultCommand(Robot.swerve.runEnd(
-                    () -> Robot.swerve.drive(xbox, true, false),
+                    () -> Robot.swerve.drive(xbox),
                     () -> Robot.swerve.lock())
             );
         } else {
             IOManager.debug(this, "Regular mode detected.");
             Robot.swerve.setDefaultCommand(Robot.swerve.runEnd(
-                    () -> Robot.swerve.drive(leftStick, rightStick, true, false),
+                    () -> Robot.swerve.drive(leftStick, rightStick),
                     () -> Robot.swerve.lock())
             );
         }
@@ -197,8 +187,8 @@ public class Robot extends LoggedRobot {
 
         if (!xboxOnly) {
             leftStick.button(10).onTrue(Commands.runOnce(() -> drivePresets.nextPreset(true)));
-            leftStick.button(12).onTrue(Commands.runOnce(() -> swerve.teleopFieldOriented = !swerve.teleopFieldOriented));
-            leftStick.button(11).onTrue(Commands.runOnce(() -> swerve.zeroGyro()));
+            leftStick.button(12).onTrue(swerve.toggleFieldOrientedCommand());
+            leftStick.button(11).onTrue(swerve.resetCommand());
             leftStick.trigger().whileTrue(Commands.runEnd(
                     () -> drivePresets.setPreset("Slow Mode"),
                     () -> drivePresets.setPreset(0)
@@ -245,10 +235,9 @@ public class Robot extends LoggedRobot {
             String name = command.getName();
             int count = commandCounts.getOrDefault(name, 0) + (active ? 1 : -1);
             commandCounts.put(name, count);
-            Logger.getInstance()
-                    .recordOutput(
+            Logger.recordOutput(
                             "CommandsUnique/" + name + "_" + Integer.toHexString(command.hashCode()), active);
-            Logger.getInstance().recordOutput("CommandsAll/" + name, count > 0);
+            Logger.recordOutput("CommandsAll/" + name, count > 0);
         };
     }
 
@@ -269,7 +258,6 @@ public class Robot extends LoggedRobot {
         // block in order for anything in the Command-based framework to work.
         CommandScheduler.getInstance().run();
         IOManager.run();
-
         // ************************* DO NOT TOUCH ************************* //
     }
 

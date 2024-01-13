@@ -204,7 +204,7 @@ public class PresetMap<T> extends LinkedHashMap<String, T> implements IPresetCon
      */
     @Override
     public boolean nextPreset(boolean loop) {
-        if (index + 1 <= size() - 1) return setPreset(index+1);
+        if (index + 1 < size()) return setPreset(index+1);
         if (loop) return setPreset(0);
         return false;
     }

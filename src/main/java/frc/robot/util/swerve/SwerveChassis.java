@@ -86,10 +86,10 @@ public class SwerveChassis {
     }
 
     public void setStates(SwerveModuleState[] states, boolean isClosedLoop) {
-        frontLeft.setState(states[0]);
-        frontRight.setState(states[1]);
-        backLeft.setState(states[2]);
-        backRight.setState(states[3]);
+        frontLeft.setState(states[0], isClosedLoop);
+        frontRight.setState(states[1], isClosedLoop);
+        backLeft.setState(states[2], isClosedLoop);
+        backRight.setState(states[3], isClosedLoop);
     }
 
     public void drive(ChassisSpeeds speeds, boolean isClosedLoop) {

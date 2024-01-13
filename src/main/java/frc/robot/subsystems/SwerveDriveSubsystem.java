@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
+import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -51,6 +52,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     /** @return A {@link Command} used to toggle teleoperated closed-loop. */
     public Command toggleClosedLoopCommand() { return Commands.runOnce(() -> closedLoop = !closedLoop); }
 
+    public Command resetCommand() { return Commands.runOnce(this::reset); }
+
     public SwerveDriveSubsystem(SwerveModule frontLeft,
                                 SwerveModule frontRight,
                                 SwerveModule backLeft,
@@ -77,7 +80,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                 .setCondition(gyro::isCalibrating)
                 .setPersistence(false)
                 .setDisableDelay(1000)
-                .setOneUse(true);
+                .setOneUse(false);
     }
 
 
@@ -105,22 +108,51 @@ public class SwerveDriveSubsystem extends SubsystemBase {
      * Drives the Robot using one Joystick.
      * @param stick The {@link DriveHIDBase} to use.
      */
-    public void drive(DriveHIDBase stick, boolean fieldRelative, boolean isClosedLoop) {
+    public void drive(DriveHIDBase stick) {
         // Calculate the maximum speed based on XY and Twist.
         double xS = stick.getRobotX() * MAX_SPEED_MPS;
         double yS = stick.getRobotY() * MAX_SPEED_MPS;
-        double tS = stick.getRobotTwist() * swerveDrive.swerveController.config.maxAngularVelocity;
+        double tS = stick.getRobotTwist() * MAX_SPEED_MPS;
 
         ChassisSpeeds speeds = new ChassisSpeeds(xS, yS, tS);
 
-        if (fieldRelative)
-            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, swerveDrive.getYaw());
+        if (fieldOriented)
+            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getRotation());
 
-        swerveDrive.drive(speeds, isOpenLoop, new Translation2d());
+        drive(speeds, closedLoop);
+    }
+
+    public void drive(DriveHIDBase xyStick, DriveHIDBase twistStick) {
+        double xS = xyStick.getRobotX() * MAX_SPEED_MPS;
+        double yS = xyStick.getRobotY() * MAX_SPEED_MPS;
+        double tS = twistStick.getRobotTwist() * MAX_SPEED_MPS;
+
+        ChassisSpeeds speeds = new ChassisSpeeds(xS, yS, tS);
+
+        if (fieldOriented)
+            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getRotation());
+
+        drive(speeds, closedLoop);
     }
 
     public void drive(ChassisSpeeds speeds, boolean isClosedLoop) {
-        kinematics.toSwerveModuleStates()
+        setStates(kinematics.toSwerveModuleStates(speeds), isClosedLoop);
+    }
+
+    public void lock() {
+        setStates(new SwerveModuleState[]{
+                new SwerveModuleState(0, Rotation2d.fromDegrees(90)),
+                new SwerveModuleState(0, Rotation2d.fromDegrees(90)),
+                new SwerveModuleState(0, Rotation2d.fromDegrees(90)),
+                new SwerveModuleState(0, Rotation2d.fromDegrees(90))
+        }, false);
+    }
+
+    public void reset() {
+        rollOffset = gyro.getRoll();
+        pitchOffset = gyro.getPitch();
+        gyro.reset();
+        odometry.resetPosition(gyro.getRotation2d(), getPositions(), new Pose2d());
     }
 
     public SwerveModule getFrontLeft() { return frontLeft; }

@@ -255,7 +255,7 @@ public class Looper {
 
     /**
      * Constructs a new {@link Looper} with an interval {@link Duration} of
-     * {@link Constants.LooperConfig#PERIODIC_INTERVAL}, and End Delay of <b>ZERO</b>.
+     * PERIODIC_INTERVAL, and End Delay of <b>ZERO</b>.
      */
     Looper(String name) {
         this(name, PERIODIC_INTERVAL, Duration.ZERO);
@@ -290,7 +290,7 @@ public class Looper {
             // LOG the POST-CALL performance of the Looper if on DEBUG.
             if (Robot.verbosity == VerbosityLevel.DEBUG) {
                 long msDiff = nextMillis - currentTimeMillis;
-                Logger.getInstance().recordOutput("Looper/" + getName() + " PERF",
+                Logger.recordOutput("Looper/" + getName() + " PERF",
                         (msDiff > 0) ? ("+" + msDiff + " ms") : (msDiff + " ms")
                 );
             }
