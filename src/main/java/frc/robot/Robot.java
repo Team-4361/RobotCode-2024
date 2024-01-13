@@ -187,7 +187,7 @@ public class Robot extends LoggedRobot {
 
         if (!xboxOnly) {
             leftStick.button(10).onTrue(Commands.runOnce(() -> drivePresets.nextPreset(true)));
-            leftStick.button(12).onTrue(swerve.toggleFieldOrientedCommand());
+            leftStick.button(12).onTrue(swerve.toggleClosedLoopCommand());
             leftStick.button(11).onTrue(swerve.resetCommand());
             leftStick.trigger().whileTrue(Commands.runEnd(
                     () -> drivePresets.setPreset("Slow Mode"),
@@ -195,38 +195,6 @@ public class Robot extends LoggedRobot {
             ));
             leftStick.button(2).whileTrue(Commands.run(() -> swerve.lock()));
         }
-
-        //Robot.xbox.a().onTrue(Commands.runOnce(() -> AlertManager.vibrate(Robot.xbox.getHID())));
-        /*
-
-        xyStick.button(8).onTrue(Robot.swerveDrive.toggleFieldOrientedCommand());
-        xyStick.button(12).onTrue(Robot.swerveDrive.resetGyroCommand());
-
-        ///////////////////////////////// XBOX CONTROLS
-
-
-        xbox.povUp().onTrue(Robot.pump.openVacuumCommand());
-
-
-
-        xbox.rightTrigger().whileTrue(Commands.runEnd(
-                () -> Robot.wrist.translateMotor(-xbox.getRightTriggerAxis()/2),
-                () -> Robot.wrist.translateMotor(0)
-        ));
-
-        xbox.leftTrigger().whileTrue(Commands.runEnd(
-                () -> Robot.wrist.translateMotor(xbox.getLeftTriggerAxis()/2),
-                () -> Robot.wrist.translateMotor(0)
-        ));
-
-        xbox.leftStick().onTrue(Commands.runOnce(() -> {
-            Robot.wrist.resetEncoder();
-            Robot.arm.getRotation().resetEncoder();
-            Robot.arm.getExtension().resetEncoder();
-        }));
-
-        xbox.leftBumper().onTrue(Commands.runOnce(() -> Robot.pump.toggleVacuum()));
-         */
     }
 
     private static BiConsumer<Command, Boolean> getCommandActivity() {

@@ -2,6 +2,7 @@ package frc.robot.util.swerve;
 
 import com.pathplanner.lib.util.PIDConstants;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.ControlType;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
 import edu.wpi.first.math.MathUtil;
@@ -41,11 +42,14 @@ public class SwerveModule {
     private final PIDConstants turnPIDConfig;
     private final PIDController turnController;
     private final SparkPIDController driveController;
+    private final String name;
+    private double dRPM, mRPM;
 
     /**
      * Creates a new {@link SwerveModule} instance using the specified parameters. The {@link CANSparkMax}
      * motor instance will be <b>created and reserved.</b>
      *
+     * @param nm                 The name of the swerve module.
      * @param driveMotorId       The Motor ID used for driving the wheel.
      * @param turnMotorId        The Motor ID used for turning the wheel.
      * @param digitalEncoderPort The {@link DigitalInput} ID used for the Encoder.
@@ -53,11 +57,13 @@ public class SwerveModule {
      * @param drivePIDConfig     The {@link PIDConstants} to use for closed-loop driving.
      * @param turnPIDConfig      The {@link PIDConstants} to use for PWM turning.
      */
-    public SwerveModule(int driveMotorId, int turnMotorId, int digitalEncoderPort,
+    public SwerveModule(String nm, int driveMotorId, int turnMotorId, int digitalEncoderPort,
                         double offsetRads, PIDConstants drivePIDConfig, PIDConstants turnPIDConfig) {
-
+        this.name = nm;
         this.driveMotor = new FRCSparkMax(driveMotorId, kBrushless, DCMotor.getNEO(1));
         this.turnMotor = new FRCSparkMax(turnMotorId, kBrushless, DCMotor.getNEO(1));
+
+        driveMotor.enableVoltageCompensation(12);
 
         this.rotationPWMEncoder = new DutyCycleEncoder(digitalEncoderPort);
         this.turnController = new PIDController(turnPIDConfig.kP, turnPIDConfig.kI, turnPIDConfig.kD, turnPIDConfig.kP);
@@ -68,41 +74,54 @@ public class SwerveModule {
 
         this.driveEncoder = driveMotor.getEncoder();
         this.driveController = driveMotor.getPIDController();
-
         // Set the PID config for driving.
         driveController.setP(drivePIDConfig.kP);
         driveController.setI(drivePIDConfig.kI);
         driveController.setD(drivePIDConfig.kD);
-        driveController.setP(drivePIDConfig.kP);
     }
 
-    /** @return The current {@link SwerveModule} velocity in meters per second. */
+    /**
+     * @return The current {@link SwerveModule} velocity in meters per second.
+     */
     public double getVelocity() {
         return DRIVE_GEAR_RATIO.getFollowerRotation(
                 driveEncoder.getVelocity() / 60) * SWERVE_WHEEL_CIRCUMFERENCE;
     }
 
-    /** @return The {@link PIDConstants} to use for closed-loop driving. */
-    public PIDConstants getDrivePIDConfig() { return this.drivePIDConfig; }
+    /**
+     * @return The {@link PIDConstants} to use for closed-loop driving.
+     */
+    public PIDConstants getDrivePIDConfig() {
+        return this.drivePIDConfig;
+    }
 
-    /** @return The {@link PIDConstants} to use for PWM turning. */
-    public PIDConstants getTurnPIDConfig() { return this.turnPIDConfig; }
+    /**
+     * @return The {@link PIDConstants} to use for PWM turning.
+     */
+    public PIDConstants getTurnPIDConfig() {
+        return this.turnPIDConfig;
+    }
 
-    /** @return The current {@link SwerveModule} Turn Angle in radians. */
-    public double getTurnAngle() { return offsetRads + (rotationPWMEncoder.get() * 2 * Math.PI); }
+    /**
+     * @return The current {@link SwerveModule} Turn Angle in radians.
+     */
+    public double getTurnAngle() {
+        return offsetRads + (rotationPWMEncoder.get() * 2 * Math.PI);
+    }
 
     public void setState(SwerveModuleState state, boolean isClosedLoop) {
         state = SwerveModuleState.optimize(state, Rotation2d.fromRadians(getTurnAngle()));
 
         if (isClosedLoop) {
             // Set the desired RPM to achieve the meters per second.
-            double desiredRPM = 60 * DRIVE_GEAR_RATIO.getLeadRotation(
-                    (state.speedMetersPerSecond * 60) / SWERVE_WHEEL_CIRCUMFERENCE);
-            double maxRPM = Units.radiansPerSecondToRotationsPerMinute(driveMotor.getModel().freeSpeedRadPerSec);
-
-            driveController.setReference(MathUtil.clamp(desiredRPM, -maxRPM, maxRPM), kVelocity);
+            //double wheelRPM = (state.speedMetersPerSecond / SWERVE_WHEEL_CIRCUMFERENCE) * 60;
+            //dRPM = DRIVE_GEAR_RATIO.getLeadRotation(wheelRPM);
+            mRPM = Units.radiansPerSecondToRotationsPerMinute(driveMotor.getModel().freeSpeedRadPerSec);
+            dRPM = mRPM * (state.speedMetersPerSecond / MAX_SPEED_MPS);
+            driveController.setReference(dRPM, kVelocity, 0);
         } else {
-            driveMotor.set(MathUtil.clamp(state.speedMetersPerSecond * MAX_SPEED_MPS, -1, 1));
+            dRPM = state.speedMetersPerSecond;
+            driveMotor.set(MathUtil.clamp(state.speedMetersPerSecond / MAX_SPEED_MPS, -1, 1));
         }
 
         turnMotor.set(MathUtil.clamp(turnController.calculate(getTurnAngle(), state.angle.getRadians()), -1, 1));
@@ -132,28 +151,39 @@ public class SwerveModule {
      * current position, based on the module's drive motor distance and
      * the turn encoder's angle.
      */
-    public SwerveModulePosition getPosition()  {
+    public SwerveModulePosition getPosition() {
         return new SwerveModulePosition(
                 getDistance(),
                 Rotation2d.fromRadians(getTurnAngle())
         );
     }
 
-    public void updateDashboard(String prefix) {
-        String driveVelocity = prefix + ": motor rpm";
-        String drivePower = prefix + ": pow";
-        String turnPower = prefix + ": turn pow";
-        String turnPosition = prefix + ": turn rad";
-        String drivePosition = prefix + ": distance";
+    /**
+     * @return The name of the swerve module
+     */
+    public String getName() {
+        return name;
+    }
+
+    public void updateDashboard() {
+        String desiredRPM = name + ": desired rpm";
+        String maxRPM = name + ": max rpm";
+        String driveVelocity = name + ": motor rpm";
+        String drivePower = name + ": pow";
+        String turnPower = name + ": turn pow";
+        String turnPosition = name + ": turn rad";
+        String drivePosition = name + ": distance";
 
         SmartDashboard.putNumber(driveVelocity, driveEncoder.getVelocity());
         SmartDashboard.putNumber(turnPower, turnMotor.get());
         SmartDashboard.putNumber(turnPosition, getTurnAngle());
         SmartDashboard.putNumber(drivePower, driveMotor.get());
         SmartDashboard.putNumber(drivePosition, getDistance());
+        SmartDashboard.putNumber(desiredRPM, dRPM);
+        SmartDashboard.putNumber(maxRPM, mRPM);
     }
 
-    /** 
+    /**
      * @return The total amount of meters the individual {@link SwerveModule} has traveled.
      */
     public double getDistance() {
@@ -162,5 +192,7 @@ public class SwerveModule {
         return (DRIVE_GEAR_RATIO.getFollowerRotation(driveEncoder.getPosition()) * (2 * Math.PI) * SWERVE_WHEEL_RADIUS);
     }
 
-    public void reset() { driveEncoder.setPosition(0); }
+    public void reset() {
+        driveEncoder.setPosition(0);
+    }
 }

@@ -1,7 +1,6 @@
 package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
-import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -13,7 +12,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.io.AlertType;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveHIDBase;
-import frc.robot.util.swerve.SwerveChassis;
 import frc.robot.util.swerve.SwerveModule;
 
 import static frc.robot.Constants.AlertConfig.STRING_GYRO_CALIBRATING;
@@ -44,7 +42,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     private double pitchOffset;
 
     public static boolean fieldOriented = true;
-    public static boolean closedLoop = true;
+    public static boolean closedLoop = false;
 
     /** @return A {@link Command} used to toggle teleoperated field-oriented. */
     public Command toggleFieldOrientedCommand() { return Commands.runOnce(() -> fieldOriented = !fieldOriented); }
@@ -102,6 +100,10 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         odometry.update(getRotation(), getPositions());
+        frontLeft.updateDashboard();
+        frontRight.updateDashboard();
+        backLeft.updateDashboard();
+        backRight.updateDashboard();
     }
 
     /**

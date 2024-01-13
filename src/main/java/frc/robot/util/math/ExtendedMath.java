@@ -17,22 +17,12 @@ public class ExtendedMath {
     private static final Random rand = new Random();
 
     /**
-     * @param digits The number of decimal places to return.
-     * @return A rounded {@link Double} to a specific decimal place.
-     */
-    public static double round(double val, int digits) {
-        return BigDecimal.valueOf(val)
-                .setScale(digits, RoundingMode.HALF_UP)
-                .doubleValue();
-    }
-
-    /**
-     * @return A rounded {@link Double} to 2 decimal places.
+     * @param val Value that is rounded to the second decimal place.
+     * @return A rounded {@link Double} to the second decimal place.
      */
     public static double round(double val) {
-        return round(val, 2);
+        return Math.round(val * 100.0) / 100.0;
     }
-
     /**
      * Checks if the actual value is within a specified tolerance of the expected value
      * @param expected The value to be expected.

@@ -72,7 +72,7 @@ public class GearRatio {
      * @return The number of rotations of the Follower Gear.
      */
     public double getFollowerRotation(double leadRotations) {
-        return ExtendedMath.round(leadRotations * (gearTwo / gearOne), 2);
+        return ExtendedMath.round(leadRotations * (gearTwo / gearOne));
     }
 
     /**
@@ -80,7 +80,7 @@ public class GearRatio {
      * @return The number of rotations from the Leader Gear.
      */
     public double getLeadRotation(double followerRotations) {
-        return ExtendedMath.round(followerRotations * (gearOne / gearTwo), 2);
+        return ExtendedMath.round(followerRotations * (gearOne / gearTwo));
     }
 
     /**

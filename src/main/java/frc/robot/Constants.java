@@ -144,10 +144,11 @@ public class Constants {
         /** The maximum speed of the Swerve Drive system in meters per second. */
         public static final double MAX_SPEED_MPS = 12;
 
-        public static final PIDConstants DRIVE_PID_CONFIG = new PIDConstants(0.05, 0, 0);
+        public static final PIDConstants DRIVE_PID_CONFIG = new PIDConstants(2e-4, 0, 0);
         public static final PIDConstants TURN_PID_CONFIG = new PIDConstants(5, 0, 0);
 
         public static final SwerveModule FL_MODULE = new SwerveModule(
+                "FL",
                 FL_DRIVE_ID,
                 FL_TURN_ID,
                 FL_DIO_ENCODER_PORT,
@@ -157,6 +158,7 @@ public class Constants {
         );
 
         public static final SwerveModule FR_MODULE = new SwerveModule(
+                "FR",
                 FR_DRIVE_ID,
                 FR_TURN_ID,
                 FR_DIO_ENCODER_PORT,
@@ -166,6 +168,7 @@ public class Constants {
         );
 
         public static final SwerveModule BL_MODULE = new SwerveModule(
+                "BL",
                 BL_DRIVE_ID,
                 BL_TURN_ID,
                 BL_DIO_ENCODER_PORT,
@@ -175,6 +178,7 @@ public class Constants {
         );
 
         public static final SwerveModule BR_MODULE = new SwerveModule(
+                "BR",
                 BR_DRIVE_ID,
                 BR_TURN_ID,
                 BR_DIO_ENCODER_PORT,
