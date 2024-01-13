@@ -4,8 +4,8 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class TunablePIDController extends PIDController {
-
     private String dashName;
+    private long nextUpdate = System.currentTimeMillis();
 
     /**
      * Returns the next output of the PID controller.
@@ -19,11 +19,14 @@ public class TunablePIDController extends PIDController {
         double output = super.calculate(measurement, setpoint);
 
         // Update the PID with the Dashboard.
-        setPID(
-                SmartDashboard.getNumber(dashName + ": P", getP()),
-                SmartDashboard.getNumber(dashName + ": I", getI()),
-                SmartDashboard.getNumber(dashName + ": D", getD())
-        );
+        if (System.currentTimeMillis() >= nextUpdate) {
+            setPID(
+                    SmartDashboard.getNumber(dashName + ": P", getP()),
+                    SmartDashboard.getNumber(dashName + ": I", getI()),
+                    SmartDashboard.getNumber(dashName + ": D", getD())
+            );
+            nextUpdate = System.currentTimeMillis() + 2000;
+        }
 
         return output;
     }

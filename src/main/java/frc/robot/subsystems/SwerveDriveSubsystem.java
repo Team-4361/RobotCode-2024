@@ -1,6 +1,8 @@
 package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -150,12 +152,15 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         }, false);
     }
 
-    public void reset() {
+    public void reset(Pose2d pose) {
         rollOffset = gyro.getRoll();
         pitchOffset = gyro.getPitch();
         gyro.reset();
-        odometry.resetPosition(gyro.getRotation2d(), getPositions(), new Pose2d());
+        odometry.resetPosition(gyro.getRotation2d(), getPositions(), pose);
     }
+
+
+    public void reset() { reset(new Pose2d()); }
 
     public SwerveModule getFrontLeft() { return frontLeft; }
     public SwerveModule getFrontRight() { return frontRight; }

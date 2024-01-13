@@ -145,7 +145,7 @@ public class Constants {
         public static final double MAX_SPEED_MPS = 12;
 
         public static final PIDConstants DRIVE_PID_CONFIG = new PIDConstants(2e-4, 0, 0);
-        public static final PIDConstants TURN_PID_CONFIG = new PIDConstants(5, 0, 0);
+        public static final PIDConstants TURN_PID_CONFIG = new PIDConstants(0.5, 0, 0);
 
         public static final SwerveModule FL_MODULE = new SwerveModule(
                 "FL",
