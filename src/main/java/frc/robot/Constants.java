@@ -56,7 +56,6 @@ public class Constants {
         public static final String STRING_MOTOR_OVER_TEMP = "Motor #%ID% stalled/over-temp; output disabled.";
 
         public static final String STRING_SWERVE_CONFIG_FAIL = "Swerve Config Failed! DO NOT DRIVE!";
-
         public static final String STRING_GYRO_CALIBRATING = "Gyroscope calibrating!";
     }
 

@@ -165,6 +165,9 @@ bin/
 .idea/
 out/
 
+# Allow Shuffleboard Plugins
+!plugins/*
+
 # Fleet
 .fleet
 
