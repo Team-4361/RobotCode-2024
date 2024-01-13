@@ -7,6 +7,7 @@ import com.revrobotics.SparkPIDController;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -36,14 +37,6 @@ public class SwerveModule {
     private final RelativeEncoder driveEncoder;
     private final DutyCycleEncoder rotationPWMEncoder;
     private final double offsetRads;
-    /*
-    private final PIDController turnController = new PIDController(
-            0.5,
-            0.0,
-            0.0,
-            0.02
-    );
-     */
     private final PIDConstants drivePIDConfig;
     private final PIDConstants turnPIDConfig;
     private final PIDController turnController;
@@ -133,7 +126,7 @@ public class SwerveModule {
     /**
      * Get the {@link SwerveModulePosition} based on the drive motor's
      * distance travelled (in meters), and turn encoder's angle. This
-     * is required for {@link SwerveOdometry} to work correctly.
+     * is required for {@link SwerveDriveOdometry} to work correctly.
      *
      * @return A {@link SwerveModulePosition}, representing the module's
      * current position, based on the module's drive motor distance and
@@ -169,7 +162,5 @@ public class SwerveModule {
         return (DRIVE_GEAR_RATIO.getFollowerRotation(driveEncoder.getPosition()) * (2 * Math.PI) * SWERVE_WHEEL_RADIUS);
     }
 
-    public void reset() {
-        driveEncoder.setPosition(0);
-    }
+    public void reset() { driveEncoder.setPosition(0); }
 }

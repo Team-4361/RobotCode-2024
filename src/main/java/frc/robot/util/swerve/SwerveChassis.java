@@ -67,7 +67,7 @@ public class SwerveChassis {
 
     public SwerveDriveKinematics getSwerveKinematics() { return SWERVE_KINEMATICS; }
 
-    public HashMap<String, SwerveModuleState> getSwerveModuleStates() {
+    public HashMap<String, SwerveModuleState> getStates() {
         return new HashMap<>(Map.of(
                 "FL", getFrontLeft().getState(),
                 "BL", getBackLeft().getState(),
@@ -76,7 +76,7 @@ public class SwerveChassis {
         ));
     }
 
-    public SwerveModulePosition[] getSwerveModulePositions() {
+    public SwerveModulePosition[] getPositions() {
         return new SwerveModulePosition[] {
                 getFrontLeft().getPosition(),
                 getFrontRight().getPosition(),
@@ -85,15 +85,15 @@ public class SwerveChassis {
         };
     }
 
-    public void setStates(SwerveModuleState[] states, boolean closedLoop) {
+    public void setStates(SwerveModuleState[] states, boolean isClosedLoop) {
         frontLeft.setState(states[0]);
         frontRight.setState(states[1]);
         backLeft.setState(states[2]);
         backRight.setState(states[3]);
     }
 
-    public void drive(ChassisSpeeds speeds) {
-        setStates(SWERVE_KINEMATICS.toSwerveModuleStates(speeds));
+    public void drive(ChassisSpeeds speeds, boolean isClosedLoop) {
+        setStates(SWERVE_KINEMATICS.toSwerveModuleStates(speeds), isClosedLoop);
         updateDashboard();
     }
 
