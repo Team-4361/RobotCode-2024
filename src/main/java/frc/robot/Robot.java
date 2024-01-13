@@ -93,8 +93,8 @@ public class Robot extends LoggedRobot {
         if (useNormalSticks) {
             leftStick = new DriveJoystick(
                     LEFT_STICK_ID,  // Left stick ID
-                    true,           // Drive X inverted?
-                    true,           // Drive Y inverted?
+                    false,           // Drive X inverted?
+                    false,           // Drive Y inverted?
                     true,           // Twist Axis Inverted?
                     DEADBAND,       // Deadband
                     DRIVE_MODES[0], // Primary Drive Mode

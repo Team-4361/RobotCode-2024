@@ -36,7 +36,6 @@ public class Constants {
         /** The Xbox Controller ID (typically 2) */
         public static final int XBOX_CONTROLLER_ID = 2;
 
-
         /** The default deadband value to use on Controllers. */
         public static final double DEADBAND = 0.05;
 
@@ -46,6 +45,8 @@ public class Constants {
                 DriveMode.LINEAR_MAP,
                 DriveMode.SLOW_MODE
         };
+
+        public static boolean PID_TUNING_ENABLED = true;
     }
 
     public static class AlertConfig {

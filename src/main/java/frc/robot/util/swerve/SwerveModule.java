@@ -5,6 +5,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -16,11 +17,11 @@ import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.pid.DashTunablePID;
-import frc.robot.util.pid.TunablePIDController;
 
 import static com.revrobotics.CANSparkBase.ControlType.kVelocity;
 import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 import static frc.robot.Constants.Chassis.*;
+import static frc.robot.Constants.Control.PID_TUNING_ENABLED;
 
 /**
  * A {@link SwerveModule} is composed of two motors and two encoders:
@@ -40,14 +41,15 @@ public class SwerveModule {
     private final double offsetRads;
     private final PIDConstants drivePIDConfig;
     private final PIDConstants turnPIDConfig;
-    private final TunablePIDController turnController;
+    private final PIDController turnController;
     private final String name;
     private double dRPM, mRPM;
 
     private final SparkPIDController driveController;
     public static long nextUpdate = System.currentTimeMillis();
-    public static DashTunablePID driveTune = new DashTunablePID("Drive PID", DRIVE_PID_CONFIG);
 
+    public static DashTunablePID driveTune = new DashTunablePID("Drive PID", DRIVE_PID_CONFIG);
+    public static DashTunablePID steerTune = new DashTunablePID("Steer PID", TURN_PID_CONFIG);
     /**
      * Creates a new {@link SwerveModule} instance using the specified parameters. The {@link CANSparkMax}
      * motor instance will be <b>created and reserved.</b>
@@ -69,7 +71,7 @@ public class SwerveModule {
         driveMotor.enableVoltageCompensation(12);
 
         this.rotationPWMEncoder = new DutyCycleEncoder(digitalEncoderPort);
-        this.turnController = new TunablePIDController(nm + " Turn PID", turnPIDConfig.kP, turnPIDConfig.kI, turnPIDConfig.kD, turnPIDConfig.kP);
+        this.turnController = new PIDController(turnPIDConfig.kP, turnPIDConfig.kI, turnPIDConfig.kD, turnPIDConfig.kP);
 
         this.offsetRads = offsetRads;
         this.drivePIDConfig = drivePIDConfig;
@@ -77,10 +79,16 @@ public class SwerveModule {
 
         this.driveEncoder = driveMotor.getEncoder();
         this.driveController = driveMotor.getPIDController();
+
         // Set the PID config for driving.
         driveController.setP(drivePIDConfig.kP);
         driveController.setI(drivePIDConfig.kI);
         driveController.setD(drivePIDConfig.kD);
+
+        if (PID_TUNING_ENABLED) {
+            driveTune.addConsumer(driveController::setP, driveController::setI, driveController::setD);
+            steerTune.addConsumer(turnController::setP, turnController::setI, turnController::setD);
+        }
     }
 
     /**
@@ -185,14 +193,11 @@ public class SwerveModule {
         SmartDashboard.putNumber(desiredRPM, dRPM);
         SmartDashboard.putNumber(maxRPM, mRPM);
 
-        if (System.currentTimeMillis() >= nextUpdate) {
+        if (PID_TUNING_ENABLED && System.currentTimeMillis() >= nextUpdate) {
             nextUpdate = System.currentTimeMillis() + 2000;
             driveTune.update();
+            steerTune.update();
         }
-
-        driveController.setP(driveTune.getP());
-        driveController.setI(driveTune.getI());
-        driveController.setD(driveTune.getD());
     }
 
     /**

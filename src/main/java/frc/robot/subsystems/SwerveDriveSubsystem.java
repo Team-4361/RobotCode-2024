@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
 import frc.robot.util.io.AlertType;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveHIDBase;
@@ -54,6 +55,13 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
     public Command resetCommand() { return Commands.runOnce(this::reset); }
 
+    /**
+     * Constructs a new {@link SwerveDriveSubsystem} with the specified modules.
+     * @param frontLeft  The front left {@link SwerveModule} to use.
+     * @param frontRight The front right {@link SwerveModule} to use.
+     * @param backLeft   The back left {@link SwerveModule} to use.
+     * @param backRight  The back right {@link SwerveModule} to use.
+     */
     public SwerveDriveSubsystem(SwerveModule frontLeft,
                                 SwerveModule frontRight,
                                 SwerveModule backLeft,
@@ -84,10 +92,13 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     }
 
 
+    /** @return The current roll of the {@link Robot} in degrees. */
     public double getRoll() { return gyro.getRoll() - rollOffset; }
+
+    /** @return The current pitch of the {@link Robot} in degrees. */
     public double getPitch() { return gyro.getPitch() - pitchOffset; }
 
-    /** @return The yaw of the Robot in degrees from (0-360 degrees) */
+    /** @return The current yaw of the {@link Robot} in degrees (0-360) */
     public double getYaw() { return gyro.getAngle() % 360; }
 
     public Rotation2d getRotation() { return gyro.getRotation2d(); }
