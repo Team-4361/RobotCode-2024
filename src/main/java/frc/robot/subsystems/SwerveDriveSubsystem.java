@@ -1,8 +1,7 @@
 package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.PathPlannerAuto;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -32,6 +31,7 @@ import static frc.robot.Constants.Chassis.SWERVE_CHASSIS_SIDE_LENGTH;
 public class SwerveDriveSubsystem extends SubsystemBase {
     private final SwerveDriveKinematics kinematics;
     private final SwerveDriveOdometry odometry;
+    private final SwerveDrivePoseEstimator poseEstimator;
     private final SwerveModule frontLeft;
     private final SwerveModule frontRight;
     private final SwerveModule backLeft;
@@ -70,9 +70,11 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         this.frontRight = frontRight;
         this.backLeft = backLeft;
         this.backRight = backRight;
-        this.gyro = new AHRS(SPI.Port.kMXP);
         this.pitchOffset = 0;
         this.rollOffset = 0;
+
+        this.gyro = new AHRS(SPI.Port.kMXP);
+        this.gyro.reset();
 
         // Define the distances relative to the center of the robot. +X is forward and +Y is left.
         this.kinematics = new SwerveDriveKinematics(
@@ -81,9 +83,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                 new Translation2d(-SWERVE_CHASSIS_SIDE_LENGTH / 2, SWERVE_CHASSIS_SIDE_LENGTH / 2), // BL
                 new Translation2d(-SWERVE_CHASSIS_SIDE_LENGTH / 2, -SWERVE_CHASSIS_SIDE_LENGTH / 2) // BR
         );
-        this.odometry = new SwerveDriveOdometry(kinematics, getRotation(), getPositions());
-
-        gyro.reset();
+        this.odometry = new SwerveDriveOdometry(kinematics, getHeading(), getPositions());
         IOManager.getAlert(STRING_GYRO_CALIBRATING, AlertType.WARNING)
                 .setCondition(gyro::isCalibrating)
                 .setPersistence(false)
@@ -91,28 +91,62 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                 .setOneUse(false);
     }
 
+    /**
+     * Gets the current field-relative velocity (x, y and omega) of the robot
+     *
+     * @return A ChassisSpeeds object of the current field-relative velocity
+     */
+    public ChassisSpeeds getFieldVelocity() {
+        // ChassisSpeeds has a method to convert from field-relative to robot-relative speeds,
+        // but not the reverse.  However, because this transform is a simple rotation, negating the
+        // angle
+        // given as the robot angle reverses the direction of rotation, and the conversion is reversed.
+        return ChassisSpeeds.fromFieldRelativeSpeeds(
+                kinematics.toChassisSpeeds(getStates()), getHeading().unaryMinus());
+    }
 
-    /** @return The current roll of the {@link Robot} in degrees. */
+    /**
+     * Gets the current robot-relative velocity (x, y and omega) of the robot
+     *
+     * @return A ChassisSpeeds object of the current robot-relative velocity
+     */
+    public ChassisSpeeds getRobotVelocity() {
+        return kinematics.toChassisSpeeds(getStates());
+    }
+
+    /** @return The current roll of the {@link Robot} in <b>degrees</b>. */
     public double getRoll() { return gyro.getRoll() - rollOffset; }
 
-    /** @return The current pitch of the {@link Robot} in degrees. */
+    /** @return The current pitch of the {@link Robot} in <b>degrees</b>. */
     public double getPitch() { return gyro.getPitch() - pitchOffset; }
 
-    /** @return The current yaw of the {@link Robot} in degrees (0-360) */
+    /** @return The current yaw of the {@link Robot} in <b>degrees</b> (0-360) */
     public double getYaw() { return gyro.getAngle() % 360; }
 
-    public Rotation2d getRotation() { return gyro.getRotation2d(); }
+    public Rotation2d getHeading() { return gyro.getRotation2d(); }
 
     public void setStates(SwerveModuleState[] states, boolean isClosedLoop) {
+        SwerveDriveKinematics.desaturateWheelSpeeds(states, MAX_SPEED_MPS);
+
         frontLeft.setState(states[0], isClosedLoop);
         frontRight.setState(states[1], isClosedLoop);
         backLeft.setState(states[2], isClosedLoop);
         backRight.setState(states[3], isClosedLoop);
     }
 
+    /** The registered {@link SwerveModuleState} list. */
+    public SwerveModuleState[] getStates() {
+        return new SwerveModuleState[]{
+                frontLeft.getState(),
+                frontRight.getState(),
+                backLeft.getState(),
+                backRight.getState()
+        };
+    }
+
     @Override
     public void periodic() {
-        odometry.update(getRotation(), getPositions());
+        odometry.update(getHeading(), getPositions());
         frontLeft.updateDashboard();
         frontRight.updateDashboard();
         backLeft.updateDashboard();
@@ -132,7 +166,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         ChassisSpeeds speeds = new ChassisSpeeds(xS, yS, tS);
 
         if (fieldOriented)
-            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getRotation());
+            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getHeading());
 
         drive(speeds, closedLoop);
     }
@@ -145,7 +179,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         ChassisSpeeds speeds = new ChassisSpeeds(xS, yS, tS);
 
         if (fieldOriented)
-            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getRotation());
+            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getHeading());
 
         drive(speeds, closedLoop);
     }

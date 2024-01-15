@@ -95,7 +95,7 @@ public class Robot extends LoggedRobot {
                     LEFT_STICK_ID,  // Left stick ID
                     false,           // Drive X inverted?
                     false,           // Drive Y inverted?
-                    true,           // Twist Axis Inverted?
+                    false,           // Twist Axis Inverted?
                     DEADBAND,       // Deadband
                     DRIVE_MODES[0], // Primary Drive Mode
                     DRIVE_MODES     // Secondary Drive Modes
@@ -103,9 +103,9 @@ public class Robot extends LoggedRobot {
 
             rightStick = new DriveJoystick(
                     RIGHT_STICK_ID,  // Left stick ID
-                    true,            // Drive X inverted?
-                    true,            // Drive Y inverted?
-                    true,            // Twist Axis Inverted?
+                    false,            // Drive X inverted?
+                    false,            // Drive Y inverted?
+                    false,            // Twist Axis Inverted?
                     DEADBAND,        // Deadband
                     DRIVE_MODES[0],  // Primary Drive Mode
                     DRIVE_MODES      // Secondary Drive Modes
