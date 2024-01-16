@@ -101,6 +101,12 @@ public class Alert {
      */
     public void setEnabled(boolean enabled) {
         this.manEnabled = enabled;
+        if (enabled) {
+            this.thrownPrev = true;
+            this.enabledTime = System.currentTimeMillis();
+        } else {
+            this.enabledTime = -1;
+        }
     }
 
     /**

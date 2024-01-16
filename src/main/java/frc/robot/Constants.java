@@ -69,8 +69,11 @@ public class Constants {
         public static final String STRING_PERIODIC_NAME = "PERIODIC";
         public static final Duration PERIODIC_INTERVAL = Duration.ofMillis(20);
 
-        public static final String STRING_LOW_PRIORITY_NAME = "LOW-PRIORITY";
-        public static final Duration LOW_PRIORITY_INTERVAL = Duration.ofSeconds(3);
+        public static final String STRING_ODOMETRY_NAME = "ODOMETRY";
+        public static final Duration ODOMETRY_INTERVAL = Duration.ofMillis(50);
+
+        public static final String STRING_DASHBOARD_NAME = "DASHBOARD";
+        public static final Duration DASHBOARD_INTERVAL = Duration.ofMillis(250);
     }
 
     /**

@@ -25,6 +25,7 @@ import java.util.Optional;
 
 import static frc.robot.Constants.AlertConfig.STRING_GYRO_CALIBRATING;
 import static frc.robot.Constants.Chassis.*;
+import static frc.robot.Constants.LooperConfig.*;
 
 /**
  * This {@link SwerveDriveSubsystem} is designed to be used for controlling the {@link SwerveChassis}, and utilizing
@@ -114,6 +115,19 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         );
 
         FRCSparkMax.burnAllFlash();
+
+        IOManager.getLoop(STRING_ODOMETRY_NAME)
+                .setInterval(ODOMETRY_INTERVAL)
+                .addPeriodic(() -> odometry.update(getHeading(), getPositions()));
+
+        IOManager.getLoop(STRING_DASHBOARD_NAME)
+                .setInterval(DASHBOARD_INTERVAL)
+                .addPeriodic(() -> {
+                    frontLeft.updateDashboard();
+                    frontRight.updateDashboard();
+                    backLeft.updateDashboard();
+                    backRight.updateDashboard();
+                });
     }
 
     /**
@@ -171,11 +185,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        odometry.update(getHeading(), getPositions());
-        frontLeft.updateDashboard();
-        frontRight.updateDashboard();
-        backLeft.updateDashboard();
-        backRight.updateDashboard();
+
+
     }
 
     /**
@@ -232,7 +243,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         gyro.reset();
         odometry.resetPosition(gyro.getRotation2d(), getPositions(), pose);
     }
-
 
     public void reset() { reset(new Pose2d()); }
 
