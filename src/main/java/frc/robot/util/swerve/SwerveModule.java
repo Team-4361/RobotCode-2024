@@ -1,6 +1,7 @@
 package frc.robot.util.swerve;
 
 import com.pathplanner.lib.util.PIDConstants;
+import com.revrobotics.CANSparkBase;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
@@ -54,7 +55,7 @@ public class SwerveModule {
      * Creates a new {@link SwerveModule} instance using the specified parameters. The {@link CANSparkMax}
      * motor instance will be <b>created and reserved.</b>
      *
-     * @param nm                 The name of the swerve module.
+     * @param name               The name of the swerve module.
      * @param driveMotorId       The Motor ID used for driving the wheel.
      * @param turnMotorId        The Motor ID used for turning the wheel.
      * @param digitalEncoderPort The {@link DigitalInput} ID used for the Encoder.
@@ -62,16 +63,14 @@ public class SwerveModule {
      * @param drivePIDConfig     The {@link PIDConstants} to use for closed-loop driving.
      * @param turnPIDConfig      The {@link PIDConstants} to use for PWM turning.
      */
-    public SwerveModule(String nm, int driveMotorId, int turnMotorId, int digitalEncoderPort,
+    public SwerveModule(String name, int driveMotorId, int turnMotorId, int digitalEncoderPort,
                         double offsetRads, PIDConstants drivePIDConfig, PIDConstants turnPIDConfig) {
-        this.name = nm;
+        this.name = name;
         this.driveMotor = new FRCSparkMax(driveMotorId, kBrushless, DCMotor.getNEO(1));
         this.turnMotor = new FRCSparkMax(turnMotorId, kBrushless, DCMotor.getNEO(1));
-
-        driveMotor.enableVoltageCompensation(12);
-
-        this.rotationPWMEncoder = new DutyCycleEncoder(digitalEncoderPort);
         this.turnController = new PIDController(turnPIDConfig.kP, turnPIDConfig.kI, turnPIDConfig.kD, turnPIDConfig.kP);
+        this.rotationPWMEncoder = new DutyCycleEncoder(digitalEncoderPort);
+        driveMotor.enableVoltageCompensation(12);
 
         this.offsetRads = offsetRads;
         this.drivePIDConfig = drivePIDConfig;
@@ -89,6 +88,14 @@ public class SwerveModule {
             driveTune.addConsumer(driveController::setP, driveController::setI, driveController::setD);
             steerTune.addConsumer(turnController::setP, turnController::setI, turnController::setD);
         }
+
+        driveMotor.setIdleMode(CANSparkBase.IdleMode.kBrake);
+        driveMotor.setSmartCurrentLimit(40);
+        turnMotor.setIdleMode(CANSparkBase.IdleMode.kBrake);
+        turnMotor.setSmartCurrentLimit(20);
+
+        FRCSparkMax.stageFlash(driveMotor);
+        FRCSparkMax.stageFlash(turnMotor);
     }
 
     /**

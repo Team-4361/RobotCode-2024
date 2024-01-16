@@ -9,6 +9,9 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.util.io.Alert;
 import frc.robot.util.io.AlertType;
 import frc.robot.util.io.IOManager;
@@ -28,6 +31,33 @@ public class FRCSparkMax extends CANSparkMax {
     private final Alert conditionAlert;
     private final DCMotor model;
     private long lastSimUpdateMillis;
+    private static SequentialCommandGroup programGroup = new SequentialCommandGroup();
+
+    public static void burnAllFlash() {
+        new WaitCommand(2).andThen(Commands.runOnce(() -> {
+             IOManager.getAlert("Programming Motors...", AlertType.WARNING)
+                    .setOneUse(true)
+                    .setEnabled(true);
+        })).andThen(programGroup).andThen(() -> {
+            IOManager.getAlert("Programming Motors...", AlertType.WARNING)
+                    .setEnabled(false);
+        }).ignoringDisable(true).schedule();
+
+        // Clear the group to prevent future problems.
+        programGroup = new SequentialCommandGroup();
+    }
+
+    public static void stageFlash(FRCSparkMax motor) {
+        programGroup.addCommands(Commands.runOnce(() -> {
+            if (motor.burnFlash() != REVLibError.kOk) {
+                IOManager.getAlert(motor.getDeviceId() + " failed to program", AlertType.WARNING)
+                        .setOneUse(true)
+                        .setEnabled(true);
+            }
+        })
+                .andThen(new WaitCommand(2))
+                .ignoringDisable(true));
+    }
 
     /**
      * Create a new object to control a SPARK MAX motor Controller

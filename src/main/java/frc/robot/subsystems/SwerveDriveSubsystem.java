@@ -1,11 +1,15 @@
 package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.*;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -14,11 +18,13 @@ import frc.robot.Robot;
 import frc.robot.util.io.AlertType;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveHIDBase;
+import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.swerve.SwerveModule;
 
+import java.util.Optional;
+
 import static frc.robot.Constants.AlertConfig.STRING_GYRO_CALIBRATING;
-import static frc.robot.Constants.Chassis.MAX_SPEED_MPS;
-import static frc.robot.Constants.Chassis.SWERVE_CHASSIS_SIDE_LENGTH;
+import static frc.robot.Constants.Chassis.*;
 
 /**
  * This {@link SwerveDriveSubsystem} is designed to be used for controlling the {@link SwerveChassis}, and utilizing
@@ -31,7 +37,6 @@ import static frc.robot.Constants.Chassis.SWERVE_CHASSIS_SIDE_LENGTH;
 public class SwerveDriveSubsystem extends SubsystemBase {
     private final SwerveDriveKinematics kinematics;
     private final SwerveDriveOdometry odometry;
-    private final SwerveDrivePoseEstimator poseEstimator;
     private final SwerveModule frontLeft;
     private final SwerveModule frontRight;
     private final SwerveModule backLeft;
@@ -87,8 +92,28 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         IOManager.getAlert(STRING_GYRO_CALIBRATING, AlertType.WARNING)
                 .setCondition(gyro::isCalibrating)
                 .setPersistence(false)
-                .setDisableDelay(1000)
+                .setDisableDelay(2000)
                 .setOneUse(false);
+
+        AutoBuilder.configureHolonomic(
+                this::getPose,
+                this::reset,
+                this::getRobotVelocity,
+                this::drive,
+                new HolonomicPathFollowerConfig(
+                        AUTO_DRIVE_PID_CONFIG,
+                        AUTO_TURN_PID_CONFIG,
+                        MAX_SPEED_MPS,
+                        SWERVE_CHASSIS_SIDE_LENGTH/2,
+                        new ReplanningConfig()
+                ), () -> {
+                    Optional<DriverStation.Alliance> alliance = DriverStation.getAlliance();
+                    return alliance.filter(value -> value == DriverStation.Alliance.Red).isPresent();
+                },
+                this
+        );
+
+        FRCSparkMax.burnAllFlash();
     }
 
     /**
@@ -182,6 +207,10 @@ public class SwerveDriveSubsystem extends SubsystemBase {
             speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getHeading());
 
         drive(speeds, closedLoop);
+    }
+
+    public void drive(ChassisSpeeds speeds) {
+        setStates(kinematics.toSwerveModuleStates(speeds), false);
     }
 
     public void drive(ChassisSpeeds speeds, boolean isClosedLoop) {

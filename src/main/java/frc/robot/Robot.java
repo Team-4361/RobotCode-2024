@@ -5,6 +5,7 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -242,5 +243,10 @@ public class Robot extends LoggedRobot {
     public void teleopPeriodic() {
         //Robot.arm.getExtension().translateMotor(deadband(-RobotContainer.xbox.getLeftY() / 2, 0.1));
         //Robot.arm.getRotation().translateMotor(deadband(-RobotContainer.xbox.getRightY(), 0.1));
+    }
+
+    @Override
+    public void autonomousInit() {
+        new PathPlannerAuto("New Auto").schedule();
     }
 }
