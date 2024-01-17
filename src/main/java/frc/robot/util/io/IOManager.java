@@ -3,12 +3,16 @@ package frc.robot.util.io;
 import com.revrobotics.REVLibError;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Robot;
+import frc.robot.util.storage.MutablePair;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
-import java.time.Duration;
 import java.util.*;
 import java.util.function.Function;
 
@@ -160,6 +164,7 @@ public class IOManager {
         return false;
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public static boolean deleteLoop(String loopName) {
         Iterator<Looper> it = LOOPS.iterator();
         while (it.hasNext()) {
@@ -286,6 +291,25 @@ public class IOManager {
             else
                 warn(sender, error.name());
     }
+
+    /**
+     * Acknowledges an {@link Alert} by <b>deleting</b> the most recent one displayed to
+     * the {@link Shuffleboard}. This method can be mapped to any button on a {@link Joystick}.
+     * <p></p>
+     * NOTE: This does <b>NOT</b> clear {@link Alert}s marked as <u>persistent!</u>
+     * @return True if the operation succeeded; false otherwise.
+     */
+    @SuppressWarnings("UnusedReturnValue")
+    public static boolean acknowledgeAlert() {
+        return ALERTS.stream()
+                .filter(o -> !o.isPersistent() && o.isEnabled() && o.getEnableMillis() > 0)
+                .max(Comparator.comparingLong(Alert::getEnableMillis))
+                .map(ALERTS::remove)
+                .orElse(false);
+    }
+
+    /** @return A {@link Command} used to acknowledge an {@link Alert}. */
+    public static Command acknowledgeAlertCommand() { return Commands.runOnce(IOManager::acknowledgeAlert); }
 
     public static void errorOnFail(REVLibError error, String message) { errorOnFail(null, error, message); }
     public static void warnOnFail(REVLibError error, String message) { warnOnFail(null, error, message); }

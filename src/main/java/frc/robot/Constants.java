@@ -56,8 +56,8 @@ public class Constants {
         /** The {@link String} used when a Motor is stalled/over-temp. Use '%ID%' to reference the ID. */
         public static final String STRING_MOTOR_OVER_TEMP = "Motor #%ID% stalled/over-temp; output disabled.";
 
-        public static final String STRING_SWERVE_CONFIG_FAIL = "Swerve Config Failed! DO NOT DRIVE!";
         public static final String STRING_GYRO_CALIBRATING = "Gyroscope calibrating!";
+        public static final String STRING_PROGRAMMING_MOTOR = "Programing Motors...";
     }
 
     /**

@@ -101,6 +101,8 @@ public class PresetGroup extends ArrayList<IPresetContainer> implements IPresetC
                     .addPeriodic(() -> {
                         if (seqIndex < 0 || seqIndex > size() - 1) {
                             finished = true;
+
+                            // TODO: warn on fail.
                             IOManager.deleteLoop(name + "-SEQ");
                         }
                         IPresetContainer inst = get(seqIndex);
@@ -114,6 +116,8 @@ public class PresetGroup extends ArrayList<IPresetContainer> implements IPresetC
                             if (seqIndex >= size() - 1) {
                                 // We reached the last element; end the Loop.
                                 finished = true;
+
+                                // TODO: warn on fail
                                 IOManager.deleteLoop(name + "-SEQ");
                                 return;
                             }

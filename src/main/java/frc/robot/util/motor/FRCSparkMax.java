@@ -17,6 +17,7 @@ import frc.robot.util.io.AlertType;
 import frc.robot.util.io.IOManager;
 
 import static frc.robot.Constants.AlertConfig.STRING_MOTOR_OVER_TEMP;
+import static frc.robot.Constants.AlertConfig.STRING_PROGRAMMING_MOTOR;
 import static frc.robot.Constants.LooperConfig.STRING_PERIODIC_NAME;
 
 /**
@@ -35,11 +36,11 @@ public class FRCSparkMax extends CANSparkMax {
 
     public static void burnAllFlash() {
         new WaitCommand(2).andThen(Commands.runOnce(() -> {
-             IOManager.getAlert("Programming Motors...", AlertType.WARNING)
+             IOManager.getAlert(STRING_PROGRAMMING_MOTOR, AlertType.INFO)
                     .setOneUse(true)
                     .setEnabled(true);
         })).andThen(programGroup).andThen(() -> {
-            IOManager.deleteAlert("Programming Motors...", AlertType.WARNING);
+            IOManager.deleteAlert(STRING_PROGRAMMING_MOTOR, AlertType.INFO);
         }).ignoringDisable(true).schedule();
 
         // Clear the group to prevent future problems.
@@ -93,9 +94,9 @@ public class FRCSparkMax extends CANSparkMax {
             );
             IOManager.warnOnFail(setSimStallTorque(model.stallTorqueNewtonMeters));
 
-            IOManager.debug(this, "Adding SparkMax ID #" + deviceId + " to simulation.");
-            lastSimUpdateMillis = System.currentTimeMillis();
+            IOManager.info(this, "Adding SparkMax ID #" + deviceId + " to simulation.");
 
+            lastSimUpdateMillis = System.currentTimeMillis();
             IOManager.addPeriodicIfExists(STRING_PERIODIC_NAME, () -> {
                 final RelativeEncoder relativeEncoder = getEncoder();
                 final double position = relativeEncoder.getPosition();
