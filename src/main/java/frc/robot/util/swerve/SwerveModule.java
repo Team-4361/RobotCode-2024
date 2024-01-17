@@ -49,8 +49,8 @@ public class SwerveModule {
     private final SparkPIDController driveController;
     public static long nextUpdate = System.currentTimeMillis();
 
-    public static DashTunablePID driveTune = new DashTunablePID("Drive PID", DRIVE_PID_CONFIG);
-    public static DashTunablePID steerTune = new DashTunablePID("Steer PID", TURN_PID_CONFIG);
+    public static final DashTunablePID driveTune = new DashTunablePID("Drive PID", DRIVE_PID_CONFIG);
+    public static final DashTunablePID steerTune = new DashTunablePID("Steer PID", TURN_PID_CONFIG);
     /**
      * Creates a new {@link SwerveModule} instance using the specified parameters. The {@link CANSparkMax}
      * motor instance will be <b>created and reserved.</b>
@@ -132,8 +132,6 @@ public class SwerveModule {
 
         if (isClosedLoop) {
             // Set the desired RPM to achieve the meters per second.
-            //double wheelRPM = (state.speedMetersPerSecond / SWERVE_WHEEL_CIRCUMFERENCE) * 60;
-            //dRPM = DRIVE_GEAR_RATIO.getLeadRotation(wheelRPM);
             mRPM = Units.radiansPerSecondToRotationsPerMinute(driveMotor.getModel().freeSpeedRadPerSec);
             dRPM = mRPM * (state.speedMetersPerSecond / MAX_SPEED_MPS);
             driveController.setReference(dRPM, kVelocity, 0);

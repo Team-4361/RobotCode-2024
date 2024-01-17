@@ -1,15 +1,13 @@
 package frc.robot.util.io;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public enum AlertType {
     WARNING("warnings"),
-    ERROR("errors");
+    ERROR("errors"),
+    INFO("infos");
 
     private final String prefix;
 
-    public static final AlertType[] DASHBOARD_ORDER = new AlertType[]{WARNING, ERROR};
+    public static final AlertType[] DASHBOARD_ORDER = new AlertType[]{ERROR, WARNING, INFO};
 
     AlertType(String prefix) { this.prefix = prefix; }
     public String getPrefix() { return this.prefix; }

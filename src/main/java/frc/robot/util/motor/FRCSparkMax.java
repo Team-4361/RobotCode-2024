@@ -39,8 +39,7 @@ public class FRCSparkMax extends CANSparkMax {
                     .setOneUse(true)
                     .setEnabled(true);
         })).andThen(programGroup).andThen(() -> {
-            IOManager.getAlert("Programming Motors...", AlertType.WARNING)
-                    .setEnabled(false);
+            IOManager.deleteAlert("Programming Motors...", AlertType.WARNING);
         }).ignoringDisable(true).schedule();
 
         // Clear the group to prevent future problems.
@@ -96,21 +95,20 @@ public class FRCSparkMax extends CANSparkMax {
 
             IOManager.debug(this, "Adding SparkMax ID #" + deviceId + " to simulation.");
             lastSimUpdateMillis = System.currentTimeMillis();
-            IOManager
-                    .getLoop(STRING_PERIODIC_NAME)
-                    .addPeriodic(() -> {
-                        final RelativeEncoder relativeEncoder = getEncoder();
-                        final double position = relativeEncoder.getPosition();
-                        final double velocity = relativeEncoder.getVelocity();
-                        final double positionConversionFactor = relativeEncoder.getPositionConversionFactor();
 
-                        relativeEncoder.setPosition(
-                                position + velocity *
-                                        (System.currentTimeMillis() - lastSimUpdateMillis) / 60000.0
-                                        * positionConversionFactor
-                        );
-                        lastSimUpdateMillis = System.currentTimeMillis();
-                    });
+            IOManager.addPeriodicIfExists(STRING_PERIODIC_NAME, () -> {
+                final RelativeEncoder relativeEncoder = getEncoder();
+                final double position = relativeEncoder.getPosition();
+                final double velocity = relativeEncoder.getVelocity();
+                final double positionConversionFactor = relativeEncoder.getPositionConversionFactor();
+
+                relativeEncoder.setPosition(
+                        position + velocity *
+                                (System.currentTimeMillis() - lastSimUpdateMillis) / 60000.0
+                                * positionConversionFactor
+                );
+                lastSimUpdateMillis = System.currentTimeMillis();
+            });
         }
     }
 

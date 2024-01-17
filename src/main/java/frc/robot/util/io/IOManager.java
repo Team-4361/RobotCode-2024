@@ -8,9 +8,9 @@ import frc.robot.Robot;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.time.Duration;
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import static frc.robot.Constants.AlertConfig.ALERT_PERIODIC_MS;
 import static frc.robot.Constants.AlertConfig.STRING_HIGH_PERIODIC_MS;
@@ -32,7 +32,10 @@ public class IOManager {
 
     private static final long testModeDisable = System.currentTimeMillis() + 5000;
 
+    /** @return A {@link List} of all registered {@link Looper} instances. */
     public static List<Looper> getLoops() { return LOOPS; }
+
+    /** @return A {@link List} of all registered {@link Alert} instances. */
     public static List<Alert> getAlerts() { return ALERTS; }
 
     static {
@@ -44,14 +47,94 @@ public class IOManager {
                 .setOneUse(false);
     }
 
-    public static Looper getLoop(String loopName) {
-        Looper loop = LOOPS.stream()
-                .filter(o -> o.getName().equals(loopName))
-                .findFirst()
-                .orElseGet(() -> new Looper(loopName));
-        if (!LOOPS.contains(loop))
-            LOOPS.add(loop);
-        return loop;
+    /**
+     * Initializes a {@link Looper} instance and automatically registers it.
+     *
+     * @param loopName      The {@link String} name of the {@link Looper} (case-insensitive)
+     * @param multiThreaded If the {@link Looper} should be multi-threaded.
+     * @param interval      The interval of the {@link Looper} <code>periodic</code> calls.
+     * @return True if the {@link Looper} does <b>not</b> exist and successfully initialized; false otherwise.
+     */
+    @SuppressWarnings("UnusedReturnValue")
+    public static boolean initLoop(String loopName, boolean multiThreaded, long interval) {
+        if (loopExists(loopName))
+            return false;
+        return LOOPS.add(new Looper(loopName, interval, multiThreaded));
+    }
+
+    /** @return If the {@link Looper} exists. <b>Highly recommended to call this before {@link #getLoop(String)}</b> */
+    public static boolean loopExists(String loopName) { return (getLoop(loopName).isPresent()); }
+
+    /**
+     * Adds a <code>periodic</code> {@link Runnable} to the {@link Looper} only if currently initialized.
+     * @param loopName The {@link String} name of the {@link Looper} (case-insensitive)
+     * @param periodic The <code>periodic</code> {@link Runnable} to add.
+     * @return True if the {@link Looper} exists; false otherwise.
+     */
+    @SuppressWarnings("UnusedReturnValue")
+    public static boolean addPeriodicIfExists(String loopName, Runnable periodic) {
+        Optional<Looper> loop;
+        if ((loop = getLoop(loopName)).isEmpty()) {
+            return false;
+        }
+        loop.get().addPeriodic(periodic);
+        return true;
+    }
+
+    /**
+     * Adds a <code>simPeriodic</code> {@link Runnable} to the {@link Looper} only if currently initialized.
+     * @param loopName    The {@link String} name of the {@link Looper} (case-insensitive)
+     * @param simPeriodic The <code>simPeriodic</code> {@link Runnable} to add.
+     * @return True if the {@link Looper} exists; false otherwise.
+     */
+    public static boolean addSimPeriodicIfExists(String loopName, Runnable simPeriodic) {
+        Optional<Looper> loop;
+        if ((loop = getLoop(loopName)).isEmpty()) {
+            return false;
+        }
+        loop.get().addSimPeriodic(simPeriodic);
+        return true;
+    }
+
+    /**
+     * Adds an <code>init</code> {@link Runnable} to the {@link Looper} only if currently initialized.
+     * @param loopName The {@link String} name of the {@link Looper} (case-insensitive)
+     * @param init     The <code>init</code> {@link Runnable} to add.
+     * @return True if the {@link Looper} exists; false otherwise.
+     */
+    public static boolean addInitIfExists(String loopName, Runnable init) {
+        Optional<Looper> loop;
+        if ((loop = getLoop(loopName)).isEmpty()) {
+            return false;
+        }
+        loop.get().addInit(init);
+        return true;
+    }
+
+    /**
+     * Adds an <code>onFinished</code> {@link Runnable} to the {@link Looper} only if currently initialized.
+     * @param loopName  The {@link String} name of the {@link Looper} (case-insensitive)
+     * @param onFinished The <code>onFinished</code> {@link Runnable} to add.
+     * @return True if the {@link Looper} exists; false otherwise.
+     */
+    public static boolean addOnFinishedIfExists(String loopName, Runnable onFinished) {
+        Optional<Looper> loop;
+        if ((loop = getLoop(loopName)).isEmpty()) {
+            return false;
+        }
+        loop.get().addOnFinished(onFinished);
+        return true;
+    }
+
+    /**
+     * Attempts to find a {@link Looper} based on the {@link String} name.
+     * @param loopName The {@link String} name of the {@link Looper} (case-insensitive)
+     * @return
+     */
+    public static Optional<Looper> getLoop(String loopName) {
+        return LOOPS.stream()
+                .filter(o -> o.getName().equalsIgnoreCase(loopName))
+                .findFirst();
     }
 
     public static Alert getAlert(String alertName, AlertType type) {
@@ -62,6 +145,34 @@ public class IOManager {
         if (!ALERTS.contains(alert))
             ALERTS.add(alert);
         return alert;
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
+    public static boolean deleteAlert(String alertName, AlertType type) {
+        Iterator<Alert> it = ALERTS.iterator();
+        while (it.hasNext()) {
+            Alert alert = it.next();
+            if (alert.getName().equalsIgnoreCase(alertName) && alert.getType() == type) {
+                it.remove();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean deleteLoop(String loopName) {
+        Iterator<Looper> it = LOOPS.iterator();
+        while (it.hasNext()) {
+            Looper loop = it.next();
+            if (loop.getName().equalsIgnoreCase(loopName)) {
+                // Try to force the Looper to end itself and call the "onFinished" method.
+                loop.stop();
+                loop.run();
+                it.remove();
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -218,15 +329,16 @@ public class IOManager {
             Looper looper = it.next();
             if (!looper.isFinished() && !looper.isRunning()) {
                 looper.start();
-                debug(IOManager.class, "Executing loop (\"" + looper.getName() + "\")");
+                info(IOManager.class, "Executing loop (\"" + looper.getName() + "\")");
                 continue;
             }
             if (looper.isFinished()) {
-                debug(IOManager.class, "Terminating loop (\"" + looper.getName() + "\")");
+                info(IOManager.class, "Terminating loop (\"" + looper.getName() + "\")");
                 it.remove();
                 continue;
             }
-            looper.run();
+            if (!looper.isMultiThreaded())
+                looper.run();
         }
 
         lastLoopUpdate = System.currentTimeMillis();

@@ -46,7 +46,7 @@ public class Constants {
                 DriveMode.SLOW_MODE
         };
 
-        public static boolean PID_TUNING_ENABLED = true;
+        public static final boolean PID_TUNING_ENABLED = true;
     }
 
     public static class AlertConfig {
@@ -67,13 +67,13 @@ public class Constants {
     public static class LooperConfig {
         /** The <b>default</b> millisecond loop time. Note: this can be overridden per Looper interface. */
         public static final String STRING_PERIODIC_NAME = "PERIODIC";
-        public static final Duration PERIODIC_INTERVAL = Duration.ofMillis(20);
+        public static final long PERIODIC_INTERVAL = 20;
 
         public static final String STRING_ODOMETRY_NAME = "ODOMETRY";
-        public static final Duration ODOMETRY_INTERVAL = Duration.ofMillis(50);
+        public static final long ODOMETRY_INTERVAL = 50;
 
         public static final String STRING_DASHBOARD_NAME = "DASHBOARD";
-        public static final Duration DASHBOARD_INTERVAL = Duration.ofMillis(250);
+        public static final long DASHBOARD_INTERVAL = 250;
     }
 
     /**

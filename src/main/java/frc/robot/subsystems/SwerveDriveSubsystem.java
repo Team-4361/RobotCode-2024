@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.*;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -28,7 +29,7 @@ import static frc.robot.Constants.Chassis.*;
 import static frc.robot.Constants.LooperConfig.*;
 
 /**
- * This {@link SwerveDriveSubsystem} is designed to be used for controlling the {@link SwerveChassis}, and utilizing
+ * This {@link SwerveDriveSubsystem} is designed to be used for controlling the {@link SwerveModule}s, and utilizing
  * an {@link AHRS} gyroscope to provide the field-relating driving a robot needs. This is also useful for debugging
  * purposes (or for simple autonomous) as it allows driving in a specific direction.
  *
@@ -116,18 +117,13 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
         FRCSparkMax.burnAllFlash();
 
-        IOManager.getLoop(STRING_ODOMETRY_NAME)
-                .setInterval(ODOMETRY_INTERVAL)
-                .addPeriodic(() -> odometry.update(getHeading(), getPositions()));
-
-        IOManager.getLoop(STRING_DASHBOARD_NAME)
-                .setInterval(DASHBOARD_INTERVAL)
-                .addPeriodic(() -> {
-                    frontLeft.updateDashboard();
-                    frontRight.updateDashboard();
-                    backLeft.updateDashboard();
-                    backRight.updateDashboard();
-                });
+        IOManager.addPeriodicIfExists(STRING_ODOMETRY_NAME, () -> odometry.update(getHeading(), getPositions()));
+        IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, () -> {
+            frontLeft.updateDashboard();
+            frontRight.updateDashboard();
+            backLeft.updateDashboard();
+            backRight.updateDashboard();
+        });
     }
 
     /**
@@ -181,12 +177,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                 backLeft.getState(),
                 backRight.getState()
         };
-    }
-
-    @Override
-    public void periodic() {
-
-
     }
 
     /**
