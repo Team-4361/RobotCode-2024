@@ -6,10 +6,8 @@
 package frc.robot;
 
 import com.pathplanner.lib.commands.PathPlannerAuto;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Filesystem;
-import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -32,6 +30,7 @@ import java.util.function.BiConsumer;
 import static frc.robot.Constants.Chassis.*;
 import static frc.robot.Constants.ClimberPresets.*;
 import static frc.robot.Constants.Control.*;
+import static frc.robot.Constants.LooperConfig.*;
 
 
 /**
@@ -41,7 +40,7 @@ import static frc.robot.Constants.Control.*;
  * project.
  */
 public class Robot extends LoggedRobot {
-    public static VerbosityLevel verbosity = VerbosityLevel.DEBUG;
+    public static final VerbosityLevel verbosity = VerbosityLevel.DEBUG;
 
     public static PowerDistribution pdh;
     public static DriveXboxController xbox;
@@ -80,8 +79,8 @@ public class Robot extends LoggedRobot {
         }
 
         // TODO: setup replay/sim mode!
-        Logger.addDataReceiver(new NT4Publisher());
-        Logger.start(); // start logging!
+        //Logger.addDataReceiver(new NT4Publisher());
+        //Logger.start(); // start logging!
         // endregion
 
         boolean useNormalSticks = !RobotBase.isSimulation() ||
@@ -128,6 +127,8 @@ public class Robot extends LoggedRobot {
             drivePresets.add(xbox); // only add the Xbox Controller if used for driving.
 
         pdh = new PowerDistribution();
+
+        initLoops();
         swerve = new SwerveDriveSubsystem(FL_MODULE, FR_MODULE, BL_MODULE, BR_MODULE);
 
         BiConsumer<Command, Boolean> logCommandFunction = getCommandActivity();
@@ -139,6 +140,12 @@ public class Robot extends LoggedRobot {
         registerAlerts();
         configureBindings(!useNormalSticks);
         // ******************************************************************* //
+    }
+
+    private void initLoops() {
+        IOManager.initLoop(STRING_PERIODIC_NAME, false, PERIODIC_INTERVAL);
+        IOManager.initLoop(STRING_DASHBOARD_NAME, false, DASHBOARD_INTERVAL);
+        IOManager.initLoop(STRING_ODOMETRY_NAME, false, ODOMETRY_INTERVAL);
     }
 
     private void registerAlerts() {
@@ -241,8 +248,6 @@ public class Robot extends LoggedRobot {
      */
     @Override
     public void teleopPeriodic() {
-        //Robot.arm.getExtension().translateMotor(deadband(-RobotContainer.xbox.getLeftY() / 2, 0.1));
-        //Robot.arm.getRotation().translateMotor(deadband(-RobotContainer.xbox.getRightY(), 0.1));
     }
 
     @Override

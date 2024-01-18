@@ -17,6 +17,7 @@ import frc.robot.util.io.AlertType;
 import frc.robot.util.io.IOManager;
 
 import static frc.robot.Constants.AlertConfig.STRING_MOTOR_OVER_TEMP;
+import static frc.robot.Constants.AlertConfig.STRING_PROGRAMMING_MOTOR;
 import static frc.robot.Constants.LooperConfig.STRING_PERIODIC_NAME;
 
 /**
@@ -35,12 +36,11 @@ public class FRCSparkMax extends CANSparkMax {
 
     public static void burnAllFlash() {
         new WaitCommand(2).andThen(Commands.runOnce(() -> {
-             IOManager.getAlert("Programming Motors...", AlertType.WARNING)
+             IOManager.getAlert(STRING_PROGRAMMING_MOTOR, AlertType.INFO)
                     .setOneUse(true)
                     .setEnabled(true);
         })).andThen(programGroup).andThen(() -> {
-            IOManager.getAlert("Programming Motors...", AlertType.WARNING)
-                    .setEnabled(false);
+            IOManager.deleteAlert(STRING_PROGRAMMING_MOTOR, AlertType.INFO);
         }).ignoringDisable(true).schedule();
 
         // Clear the group to prevent future problems.
@@ -83,6 +83,8 @@ public class FRCSparkMax extends CANSparkMax {
             return;
         }
 
+        this.setControlFramePeriodMs(50);
+
         // The motor is brushless; use the encoder to detect velocity for stall detection.
         conditionAlert.setCondition(() -> getMotorTemperature() >= 60 ||
                 (getOutputCurrent() >= model.stallCurrentAmps-20 && getEncoder().getVelocity() <= 10)
@@ -94,23 +96,22 @@ public class FRCSparkMax extends CANSparkMax {
             );
             IOManager.warnOnFail(setSimStallTorque(model.stallTorqueNewtonMeters));
 
-            IOManager.debug(this, "Adding SparkMax ID #" + deviceId + " to simulation.");
-            lastSimUpdateMillis = System.currentTimeMillis();
-            IOManager
-                    .getLoop(STRING_PERIODIC_NAME)
-                    .addPeriodic(() -> {
-                        final RelativeEncoder relativeEncoder = getEncoder();
-                        final double position = relativeEncoder.getPosition();
-                        final double velocity = relativeEncoder.getVelocity();
-                        final double positionConversionFactor = relativeEncoder.getPositionConversionFactor();
+            IOManager.info(this, "Adding SparkMax ID #" + deviceId + " to simulation.");
 
-                        relativeEncoder.setPosition(
-                                position + velocity *
-                                        (System.currentTimeMillis() - lastSimUpdateMillis) / 60000.0
-                                        * positionConversionFactor
-                        );
-                        lastSimUpdateMillis = System.currentTimeMillis();
-                    });
+            lastSimUpdateMillis = System.currentTimeMillis();
+            IOManager.addPeriodicIfExists(STRING_PERIODIC_NAME, () -> {
+                final RelativeEncoder relativeEncoder = getEncoder();
+                final double position = relativeEncoder.getPosition();
+                final double velocity = relativeEncoder.getVelocity();
+                final double positionConversionFactor = relativeEncoder.getPositionConversionFactor();
+
+                relativeEncoder.setPosition(
+                        position + velocity *
+                                (System.currentTimeMillis() - lastSimUpdateMillis) / 60000.0
+                                * positionConversionFactor
+                );
+                lastSimUpdateMillis = System.currentTimeMillis();
+            });
         }
     }
 

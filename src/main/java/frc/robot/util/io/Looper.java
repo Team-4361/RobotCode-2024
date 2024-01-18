@@ -1,8 +1,8 @@
 package frc.robot.util.io;
 
+import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.Robot;
-import frc.robot.util.preset.PresetMap;
 import org.littletonrobotics.junction.Logger;
 
 import java.time.Duration;
@@ -44,19 +44,20 @@ public class Looper {
     private final ArrayList<Runnable> simRunnables;
     private final ArrayList<Runnable> endRunnables;
     private final ArrayList<Runnable> initRunnables;
-
+    private final boolean multiThreaded;
     private final String name;
 
     private Supplier<Boolean> finishSupplier;
-    private Duration interval;
-    private Duration endDelay;
-    private boolean running;
-    private boolean manFinished;
-    private boolean setFinished;
+    private Notifier notifier;
+    private long intervalMs;
+    private long endDelayMs;
     private long maxCycles;
     private long cycles;
-
     private long nextMillis;
+
+    private boolean manFinished;
+    private boolean setFinished;
+    private boolean running;
 
     /**
      * Starts the {@link Looper} instance <b>when managed by the {@link IOManager}
@@ -69,8 +70,10 @@ public class Looper {
             return;
 
         running = true;
-        nextMillis = System.currentTimeMillis() + getInterval().toMillis();
+        nextMillis = System.currentTimeMillis() + getIntervalMs();
         initRunnables.forEach(Runnable::run);
+        if (multiThreaded)
+            notifier.startPeriodic(intervalMs);
     }
 
     /**
@@ -91,9 +94,7 @@ public class Looper {
      * or equivalent.</b> This method also resets the <code>nextMillis</code> to
      * account for a potential end delay.
      */
-    public void stop() {
-        manFinished = true;
-    }
+    public void stop() { manFinished = true; }
 
     /** @return If the current {@link Looper} instance is <b>running.</b> */
     public boolean isRunning() { return this.running; }
@@ -160,11 +161,11 @@ public class Looper {
      * Sets the {@link Duration} interval between <code>periodic</code>/<code>simulationPeriodic</code>
      * {@link Runnable} calls.
      *
-     * @param interval The {@link Duration} interval to use; <b>minimum of 20 milliseconds.</b>
+     * @param intervalMs The {@link Duration} interval to use; <b>minimum of 20 milliseconds.</b>
      * @return The modified {@link Looper} instance.
      */
-    public Looper setInterval(Duration interval) {
-        this.interval = Duration.ofMillis(Math.max(20, interval.toMillis()));
+    public Looper setIntervalMs(long intervalMs) {
+        this.intervalMs = intervalMs;
         return this;
     }
 
@@ -182,11 +183,11 @@ public class Looper {
     /**
      * Sets the {@link Duration} where the <code>end</code> {@link Runnable} will be called after finishing.
      *
-     * @param endDelay The end {@link Duration} to use.
+     * @param endDelayMs The end {@link Duration} to use.
      * @return The modified {@link Looper} instance.
      */
-    public Looper setEndDelay(Duration endDelay) {
-        this.endDelay = endDelay;
+    public Looper setEndDelayMs(long endDelayMs) {
+        this.endDelayMs = endDelayMs;
         return this;
     }
 
@@ -194,12 +195,15 @@ public class Looper {
      * @return The {@link Duration} interval between
      * <code>periodic</code>/<code>simulationPeriodic</code>{@link Runnable} calls
      */
-    public Duration getInterval() { return this.interval; }
+    public long getIntervalMs() { return this.intervalMs; }
+
+    /** @return If the {@link Looper} is multi-threaded (the {@link #run()} method <b>SHOULD NOT</b> be called.) */
+    public boolean isMultiThreaded() { return this.multiThreaded; }
 
     /**
      * @return The {@link Duration} where the <code>end</code> {@link Runnable} will be called after finishing.
      */
-    public Duration getEndDelay() { return this.endDelay; }
+    public long getEndDelayMs() { return this.endDelayMs; }
 
     /** @return The current periodic {@link Runnable}s. */
     public ArrayList<Runnable> getPeriodicCalls() { return this.periodicRunnables; }
@@ -223,61 +227,45 @@ public class Looper {
      * Constructs a new {@link Looper} with the input parameters, and is <b>automatically</b>
      * added to the {@link IOManager}.
      *
-     * @param interval     The {@link Duration} between <code>periodic</code>/<code>simulationPeriodic</code>
-     *                     {@link Runnable} calls.
-     * @param endDelay     The {@link Duration} where the <code>end</code> {@link Runnable} will be called
-     *                     after finishing.
+     * @param intervalMs    The duration between <code>periodic</code>/<code>simulationPeriodic</code>
+     *                      {@link Runnable} calls.
+     * @param multiThreaded If the {@link Looper} should run on a separate {@link Thread}.
      */
-    Looper(String name, Duration interval, Duration endDelay) {
+    Looper(String name, long intervalMs, boolean multiThreaded) {
         this.name = name;
-        this.interval = interval;
-        this.endDelay = endDelay;
+        this.intervalMs = intervalMs;
+        this.endDelayMs = 0;
         this.running = false;
         this.manFinished = false;
         this.setFinished = false;
         this.nextMillis = System.currentTimeMillis();
+        this.multiThreaded = multiThreaded;
 
         this.periodicRunnables = new ArrayList<>();
         this.simRunnables = new ArrayList<>();
         this.endRunnables = new ArrayList<>();
         this.initRunnables = new ArrayList<>();
+
+        if (multiThreaded) {
+            notifier = new Notifier(this::rawRun);
+            notifier.setName(name);
+        }
     }
 
-    /**
-     * Constructs a new {@link Looper} with the interval {@link Duration}, and End Delay of <b>ZERO</b>.
-     *
-     * @param interval The {@link Duration} between <code>periodic</code>/<code>simulationPeriodic</code>
-     *                 @link Runnable} calls.
-     */
-    Looper(String name, Duration interval) {
-        this(name, interval, Duration.ZERO);
-    }
-
-    /**
-     * Constructs a new {@link Looper} with an interval {@link Duration} of
-     * PERIODIC_INTERVAL, and End Delay of <b>ZERO</b>.
-     */
-    Looper(String name) {
-        this(name, PERIODIC_INTERVAL, Duration.ZERO);
-    }
-
-    /**
-     * Calls the <code>periodic</code>/<code>simulationPeriodic</code> or <code>end</code> {@link Runnable}
-     * based on the current status. This method needs to be called repeatedly upon startup to function
-     * correctly.
-     */
-    public void run() {
+    private void rawRun() {
         long currentTimeMillis = System.currentTimeMillis();
 
         if (currentTimeMillis >= nextMillis) {
             if (isRawFinished()) {
                 if (!setFinished) {
                     setFinished = true;
-                    nextMillis = System.currentTimeMillis() + endDelay.toMillis();
+                    nextMillis = System.currentTimeMillis() + (long)endDelayMs;
                     return;
                 }
                 endRunnables.forEach(Runnable::run);
                 running = false;
+                if (multiThreaded)
+                    notifier.stop();
                 return;
             }
 
@@ -295,9 +283,20 @@ public class Looper {
                 );
             }
 
-            nextMillis = currentTimeMillis + interval.toMillis();
+            nextMillis = currentTimeMillis + intervalMs;
             cycles++;
         }
+    }
+
+    /**
+     * Calls the <code>periodic</code>/<code>simulationPeriodic</code> or <code>end</code> {@link Runnable}
+     * based on the current status. This method needs to be called repeatedly upon startup to function
+     * correctly.
+     */
+    public void run() {
+        if (multiThreaded)
+            return; // this is taken care of automatically.
+        rawRun();
     }
 
     /** @return The name of the {@link Looper}. */

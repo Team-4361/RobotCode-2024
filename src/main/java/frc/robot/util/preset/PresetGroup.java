@@ -6,6 +6,7 @@ import frc.robot.util.io.Looper;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 
 /**
@@ -38,35 +39,7 @@ public class PresetGroup extends ArrayList<IPresetContainer> implements IPresetC
         this.finished = false;
 
         if (mode == PresetMode.SEQUENTIAL) {
-            this.seqLooper = IOManager.getLoop(name + "-SEQ")
-                    .setInterval(Duration.ofMillis(100))
-                    .setEndDelay(Duration.ofMillis(250))
-                    .addInit(() -> seqIndex = 0);
 
-            seqLooper.addPeriodic(() -> {
-                if (seqIndex < 0 || seqIndex > size()-1) {
-                    finished = true;
-                    seqLooper.stop(); // End the Looper if an Exception will be thrown.
-                }
-                IPresetContainer inst = get(seqIndex);
-                if (inst.getSelectedIndex() != index) {
-                    // Set the preset if not currently set; then wait until finished.
-                    inst.setPreset(index);
-                }
-                // Check right now to eliminate the need for another Periodic cycle if true
-                // will instantly be thrown.
-                if (inst.isFinished()) {
-                    if (seqIndex >= size()-1) {
-                        // We reached the last element; end the Loop.
-                        finished = true;
-                        seqLooper.stop();
-                        return;
-                    }
-                    // Otherwise, advance to the next position.
-                    seqIndex++;
-                }
-            });
-            return;
         }
         this.seqLooper = null;
     }
@@ -116,10 +89,42 @@ public class PresetGroup extends ArrayList<IPresetContainer> implements IPresetC
 
         // If the mode is SEQUENTIAL, we need to run a Looper to check for "isFinished" events.
         if (mode == PresetMode.SEQUENTIAL) {
-            if (seqLooper == null)
-                return false;
-            seqLooper.run();
-            return true;
+            if (!IOManager.initLoop(name + "-SEQ", false, 250))
+                return false; // still running.
+
+            Optional<Looper> loop = IOManager.getLoop(name + "-SEQ");
+            if (loop.isEmpty())
+                return false; // Failed to initialize.
+            loop.ifPresent(looper -> looper
+                    .setEndDelayMs(250)
+                    .addInit(() -> seqIndex = 0)
+                    .addPeriodic(() -> {
+                        if (seqIndex < 0 || seqIndex > size() - 1) {
+                            finished = true;
+
+                            // TODO: warn on fail.
+                            IOManager.deleteLoop(name + "-SEQ");
+                        }
+                        IPresetContainer inst = get(seqIndex);
+                        if (inst.getSelectedIndex() != index) {
+                            // Set the preset if not currently set; then wait until finished.
+                            inst.setPreset(index);
+                        }
+                        // Check right now to eliminate the need for another Periodic cycle if true
+                        // will instantly be thrown.
+                        if (inst.isFinished()) {
+                            if (seqIndex >= size() - 1) {
+                                // We reached the last element; end the Loop.
+                                finished = true;
+
+                                // TODO: warn on fail
+                                IOManager.deleteLoop(name + "-SEQ");
+                                return;
+                            }
+                            // Otherwise, advance to the next position.
+                            seqIndex++;
+                        }
+                    }));
         }
         for (IPresetContainer c : this) {
             if (!c.setPreset(idx))
@@ -136,6 +141,7 @@ public class PresetGroup extends ArrayList<IPresetContainer> implements IPresetC
      * @param name The Name to change the Preset to.
      * @return True if the operation was successful; false otherwise.
      */
+    @SuppressWarnings("UnusedReturnValue")
     public boolean setPreset(String name) {
         int idx = 0;
         for (IPresetContainer preset : this) {
