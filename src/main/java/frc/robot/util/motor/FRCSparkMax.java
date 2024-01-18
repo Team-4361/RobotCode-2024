@@ -83,6 +83,8 @@ public class FRCSparkMax extends CANSparkMax {
             return;
         }
 
+        this.setControlFramePeriodMs(50);
+
         // The motor is brushless; use the encoder to detect velocity for stall detection.
         conditionAlert.setCondition(() -> getMotorTemperature() >= 60 ||
                 (getOutputCurrent() >= model.stallCurrentAmps-20 && getEncoder().getVelocity() <= 10)
