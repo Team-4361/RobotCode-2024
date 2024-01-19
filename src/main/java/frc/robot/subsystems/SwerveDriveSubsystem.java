@@ -4,13 +4,11 @@ import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.ReplanningConfig;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.*;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -101,7 +99,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                 this::getPose,
                 this::reset,
                 this::getRobotVelocity,
-                this::drive,
+                this::driveRobotRelative,
                 new HolonomicPathFollowerConfig(
                         AUTO_DRIVE_PID_CONFIG,
                         AUTO_TURN_PID_CONFIG,
@@ -183,7 +181,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
      * Drives the Robot using one Joystick.
      * @param stick The {@link DriveHIDBase} to use.
      */
-    public void drive(DriveHIDBase stick) {
+    public void driveRobotRelative(DriveHIDBase stick) {
         // Calculate the maximum speed based on XY and Twist.
         double xS = stick.getRobotX() * MAX_SPEED_MPS;
         double yS = stick.getRobotY() * MAX_SPEED_MPS;
@@ -194,10 +192,10 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         if (fieldOriented)
             speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getHeading());
 
-        drive(speeds, closedLoop);
+        driveRobotRelative(speeds, closedLoop);
     }
 
-    public void drive(DriveHIDBase xyStick, DriveHIDBase twistStick) {
+    public void driveRobotRelative(DriveHIDBase xyStick, DriveHIDBase twistStick) {
         double xS = xyStick.getRobotX() * MAX_SPEED_MPS;
         double yS = xyStick.getRobotY() * MAX_SPEED_MPS;
         double tS = twistStick.getRobotTwist() * MAX_SPEED_MPS;
@@ -207,14 +205,14 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         if (fieldOriented)
             speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getHeading());
 
-        drive(speeds, closedLoop);
+        driveRobotRelative(speeds, closedLoop);
     }
 
-    public void drive(ChassisSpeeds speeds) {
+    public void driveRobotRelative(ChassisSpeeds speeds) {
         setStates(kinematics.toSwerveModuleStates(speeds), false);
     }
 
-    public void drive(ChassisSpeeds speeds, boolean isClosedLoop) {
+    public void driveRobotRelative(ChassisSpeeds speeds, boolean isClosedLoop) {
         setStates(kinematics.toSwerveModuleStates(speeds), isClosedLoop);
     }
 

@@ -5,15 +5,19 @@
 
 package frc.robot;
 
-import com.pathplanner.lib.commands.PathPlannerAuto;
-import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.DriveToAprilTagCommand;
 import frc.robot.subsystems.SwerveDriveSubsystem;
+import frc.robot.util.PhotonCameraModule;
 import frc.robot.util.io.*;
 import frc.robot.util.joystick.DriveJoystick;
 import frc.robot.util.joystick.DriveMode;
@@ -22,7 +26,7 @@ import frc.robot.util.preset.PresetGroup;
 import frc.robot.util.preset.PresetMode;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.networktables.NT4Publisher;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -48,6 +52,7 @@ public class Robot extends LoggedRobot {
     public static DriveJoystick rightStick;
     public static SwerveDriveSubsystem swerve;
     public static PresetGroup drivePresets;
+    public static PhotonCameraModule camera;
 
     /**
      * This method is run when the robot is first started up and should be used for any
@@ -126,10 +131,12 @@ public class Robot extends LoggedRobot {
         if (!useNormalSticks)
             drivePresets.add(xbox); // only add the Xbox Controller if used for driving.
 
-        pdh = new PowerDistribution();
-
         initLoops();
+
+        pdh = new PowerDistribution();
         swerve = new SwerveDriveSubsystem(FL_MODULE, FR_MODULE, BL_MODULE, BR_MODULE);
+        camera = new PhotonCameraModule("FrontCamera", Units.inchesToMeters(27), 0);
+
 
         BiConsumer<Command, Boolean> logCommandFunction = getCommandActivity();
         CommandScheduler.getInstance().onCommandInitialize(c -> logCommandFunction.accept(c, true));
@@ -173,13 +180,13 @@ public class Robot extends LoggedRobot {
         if (xboxOnly) {
             IOManager.debug(this, "Xbox-only/Simulation mode detected.");
             Robot.swerve.setDefaultCommand(Robot.swerve.runEnd(
-                    () -> Robot.swerve.drive(xbox),
+                    () -> Robot.swerve.driveRobotRelative(xbox),
                     () -> Robot.swerve.lock())
             );
         } else {
             IOManager.debug(this, "Regular mode detected.");
             Robot.swerve.setDefaultCommand(Robot.swerve.runEnd(
-                    () -> Robot.swerve.drive(leftStick, rightStick),
+                    () -> Robot.swerve.driveRobotRelative(leftStick, rightStick),
                     () -> Robot.swerve.lock())
             );
         }
@@ -202,6 +209,12 @@ public class Robot extends LoggedRobot {
                     () -> drivePresets.setPreset(0)
             ));
             leftStick.button(2).whileTrue(Commands.run(() -> swerve.lock()));
+            leftStick.button(4).whileTrue(new DriveToAprilTagCommand(
+                    new Pose2d(
+                            new Translation2d(1, 0),
+                            new Rotation2d(0)
+                    )
+            ));
         }
     }
 
@@ -252,6 +265,7 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void autonomousInit() {
-        new PathPlannerAuto("New Auto").schedule();
+        //new PathPlannerAuto("New Auto").schedule();
+
     }
 }

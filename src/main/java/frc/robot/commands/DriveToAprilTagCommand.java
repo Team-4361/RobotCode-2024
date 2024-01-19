@@ -1,21 +1,45 @@
 package frc.robot.commands;
 
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
+import frc.robot.util.math.ExtendedMath;
+
+import java.util.Optional;
+
+import static frc.robot.Constants.Chassis.MAX_SPEED_MPS;
 
 public class DriveToAprilTagCommand extends Command {
+    private Pose2d currentPose = new Pose2d();
+    private boolean noTarget = false, firstTarget = false;
+    private long maxMillis = System.currentTimeMillis() + 5000;
 
-    public DriveToAprilTagCommand() {
+    private final Pose2d desiredPose;
+    private final int id;
+
+    public DriveToAprilTagCommand(Pose2d desiredPose, int id) {
         addRequirements(Robot.swerve);
+        this.desiredPose = desiredPose;
+        this.id = id;
     }
 
+    public DriveToAprilTagCommand(Pose2d desiredPose) {
+        this(desiredPose, 0);
+    }
 
-    /**
-     * The initial subroutine of a command. Called once when the command is initially scheduled.
-     */
     @Override
     public void initialize() {
-
+        Robot.camera.setTargetHeight(Units.inchesToMeters(27));
+        maxMillis = System.currentTimeMillis() + 5000;
+        noTarget = false;
+        firstTarget = true;
     }
 
     /**
@@ -23,7 +47,36 @@ public class DriveToAprilTagCommand extends Command {
      */
     @Override
     public void execute() {
-        super.execute();
+        Optional<Pose2d> storedPose = Robot.camera.getTrackedPose();
+        if (storedPose.isEmpty() || (id > 0 && Robot.camera.getAprilTagID() != id)) {
+            Robot.swerve.setStates(new SwerveModuleState[]
+                    {
+                            new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
+                            new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
+                            new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
+                            new SwerveModuleState(0, Rotation2d.fromDegrees(0))
+                    }, false);
+            if (!firstTarget && System.currentTimeMillis() > maxMillis) {
+                noTarget = true;
+                currentPose = new Pose2d();
+            }
+            return;
+        }
+
+        if (firstTarget)
+            firstTarget = false;
+        currentPose = storedPose.get();
+
+        PIDController driveController = Robot.camera.getController();
+        double jX = MathUtil.clamp(driveController.calculate(currentPose.getX(), desiredPose.getX()), -1, 1);
+        double jY = MathUtil.clamp(driveController.calculate(currentPose.getY(), desiredPose.getY()),-1,1);
+
+        ChassisSpeeds speeds = new ChassisSpeeds(
+                jX * MAX_SPEED_MPS,
+                jY * MAX_SPEED_MPS,
+                0
+        );
+        Robot.swerve.driveRobotRelative(speeds, false);
     }
 
     /**
@@ -37,7 +90,17 @@ public class DriveToAprilTagCommand extends Command {
      */
     @Override
     public void end(boolean interrupted) {
-        super.end(interrupted);
+        if (DriverStation.isAutonomous()) {
+            Robot.swerve.lock();
+        } else {
+            Robot.swerve.setStates(new SwerveModuleState[]
+                    {
+                            new SwerveModuleState(0, new Rotation2d(0)),
+                            new SwerveModuleState(0, new Rotation2d(0)),
+                            new SwerveModuleState(0, new Rotation2d(0)),
+                            new SwerveModuleState(0, new Rotation2d(0))
+                    }, false);
+        }
     }
 
     /**
@@ -48,6 +111,10 @@ public class DriveToAprilTagCommand extends Command {
      */
     @Override
     public boolean isFinished() {
-        return super.isFinished();
+        return noTarget ||
+                (
+                        ExtendedMath.inTolerance(desiredPose.getX(), currentPose.getX(), 0.1)
+                        && ExtendedMath.inTolerance(desiredPose.getY(), currentPose.getY(), 0.1)
+                );
     }
 }

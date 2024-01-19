@@ -154,6 +154,8 @@ public class Constants {
         public static final PIDConstants AUTO_DRIVE_PID_CONFIG = new PIDConstants(5, 0, 0);
         public static final PIDConstants AUTO_TURN_PID_CONFIG = new PIDConstants(1,0,0);
 
+        public static final PIDConstants PHOTON_PID_CONFIG = new PIDConstants(0.5, 0, 0);
+
         public static final SwerveModule FL_MODULE = new SwerveModule(
                 "FL",
                 FL_DRIVE_ID,
