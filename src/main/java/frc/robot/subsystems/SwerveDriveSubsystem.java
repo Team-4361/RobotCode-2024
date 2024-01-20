@@ -60,6 +60,17 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
     public Command resetCommand() { return Commands.runOnce(this::reset); }
 
+    /** Stops the {@link SwerveDriveSubsystem} from moving. */
+    public void stop() {
+        setStates(new SwerveModuleState[]
+                {
+                        new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
+                        new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
+                        new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
+                        new SwerveModuleState(0, Rotation2d.fromDegrees(0))
+                }, false);
+    }
+
     /**
      * Constructs a new {@link SwerveDriveSubsystem} with the specified modules.
      * @param frontLeft  The front left {@link SwerveModule} to use.
@@ -113,7 +124,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                 this
         );
 
-        FRCSparkMax.burnAllFlash();
+        //FRCSparkMax.burnAllFlash();
 
         IOManager.addPeriodicIfExists(STRING_ODOMETRY_NAME, () -> odometry.update(getHeading(), getPositions()));
         IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, () -> {

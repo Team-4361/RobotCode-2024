@@ -17,27 +17,33 @@ import java.util.Optional;
 import static frc.robot.Constants.Chassis.MAX_SPEED_MPS;
 
 public class DriveToAprilTagCommand extends Command {
-    private Pose2d currentPose = new Pose2d();
-    private boolean noTarget = false, firstTarget = false;
-    private long maxMillis = System.currentTimeMillis() + 5000;
-
     private final Pose2d desiredPose;
     private final int id;
+    private final double targetHeightMeters;
 
-    public DriveToAprilTagCommand(Pose2d desiredPose, int id) {
-        addRequirements(Robot.swerve);
+    private Pose2d currentPose;
+    private boolean noTarget, firstTarget;
+    private long initTimeout = System.currentTimeMillis() + 5000;
+
+    public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, int id) {
+        this.currentPose = new Pose2d();
         this.desiredPose = desiredPose;
+        this.targetHeightMeters = targetHeightMeters;
+        this.noTarget = false;
+        this.firstTarget = false;
         this.id = id;
+        addRequirements(Robot.swerve);
     }
 
-    public DriveToAprilTagCommand(Pose2d desiredPose) {
-        this(desiredPose, 0);
+    public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters) {
+        this(desiredPose, 0, 0);
     }
 
     @Override
     public void initialize() {
-        Robot.camera.setTargetHeight(Units.inchesToMeters(27));
-        maxMillis = System.currentTimeMillis() + 5000;
+        Robot.camera.setTargetHeight(targetHeightMeters);
+
+        initTimeout = System.currentTimeMillis() + 5000;
         noTarget = false;
         firstTarget = true;
     }
@@ -49,14 +55,8 @@ public class DriveToAprilTagCommand extends Command {
     public void execute() {
         Optional<Pose2d> storedPose = Robot.camera.getTrackedPose();
         if (storedPose.isEmpty() || (id > 0 && Robot.camera.getAprilTagID() != id)) {
-            Robot.swerve.setStates(new SwerveModuleState[]
-                    {
-                            new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
-                            new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
-                            new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
-                            new SwerveModuleState(0, Rotation2d.fromDegrees(0))
-                    }, false);
-            if (!firstTarget && System.currentTimeMillis() > maxMillis) {
+            Robot.swerve.stop();
+            if (!firstTarget && System.currentTimeMillis() > initTimeout) {
                 noTarget = true;
                 currentPose = new Pose2d();
             }
