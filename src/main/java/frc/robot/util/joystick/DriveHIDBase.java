@@ -1,5 +1,6 @@
 package frc.robot.util.joystick;
 
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import frc.robot.Constants;
 import frc.robot.util.math.ExtendedMath;
@@ -28,6 +29,7 @@ public abstract class DriveHIDBase extends CommandGenericHID implements IPresetC
     private final boolean xInverted;
     private final boolean yInverted;
     private final boolean twistInverted;
+    private final SlewRateLimiter xLimit, yLimit, tLimit;
     private final int port;
 
     private int index;
@@ -57,6 +59,9 @@ public abstract class DriveHIDBase extends CommandGenericHID implements IPresetC
         this.yInverted = yInverted;
         this.twistInverted = twistInverted;
         this.deadband = deadband;
+        this.xLimit = new SlewRateLimiter(0.85);
+        this.yLimit = new SlewRateLimiter(0.85);
+        this.tLimit = new SlewRateLimiter(0.85);
         this.index = 0;
         this.modes = new ArrayList<>();
         modes.add(primaryMode);
@@ -200,21 +205,41 @@ public abstract class DriveHIDBase extends CommandGenericHID implements IPresetC
     /** @return If the HID Twist-Axis is inverted. */
     public boolean isTwistAxisInverted() { return this.twistInverted; }
 
+    private enum JoystickAxis { X, Y, TWIST }
+    private double lastX, lastY, lastTwist;
+
+    private double rateLimitCalculate(double val, SlewRateLimiter limiter) {
+        return val;
+        /*
+        if (ExtendedMath.inTolerance(0, val, 0.05)) {
+            // Do not apply the rate limiter if we want to stop suddenly.
+            limiter.reset(0);
+            return val;
+        } else {
+            return limiter.calculate(val);
+        }
+
+         */
+    }
+
     /** @return The X-axis (-1.0 to +1.0) using the robot-coordinate system. (+X forward, +Y left) */
     public double getRobotX() {
         double val = xInverted ? -getRawRobotX() : getRawRobotX();
-        return ExtendedMath.deadband(modes.get(index).getX(val), deadband);
+        double rX = ExtendedMath.deadband(modes.get(index).getX(val), deadband);
+        return rateLimitCalculate(rX, xLimit);
     }
 
     /** @return The Y-axis (-1.0 to +1.0) using the robot-coordinate system. (+X forward, +Y left) */
     public double getRobotY() {
         double val = yInverted ? -getRawRobotY() : getRawRobotY();
-        return ExtendedMath.deadband(modes.get(index).getY(val), deadband);
+        double rY = ExtendedMath.deadband(modes.get(index).getY(val), deadband);
+        return rateLimitCalculate(rY, yLimit);
     }
 
     /** @return The Twist-axis (-1.0 to +1.0) using the robot-coordinate system. (+X forward, +Y left) */
     public double getRobotTwist() {
         double val = twistInverted ? -getRawRobotTwist() : getRawRobotTwist();
-        return ExtendedMath.deadband(modes.get(index).getTwist(val), deadband);
+        double rT = ExtendedMath.deadband(modes.get(index).getTwist(val), deadband);
+        return rateLimitCalculate(rT, tLimit);
     }
 }

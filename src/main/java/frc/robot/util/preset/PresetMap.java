@@ -28,6 +28,8 @@ public class PresetMap<T> extends LinkedHashMap<String, T> implements IPresetCon
     private long startMs = 0;
     private int index;
 
+    public Supplier<T> getSupplier() { return this::getSelectedValue; }
+
     /**
      * Constructs a new {@link PresetMap} with the specified Type and Name.
      * @param name             The name of the {@link PresetMap}.
@@ -56,7 +58,7 @@ public class PresetMap<T> extends LinkedHashMap<String, T> implements IPresetCon
      * @param dashboardEnabled If the {@link PresetMap} should be logged to {@link SmartDashboard}.
      * @param elements         The elements to add.
      */
-    public PresetMap(String name, boolean dashboardEnabled, Map<String, T> elements) {
+    public PresetMap(String name, boolean dashboardEnabled, LinkedHashMap<String, T> elements) {
         this(name, dashboardEnabled);
         this.putAll(elements);
     }
@@ -68,7 +70,7 @@ public class PresetMap<T> extends LinkedHashMap<String, T> implements IPresetCon
      * @param name     The name of the {@link PresetMap}.
      * @param elements The elements to add.
      */
-    public PresetMap(String name, Map<String, T> elements) {
+    public PresetMap(String name, LinkedHashMap<String, T> elements) {
         this(name, true, elements);
     }
 
@@ -175,7 +177,7 @@ public class PresetMap<T> extends LinkedHashMap<String, T> implements IPresetCon
         this.startMs = System.currentTimeMillis();
         listeners.forEach(o -> o.onPresetAdjust(getSelectedName(), get(getSelectedName())));
         if (dashboardEnabled)
-            SmartDashboard.putString(getName(), name);
+            SmartDashboard.putString(getName(), getSelectedName() + " index is " + index);
         return true;
     }
 

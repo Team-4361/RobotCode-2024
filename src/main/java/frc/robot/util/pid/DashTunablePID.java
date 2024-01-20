@@ -9,7 +9,6 @@ import java.util.function.Consumer;
 public class DashTunablePID {
     private final String name;
     private double kP, kI, kD;
-    private boolean firstRun;
     private final String pStr, iStr, dStr;
     private final ArrayList<Consumer<Double>> allPCs, allICs, allDCs;
 
@@ -25,7 +24,6 @@ public class DashTunablePID {
         this.kP = constants.kP;
         this.kI = constants.kI;
         this.kD = constants.kD;
-        this.firstRun = true;
 
         this.pStr = name + ": P";
         this.iStr = name + ": I";
@@ -33,6 +31,10 @@ public class DashTunablePID {
         this.allPCs = new ArrayList<>();
         this.allICs = new ArrayList<>();
         this.allDCs = new ArrayList<>();
+
+        SmartDashboard.putNumber(pStr, kP);
+        SmartDashboard.putNumber(iStr, kI);
+        SmartDashboard.putNumber(dStr, kD);
     }
 
     /**
@@ -53,14 +55,6 @@ public class DashTunablePID {
     public double getD() { return this.kD; }
 
     public void update() {
-        if (firstRun) {
-            SmartDashboard.putNumber(pStr, kP);
-            SmartDashboard.putNumber(iStr, kI);
-            SmartDashboard.putNumber(dStr, kD);
-            firstRun = false;
-            return;
-        }
-
         // Not the first run, GET the values from the Dashboard.
         kP = SmartDashboard.getNumber(pStr, kP);
         kI = SmartDashboard.getNumber(iStr, kI);

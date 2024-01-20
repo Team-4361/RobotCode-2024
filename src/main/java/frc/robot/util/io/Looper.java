@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import static frc.robot.Constants.LooperConfig.PERIODIC_INTERVAL;
-
 /**
  * This {@link Looper} class is designed to be the bare-minimum for <code>periodic</code>
  * and <code>simulationPeriodic</code> methods. Unlike a {@link Subsystem},
@@ -40,23 +38,15 @@ import static frc.robot.Constants.LooperConfig.PERIODIC_INTERVAL;
  */
 @SuppressWarnings("UnusedReturnValue")
 public class Looper {
-    private final ArrayList<Runnable> periodicRunnables;
-    private final ArrayList<Runnable> simRunnables;
-    private final ArrayList<Runnable> endRunnables;
-    private final ArrayList<Runnable> initRunnables;
-    private final boolean multiThreaded;
+    private final ArrayList<Runnable> intervalCalls;
+    private final ArrayList<Runnable> endCalls;
+    private final ArrayList<Runnable> initCalls;
     private final String name;
+    private final Notifier notifier;
 
-    private Supplier<Boolean> finishSupplier;
-    private Notifier notifier;
     private long intervalMs;
-    private long endDelayMs;
-    private long maxCycles;
-    private long cycles;
-    private long nextMillis;
 
     private boolean manFinished;
-    private boolean setFinished;
     private boolean running;
 
     /**
@@ -70,25 +60,9 @@ public class Looper {
             return;
 
         running = true;
-        nextMillis = System.currentTimeMillis() + getIntervalMs();
-        initRunnables.forEach(Runnable::run);
-        if (multiThreaded)
-            notifier.startPeriodic(intervalMs);
+        initCalls.forEach(Runnable::run);
+        notifier.startPeriodic(intervalMs/1000f);
     }
-
-    /**
-     * Sets the {@link Supplier} used to determine if {@link #isFinished()} is true.
-     * @param supplier The Boolean {@link Supplier} to use.
-     * @return The current {@link Looper} with the modification.
-     */
-    public Looper setFinishedSupplier(Supplier<Boolean> supplier) {
-        this.finishSupplier = supplier;
-        return this;
-    }
-
-    /** @return The <b>optional</b> {@link Supplier} used to determine if {@link #isFinished()} is true. */
-    public Optional<Supplier<Boolean>> getFinishedSupplier() { return Optional.ofNullable(finishSupplier); }
-
     /**
      * Stops the {@link Looper} instance <b>when managed by the {@link IOManager}
      * or equivalent.</b> This method also resets the <code>nextMillis</code> to
@@ -111,11 +85,7 @@ public class Looper {
      * @return If the {@link Looper} is <b>actually finished.</b> Unlike the {@link #isFinished()},
      * method, this does not care about the running status.
      */
-    private boolean isRawFinished() {
-        return manFinished ||
-                (maxCycles > 0 && cycles >= maxCycles) ||
-                (finishSupplier != null && finishSupplier.get());
-    }
+    private boolean isRawFinished() { return manFinished; }
 
     /**
      * Adds a new Periodic {@link Runnable} to the {@link Looper} instance.
@@ -123,17 +93,7 @@ public class Looper {
      * @return The current {@link Looper} instance with the updated changes.
      */
     public Looper addPeriodic(Runnable runnable) {
-        periodicRunnables.add(runnable);
-        return this;
-    }
-
-    /**
-     * Adds a new Simulation Periodic {@link Runnable} to the {@link Looper} instance.
-     * @param runnable The {@link Runnable} to add.
-     * @return The current {@link Looper} instance with the updated changes.
-     */
-    public Looper addSimPeriodic(Runnable runnable) {
-        simRunnables.add(runnable);
+        intervalCalls.add(runnable);
         return this;
     }
 
@@ -143,7 +103,7 @@ public class Looper {
      * @return The current {@link Looper} instance with the updated changes.
      */
     public Looper addInit(Runnable runnable) {
-        initRunnables.add(runnable);
+        initCalls.add(runnable);
         return this;
     }
 
@@ -153,7 +113,7 @@ public class Looper {
      * @return The current {@link Looper} instance with the updated changes.
      */
     public Looper addOnFinished(Runnable runnable) {
-        endRunnables.add(runnable);
+        endCalls.add(runnable);
         return this;
     }
 
@@ -170,58 +130,19 @@ public class Looper {
     }
 
     /**
-     * Sets the maximum cycles before the {@link Looper} is finished. <b><= 0 is INFINITY.
-     *
-     * @param cycles The {@link Long} value to use.
-     * @return The modified {@link Looper} instance.
-     */
-    public Looper setMaxCycles(long cycles) {
-        this.maxCycles = cycles;
-        return this;
-    }
-
-    /**
-     * Sets the {@link Duration} where the <code>end</code> {@link Runnable} will be called after finishing.
-     *
-     * @param endDelayMs The end {@link Duration} to use.
-     * @return The modified {@link Looper} instance.
-     */
-    public Looper setEndDelayMs(long endDelayMs) {
-        this.endDelayMs = endDelayMs;
-        return this;
-    }
-
-    /**
      * @return The {@link Duration} interval between
      * <code>periodic</code>/<code>simulationPeriodic</code>{@link Runnable} calls
      */
     public long getIntervalMs() { return this.intervalMs; }
 
-    /** @return If the {@link Looper} is multi-threaded (the {@link #run()} method <b>SHOULD NOT</b> be called.) */
-    public boolean isMultiThreaded() { return this.multiThreaded; }
-
-    /**
-     * @return The {@link Duration} where the <code>end</code> {@link Runnable} will be called after finishing.
-     */
-    public long getEndDelayMs() { return this.endDelayMs; }
-
     /** @return The current periodic {@link Runnable}s. */
-    public ArrayList<Runnable> getPeriodicCalls() { return this.periodicRunnables; }
-
-    /** @return The current <b>simulation</b> periodic {@link Runnable}s. */
-    public ArrayList<Runnable> getSimPeriodicCalls() { return this.simRunnables; }
+    public ArrayList<Runnable> getPeriodicCalls() { return this.intervalCalls; }
 
     /** @return The current finished {@link Runnable}s. */
-    public ArrayList<Runnable> getFinishedCalls() { return this.endRunnables; }
+    public ArrayList<Runnable> getFinishedCalls() { return this.endCalls; }
 
     /** @return The current initialize {@link Runnable}s. */
-    public ArrayList<Runnable> getInitCalls() { return this.initRunnables; }
-
-    /** @return The maximum cycles before the {@link Looper} is finished. <b><= 0 is INFINITY.</b> */
-    public long getMaxCycles() { return this.maxCycles; }
-
-    /** @return The number of times the {@link Looper} has run. */
-    public long getCycles() { return this.cycles; }
+    public ArrayList<Runnable> getInitCalls() { return this.initCalls; }
 
     /**
      * Constructs a new {@link Looper} with the input parameters, and is <b>automatically</b>
@@ -229,74 +150,28 @@ public class Looper {
      *
      * @param intervalMs    The duration between <code>periodic</code>/<code>simulationPeriodic</code>
      *                      {@link Runnable} calls.
-     * @param multiThreaded If the {@link Looper} should run on a separate {@link Thread}.
      */
-    Looper(String name, long intervalMs, boolean multiThreaded) {
+    Looper(String name, long intervalMs) {
         this.name = name;
         this.intervalMs = intervalMs;
-        this.endDelayMs = 0;
         this.running = false;
         this.manFinished = false;
-        this.setFinished = false;
-        this.nextMillis = System.currentTimeMillis();
-        this.multiThreaded = multiThreaded;
 
-        this.periodicRunnables = new ArrayList<>();
-        this.simRunnables = new ArrayList<>();
-        this.endRunnables = new ArrayList<>();
-        this.initRunnables = new ArrayList<>();
-
-        if (multiThreaded) {
-            notifier = new Notifier(this::rawRun);
-            notifier.setName(name);
-        }
+        this.intervalCalls = new ArrayList<>();
+        this.endCalls = new ArrayList<>();
+        this.initCalls = new ArrayList<>();
+        this.notifier = new Notifier(this::run);
     }
 
-    private void rawRun() {
-        long currentTimeMillis = System.currentTimeMillis();
-
-        if (currentTimeMillis >= nextMillis) {
-            if (isRawFinished()) {
-                if (!setFinished) {
-                    setFinished = true;
-                    nextMillis = System.currentTimeMillis() + (long)endDelayMs;
-                    return;
-                }
-                endRunnables.forEach(Runnable::run);
-                running = false;
-                if (multiThreaded)
-                    notifier.stop();
-                return;
-            }
-
-            periodicRunnables.forEach(Runnable::run);
-            simRunnables.forEach(Runnable::run);
-
-            if (isRawFinished())
-                return; // just in-case.
-
-            // LOG the POST-CALL performance of the Looper if on DEBUG.
-            if (Robot.verbosity == VerbosityLevel.DEBUG) {
-                long msDiff = nextMillis - currentTimeMillis;
-                Logger.recordOutput("Looper/" + getName() + " PERF",
-                        (msDiff > 0) ? ("+" + msDiff + " ms") : (msDiff + " ms")
-                );
-            }
-
-            nextMillis = currentTimeMillis + intervalMs;
-            cycles++;
+    private void run() {
+        if (isRawFinished()) {
+            endCalls.forEach(Runnable::run);
+            running = false;
+            notifier.stop();
+            return;
         }
-    }
 
-    /**
-     * Calls the <code>periodic</code>/<code>simulationPeriodic</code> or <code>end</code> {@link Runnable}
-     * based on the current status. This method needs to be called repeatedly upon startup to function
-     * correctly.
-     */
-    public void run() {
-        if (multiThreaded)
-            return; // this is taken care of automatically.
-        rawRun();
+        intervalCalls.forEach(Runnable::run);
     }
 
     /** @return The name of the {@link Looper}. */

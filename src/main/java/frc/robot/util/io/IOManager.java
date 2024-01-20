@@ -4,6 +4,7 @@ import com.revrobotics.REVLibError;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -42,6 +43,7 @@ public class IOManager {
     /** @return A {@link List} of all registered {@link Alert} instances. */
     public static List<Alert> getAlerts() { return ALERTS; }
 
+
     static {
         getAlert(STRING_HIGH_PERIODIC_MS, AlertType.WARNING)
                 .setCondition(() -> System.currentTimeMillis() - lastLoopUpdate >= 25)
@@ -52,18 +54,19 @@ public class IOManager {
     }
 
     /**
-     * Initializes a {@link Looper} instance and automatically registers it.
+     * Initializes a {@link Notifier} instance and automatically registers it.
      *
      * @param loopName      The {@link String} name of the {@link Looper} (case-insensitive)
-     * @param multiThreaded If the {@link Looper} should be multi-threaded.
      * @param interval      The interval of the {@link Looper} <code>periodic</code> calls.
+     *
      * @return True if the {@link Looper} does <b>not</b> exist and successfully initialized; false otherwise.
      */
     @SuppressWarnings("UnusedReturnValue")
-    public static boolean initLoop(String loopName, boolean multiThreaded, long interval) {
+    public static boolean initLoop(String loopName, long interval) {
         if (loopExists(loopName))
             return false;
-        return LOOPS.add(new Looper(loopName, interval, multiThreaded));
+        Looper looper = new Looper(loopName, interval);
+        return LOOPS.add(looper);
     }
 
     /** @return If the {@link Looper} exists. <b>Highly recommended to call this before {@link #getLoop(String)}</b> */
@@ -82,21 +85,6 @@ public class IOManager {
             return false;
         }
         loop.get().addPeriodic(periodic);
-        return true;
-    }
-
-    /**
-     * Adds a <code>simPeriodic</code> {@link Runnable} to the {@link Looper} only if currently initialized.
-     * @param loopName    The {@link String} name of the {@link Looper} (case-insensitive)
-     * @param simPeriodic The <code>simPeriodic</code> {@link Runnable} to add.
-     * @return True if the {@link Looper} exists; false otherwise.
-     */
-    public static boolean addSimPeriodicIfExists(String loopName, Runnable simPeriodic) {
-        Optional<Looper> loop;
-        if ((loop = getLoop(loopName)).isEmpty()) {
-            return false;
-        }
-        loop.get().addSimPeriodic(simPeriodic);
         return true;
     }
 
@@ -133,7 +121,7 @@ public class IOManager {
     /**
      * Attempts to find a {@link Looper} based on the {@link String} name.
      * @param loopName The {@link String} name of the {@link Looper} (case-insensitive)
-     * @return
+     * @return An {@link Optional} containg the {@link Looper} or empty if non-existant.
      */
     public static Optional<Looper> getLoop(String loopName) {
         return LOOPS.stream()
@@ -172,7 +160,6 @@ public class IOManager {
             if (loop.getName().equalsIgnoreCase(loopName)) {
                 // Try to force the Looper to end itself and call the "onFinished" method.
                 loop.stop();
-                loop.run();
                 it.remove();
                 return true;
             }
@@ -361,8 +348,6 @@ public class IOManager {
                 it.remove();
                 continue;
             }
-            if (!looper.isMultiThreaded())
-                looper.run();
         }
 
         lastLoopUpdate = System.currentTimeMillis();

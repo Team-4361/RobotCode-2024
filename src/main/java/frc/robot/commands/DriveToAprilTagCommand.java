@@ -23,15 +23,17 @@ public class DriveToAprilTagCommand extends Command {
 
     private final Pose2d desiredPose;
     private final int id;
+    private boolean stopOnEnd;
 
-    public DriveToAprilTagCommand(Pose2d desiredPose, int id) {
+    public DriveToAprilTagCommand(Pose2d desiredPose, int id, boolean stopOnEnd) {
         addRequirements(Robot.swerve);
         this.desiredPose = desiredPose;
         this.id = id;
+        this.stopOnEnd = stopOnEnd;
     }
 
-    public DriveToAprilTagCommand(Pose2d desiredPose) {
-        this(desiredPose, 0);
+    public DriveToAprilTagCommand(Pose2d desiredPose, boolean stopOnEnd) {
+        this(desiredPose, 0, stopOnEnd);
     }
 
     @Override
@@ -67,16 +69,28 @@ public class DriveToAprilTagCommand extends Command {
             firstTarget = false;
         currentPose = storedPose.get();
 
-        PIDController driveController = Robot.camera.getController();
+        Robot.swerve.driveRobotRelative(calculateSpeeds(), false);
+    }
+
+    private ChassisSpeeds calculateSpeeds() {
+        PIDController driveController = Robot.camera.getDriveController();
+        PIDController turnController = Robot.camera.getTurnController();
+
         double jX = MathUtil.clamp(driveController.calculate(currentPose.getX(), desiredPose.getX()), -1, 1);
         double jY = MathUtil.clamp(driveController.calculate(currentPose.getY(), desiredPose.getY()),-1,1);
-
-        ChassisSpeeds speeds = new ChassisSpeeds(
+        double jO = MathUtil.clamp(
+                turnController.calculate(
+                    currentPose.getRotation().getRadians(),
+                    desiredPose.getRotation().getRadians()
+                ),
+                -0.25,
+                0.25
+        );
+        return new ChassisSpeeds(
                 jX * MAX_SPEED_MPS,
                 jY * MAX_SPEED_MPS,
-                0
+                jO * MAX_SPEED_MPS
         );
-        Robot.swerve.driveRobotRelative(speeds, false);
     }
 
     /**
@@ -111,10 +125,14 @@ public class DriveToAprilTagCommand extends Command {
      */
     @Override
     public boolean isFinished() {
-        return noTarget ||
-                (
-                        ExtendedMath.inTolerance(desiredPose.getX(), currentPose.getX(), 0.1)
-                        && ExtendedMath.inTolerance(desiredPose.getY(), currentPose.getY(), 0.1)
-                );
+        if (stopOnEnd) {
+            return noTarget ||
+                    (
+                            ExtendedMath.inTolerance(desiredPose.getX(), currentPose.getX(), 0.1)
+                                    && ExtendedMath.inTolerance(desiredPose.getY(), currentPose.getY(), 0.1)
+                    );
+        } else {
+            return false;
+        }
     }
 }

@@ -5,9 +5,12 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.util.PIDConstants;
+import com.revrobotics.CANSparkLowLevel;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -22,6 +25,9 @@ import frc.robot.util.io.*;
 import frc.robot.util.joystick.DriveJoystick;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.DriveXboxController;
+import frc.robot.util.math.GearRatio;
+import frc.robot.util.motor.FRCSparkMax;
+import frc.robot.util.pid.FRCAngledMechanism;
 import frc.robot.util.preset.PresetGroup;
 import frc.robot.util.preset.PresetMode;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -32,9 +38,10 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 import static frc.robot.Constants.Chassis.*;
-import static frc.robot.Constants.ClimberPresets.*;
+//import static frc.robot.Constants.ClimberPresets.*;
 import static frc.robot.Constants.Control.*;
 import static frc.robot.Constants.LooperConfig.*;
+import static frc.robot.Constants.TestPresets.ROTATION_PRESETS;
 
 
 /**
@@ -53,6 +60,7 @@ public class Robot extends LoggedRobot {
     public static SwerveDriveSubsystem swerve;
     public static PresetGroup drivePresets;
     public static PhotonCameraModule camera;
+    //public static FRCAngledMechanism mechanism;
 
     /**
      * This method is run when the robot is first started up and should be used for any
@@ -134,6 +142,15 @@ public class Robot extends LoggedRobot {
         initLoops();
 
         pdh = new PowerDistribution();
+        /*
+        mechanism = new FRCAngledMechanism(
+                "Rotation Mechanism",
+                GearRatio.from(686, 1),
+                new FRCSparkMax(10, CANSparkLowLevel.MotorType.kBrushless, DCMotor.getNEO(1)),
+                new PIDConstants(0.1, 0, 0));
+        mechanism.registerPresets(ROTATION_PRESETS);
+         */
+
         swerve = new SwerveDriveSubsystem(FL_MODULE, FR_MODULE, BL_MODULE, BR_MODULE);
         camera = new PhotonCameraModule("FrontCamera", Units.inchesToMeters(27), 0);
 
@@ -150,9 +167,9 @@ public class Robot extends LoggedRobot {
     }
 
     private void initLoops() {
-        IOManager.initLoop(STRING_PERIODIC_NAME, false, PERIODIC_INTERVAL);
-        IOManager.initLoop(STRING_DASHBOARD_NAME, false, DASHBOARD_INTERVAL);
-        IOManager.initLoop(STRING_ODOMETRY_NAME, false, ODOMETRY_INTERVAL);
+        IOManager.initLoop(STRING_PERIODIC_NAME, PERIODIC_INTERVAL);
+        IOManager.initLoop(STRING_DASHBOARD_NAME, DASHBOARD_INTERVAL);
+        IOManager.initLoop(STRING_ODOMETRY_NAME, ODOMETRY_INTERVAL);
     }
 
     private void registerAlerts() {
@@ -191,21 +208,24 @@ public class Robot extends LoggedRobot {
             );
         }
 
-        xbox.a().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(ZERO_POSITION_NAME)));
-        xbox.b().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(FLOOR_CUBE_NAME)));
-        xbox.y().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(HUMAN_STATION_NAME)));
-        xbox.x().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(MID_CONE_NAME)));
+        xbox.a().onTrue(Commands.runOnce(() -> ROTATION_PRESETS.setPreset(0)));
+        xbox.b().onTrue(Commands.runOnce(() -> ROTATION_PRESETS.setPreset(1)));
 
-        xbox.povDown().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(FLOOR_CONE_NAME)));
-        xbox.povLeft().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(MANUAL_STATION_NAME)));
-        xbox.rightBumper().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(HIGH_CONE_NAME)));
+//        xbox.a().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(ZERO_POSITION_NAME)));
+//        xbox.b().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(FLOOR_CUBE_NAME)));
+//        xbox.y().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(HUMAN_STATION_NAME)));
+//        xbox.x().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(MID_CONE_NAME)));
+//
+//        xbox.povDown().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(FLOOR_CONE_NAME)));
+//        xbox.povLeft().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(MANUAL_STATION_NAME)));
+//        xbox.rightBumper().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(HIGH_CONE_NAME)));
 
         if (!xboxOnly) {
             leftStick.button(10).onTrue(Commands.runOnce(() -> drivePresets.nextPreset(true)));
             leftStick.button(12).onTrue(swerve.toggleClosedLoopCommand());
             leftStick.button(11).onTrue(swerve.resetCommand());
             leftStick.trigger().whileTrue(Commands.runEnd(
-                    () -> drivePresets.setPreset("Slow Mode"),
+                    () -> drivePresets.setPreset(2),
                     () -> drivePresets.setPreset(0)
             ));
             leftStick.button(2).whileTrue(Commands.run(() -> swerve.lock()));
@@ -213,7 +233,7 @@ public class Robot extends LoggedRobot {
                     new Pose2d(
                             new Translation2d(1, 0),
                             new Rotation2d(0)
-                    )
+                    ), false
             ));
         }
     }
@@ -261,6 +281,7 @@ public class Robot extends LoggedRobot {
      */
     @Override
     public void teleopPeriodic() {
+        //Robot.mechanism.translateMotor(Robot.xbox.getRobotX());
     }
 
     @Override
