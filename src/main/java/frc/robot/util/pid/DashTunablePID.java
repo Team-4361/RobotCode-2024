@@ -8,11 +8,7 @@ import java.util.function.Consumer;
 
 public class DashTunablePID {
     private final String name;
-    private double kP, kI, kD;
-    private final String pStr, iStr, dStr;
-    private final ArrayList<Consumer<Double>> allPCs, allICs, allDCs;
-
-    public String getName() { return this.name; }
+    private final DashTunableNumber tuneP, tuneI, tuneD;
 
     /**
      * Constructs a new {@link DashTunablePID} with the specified parameters.
@@ -21,20 +17,9 @@ public class DashTunablePID {
      */
     public DashTunablePID(String name, PIDConstants constants) {
         this.name = name;
-        this.kP = constants.kP;
-        this.kI = constants.kI;
-        this.kD = constants.kD;
-
-        this.pStr = name + ": P";
-        this.iStr = name + ": I";
-        this.dStr = name + ": D";
-        this.allPCs = new ArrayList<>();
-        this.allICs = new ArrayList<>();
-        this.allDCs = new ArrayList<>();
-
-        SmartDashboard.putNumber(pStr, kP);
-        SmartDashboard.putNumber(iStr, kI);
-        SmartDashboard.putNumber(dStr, kD);
+        tuneP = new DashTunableNumber(name + ": P", constants.kP, false);
+        tuneI = new DashTunableNumber(name + ": I", constants.kI, false);
+        tuneD = new DashTunableNumber(name + ": D", constants.kD, false);
     }
 
     /**
