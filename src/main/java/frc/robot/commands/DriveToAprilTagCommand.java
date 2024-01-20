@@ -22,11 +22,11 @@ public class DriveToAprilTagCommand extends Command {
     private final double targetHeightMeters;
 
     private Pose2d currentPose;
-    private boolean noTarget, firstTarget;
+    private boolean noTarget, firstTarget, stopOnEnd;
     private long initTimeout = System.currentTimeMillis() + 5000;
 
-    public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, int id) {
-        this.currentPose = new Pose2d();
+    public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, int id, boolean stopOnEnd) {
+        addRequirements(Robot.swerve);
         this.desiredPose = desiredPose;
         this.targetHeightMeters = targetHeightMeters;
         this.noTarget = false;
@@ -36,7 +36,11 @@ public class DriveToAprilTagCommand extends Command {
     }
 
     public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters) {
-        this(desiredPose, 0, 0);
+        this(desiredPose, 0, 0, true);
+    }
+
+    public DriveToAprilTagCommand(Pose2d desiredPose, boolean stopOnEnd) {
+        this(desiredPose, 0, stopOnEnd);
     }
 
     @Override
@@ -67,16 +71,28 @@ public class DriveToAprilTagCommand extends Command {
             firstTarget = false;
         currentPose = storedPose.get();
 
-        PIDController driveController = Robot.camera.getController();
+        Robot.swerve.driveRobotRelative(calculateSpeeds(), false);
+    }
+
+    private ChassisSpeeds calculateSpeeds() {
+        PIDController driveController = Robot.camera.getDriveController();
+        PIDController turnController = Robot.camera.getTurnController();
+
         double jX = MathUtil.clamp(driveController.calculate(currentPose.getX(), desiredPose.getX()), -1, 1);
         double jY = MathUtil.clamp(driveController.calculate(currentPose.getY(), desiredPose.getY()),-1,1);
-
-        ChassisSpeeds speeds = new ChassisSpeeds(
+        double jO = MathUtil.clamp(
+                turnController.calculate(
+                    currentPose.getRotation().getRadians(),
+                    desiredPose.getRotation().getRadians()
+                ),
+                -0.25,
+                0.25
+        );
+        return new ChassisSpeeds(
                 jX * MAX_SPEED_MPS,
                 jY * MAX_SPEED_MPS,
-                0
+                jO * MAX_SPEED_MPShttps://github.com/Team-4361/RobotCode-2024/pull/4/conflict?name=src%252Fmain%252Fjava%252Ffrc%252Frobot%252Fcommands%252FDriveToAprilTagCommand.java&ancestor_oid=bbebdbf61d312c84e4b27dc2f1025f868e64a5b7&base_oid=cb08dc308db09d560c755faeb68a28032cb46072&head_oid=7c4fc9f588a34c88420ce6aef27bae03320cea86
         );
-        Robot.swerve.driveRobotRelative(speeds, false);
     }
 
     /**
@@ -111,10 +127,14 @@ public class DriveToAprilTagCommand extends Command {
      */
     @Override
     public boolean isFinished() {
-        return noTarget ||
-                (
-                        ExtendedMath.inTolerance(desiredPose.getX(), currentPose.getX(), 0.1)
-                        && ExtendedMath.inTolerance(desiredPose.getY(), currentPose.getY(), 0.1)
-                );
+        if (stopOnEnd) {
+            return noTarget ||
+                    (
+                            ExtendedMath.inTolerance(desiredPose.getX(), currentPose.getX(), 0.1)
+                                    && ExtendedMath.inTolerance(desiredPose.getY(), currentPose.getY(), 0.1)
+                    );
+        } else {
+            return false;
+        }
     }
 }

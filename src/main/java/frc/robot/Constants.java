@@ -7,16 +7,10 @@ import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.IDriveMode;
 import frc.robot.util.math.GearRatio;
-import frc.robot.util.preset.PresetGroup;
 import frc.robot.util.preset.PresetMap;
-import frc.robot.util.preset.PresetMode;
 import frc.robot.util.swerve.SwerveModule;
 
-import java.time.Duration;
 import java.util.function.Supplier;
-
-import static java.util.Map.entry;
-import static java.util.Map.ofEntries;
 
 /**
  * This {@link Constants} class is an easy-to-use place for fixed value storage (ex. motor/controller IDs,
@@ -154,7 +148,8 @@ public class Constants {
         public static final PIDConstants AUTO_DRIVE_PID_CONFIG = new PIDConstants(5, 0, 0);
         public static final PIDConstants AUTO_TURN_PID_CONFIG = new PIDConstants(1,0,0);
 
-        public static final PIDConstants PHOTON_PID_CONFIG = new PIDConstants(0.5, 0, 0);
+        public static final PIDConstants PHOTON_DRIVE_PID_CONSTANTS = new PIDConstants(0.5, 0, 0);
+        public static final PIDConstants PHOTON_TURN_PID_CONSTANTS = new PIDConstants(0.1, 0, 0);
 
         public static final SwerveModule FL_MODULE = new SwerveModule(
                 "FL",
@@ -217,7 +212,17 @@ public class Constants {
         public static final int WRIST_MOTOR_ID = 22;
     }
 
+    public static class TestPresets {
+        public static PresetMap<Double> ROTATION_PRESETS = new PresetMap<>("Rotation Presets");
+        static {
+            ROTATION_PRESETS.put("One", 10.0);
+            ROTATION_PRESETS.put("Two", 20.0);
+            ROTATION_PRESETS.put("Three", 30.0);
+        }
+    }
 
+
+    /*
     public static class ClimberPresets {
         public static final String ROTATION_NAME = "CLI ROT";
         public static final String EXTENSION_NAME = "CLI EXT";
@@ -279,4 +284,5 @@ public class Constants {
                 WRIST_PRESETS
         );
     }
+     */
 }

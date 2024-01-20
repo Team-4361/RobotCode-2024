@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.*;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -128,6 +129,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
         IOManager.addPeriodicIfExists(STRING_ODOMETRY_NAME, () -> odometry.update(getHeading(), getPositions()));
         IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, () -> {
+            SmartDashboard.putString("Odometry", getPose().toString());
             frontLeft.updateDashboard();
             frontRight.updateDashboard();
             backLeft.updateDashboard();

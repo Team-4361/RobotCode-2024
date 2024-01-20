@@ -89,14 +89,13 @@ public class PresetGroup extends ArrayList<IPresetContainer> implements IPresetC
 
         // If the mode is SEQUENTIAL, we need to run a Looper to check for "isFinished" events.
         if (mode == PresetMode.SEQUENTIAL) {
-            if (!IOManager.initLoop(name + "-SEQ", false, 250))
+            if (!IOManager.initLoop(name + "-SEQ",50))
                 return false; // still running.
 
             Optional<Looper> loop = IOManager.getLoop(name + "-SEQ");
             if (loop.isEmpty())
                 return false; // Failed to initialize.
             loop.ifPresent(looper -> looper
-                    .setEndDelayMs(250)
                     .addInit(() -> seqIndex = 0)
                     .addPeriodic(() -> {
                         if (seqIndex < 0 || seqIndex > size() - 1) {

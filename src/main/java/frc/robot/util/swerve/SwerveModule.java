@@ -49,8 +49,8 @@ public class SwerveModule {
     private final SparkPIDController driveController;
     public static long nextUpdate = System.currentTimeMillis();
 
-    public static final DashTunablePID driveTune = new DashTunablePID("Drive PID", DRIVE_PID_CONFIG);
-    public static final DashTunablePID steerTune = new DashTunablePID("Steer PID", TURN_PID_CONFIG);
+    //public static final DashTunablePID driveTune = new DashTunablePID("Drive PID", DRIVE_PID_CONFIG);
+    //public static final DashTunablePID steerTune = new DashTunablePID("Steer PID", TURN_PID_CONFIG);
     /**
      * Creates a new {@link SwerveModule} instance using the specified parameters. The {@link CANSparkMax}
      * motor instance will be <b>created and reserved.</b>
@@ -78,6 +78,7 @@ public class SwerveModule {
 
         this.driveEncoder = driveMotor.getEncoder();
         this.driveController = driveMotor.getPIDController();
+        turnController.enableContinuousInput(-180, 180);
 
         // Set the PID config for driving.
         driveController.setP(drivePIDConfig.kP);
@@ -85,8 +86,8 @@ public class SwerveModule {
         driveController.setD(drivePIDConfig.kD);
 
         if (PID_TUNING_ENABLED) {
-            driveTune.addConsumer(driveController::setP, driveController::setI, driveController::setD);
-            steerTune.addConsumer(turnController::setP, turnController::setI, turnController::setD);
+            //driveTune.addConsumer(driveController::setP, driveController::setI, driveController::setD);
+            //steerTune.addConsumer(turnController::setP, turnController::setI, turnController::setD);
         }
 
         driveMotor.setIdleMode(CANSparkBase.IdleMode.kBrake);
@@ -128,6 +129,7 @@ public class SwerveModule {
     }
 
     public void setState(SwerveModuleState state, boolean isClosedLoop) {
+
         state = SwerveModuleState.optimize(state, Rotation2d.fromRadians(getTurnAngle()));
 
         if (isClosedLoop) {
@@ -195,13 +197,11 @@ public class SwerveModule {
         SmartDashboard.putNumber(turnPosition, getTurnAngle());
         SmartDashboard.putNumber(drivePower, driveMotor.get());
         SmartDashboard.putNumber(drivePosition, getDistance());
-        SmartDashboard.putNumber(desiredRPM, dRPM);
-        SmartDashboard.putNumber(maxRPM, mRPM);
 
         if (PID_TUNING_ENABLED && System.currentTimeMillis() >= nextUpdate) {
             nextUpdate = System.currentTimeMillis() + 2000;
-            driveTune.update();
-            steerTune.update();
+            //driveTune.update();
+            //steerTune.update();
         }
     }
 
