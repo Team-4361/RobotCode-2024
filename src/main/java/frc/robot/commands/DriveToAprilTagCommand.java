@@ -17,19 +17,26 @@ import java.util.Optional;
 import static frc.robot.Constants.Chassis.MAX_SPEED_MPS;
 
 public class DriveToAprilTagCommand extends Command {
-    private Pose2d currentPose = new Pose2d();
-    private boolean noTarget = false, firstTarget = false;
-    private long maxMillis = System.currentTimeMillis() + 5000;
-
     private final Pose2d desiredPose;
     private final int id;
-    private boolean stopOnEnd;
+    private final double targetHeightMeters;
 
-    public DriveToAprilTagCommand(Pose2d desiredPose, int id, boolean stopOnEnd) {
+    private Pose2d currentPose;
+    private boolean noTarget, firstTarget, stopOnEnd;
+    private long initTimeout = System.currentTimeMillis() + 5000;
+
+    public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, int id, boolean stopOnEnd) {
         addRequirements(Robot.swerve);
         this.desiredPose = desiredPose;
+        this.targetHeightMeters = targetHeightMeters;
+        this.noTarget = false;
+        this.firstTarget = false;
         this.id = id;
-        this.stopOnEnd = stopOnEnd;
+        addRequirements(Robot.swerve);
+    }
+
+    public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters) {
+        this(desiredPose, 0, 0, true);
     }
 
     public DriveToAprilTagCommand(Pose2d desiredPose, boolean stopOnEnd) {
@@ -38,8 +45,9 @@ public class DriveToAprilTagCommand extends Command {
 
     @Override
     public void initialize() {
-        Robot.camera.setTargetHeight(Units.inchesToMeters(27));
-        maxMillis = System.currentTimeMillis() + 5000;
+        Robot.camera.setTargetHeight(targetHeightMeters);
+
+        initTimeout = System.currentTimeMillis() + 5000;
         noTarget = false;
         firstTarget = true;
     }
@@ -51,14 +59,8 @@ public class DriveToAprilTagCommand extends Command {
     public void execute() {
         Optional<Pose2d> storedPose = Robot.camera.getTrackedPose();
         if (storedPose.isEmpty() || (id > 0 && Robot.camera.getAprilTagID() != id)) {
-            Robot.swerve.setStates(new SwerveModuleState[]
-                    {
-                            new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
-                            new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
-                            new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
-                            new SwerveModuleState(0, Rotation2d.fromDegrees(0))
-                    }, false);
-            if (!firstTarget && System.currentTimeMillis() > maxMillis) {
+            Robot.swerve.stop();
+            if (!firstTarget && System.currentTimeMillis() > initTimeout) {
                 noTarget = true;
                 currentPose = new Pose2d();
             }
@@ -89,7 +91,7 @@ public class DriveToAprilTagCommand extends Command {
         return new ChassisSpeeds(
                 jX * MAX_SPEED_MPS,
                 jY * MAX_SPEED_MPS,
-                jO * MAX_SPEED_MPS
+                jO * MAX_SPEED_MPShttps://github.com/Team-4361/RobotCode-2024/pull/4/conflict?name=src%252Fmain%252Fjava%252Ffrc%252Frobot%252Fcommands%252FDriveToAprilTagCommand.java&ancestor_oid=bbebdbf61d312c84e4b27dc2f1025f868e64a5b7&base_oid=cb08dc308db09d560c755faeb68a28032cb46072&head_oid=7c4fc9f588a34c88420ce6aef27bae03320cea86
         );
     }
 

@@ -61,6 +61,17 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
     public Command resetCommand() { return Commands.runOnce(this::reset); }
 
+    /** Stops the {@link SwerveDriveSubsystem} from moving. */
+    public void stop() {
+        setStates(new SwerveModuleState[]
+                {
+                        new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
+                        new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
+                        new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
+                        new SwerveModuleState(0, Rotation2d.fromDegrees(0))
+                }, false);
+    }
+
     /**
      * Constructs a new {@link SwerveDriveSubsystem} with the specified modules.
      * @param frontLeft  The front left {@link SwerveModule} to use.
