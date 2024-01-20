@@ -149,6 +149,7 @@ public class Constants {
         public static final PIDConstants AUTO_TURN_PID_CONFIG = new PIDConstants(1,0,0);
 
         public static final PIDConstants PHOTON_DRIVE_PID_CONSTANTS = new PIDConstants(0.5, 0, 0);
+        public static final PIDConstants PHOTON_TURN_PID_CONSTANTS = new PIDConstants(0.1, 0, 0);
 
         public static final SwerveModule FL_MODULE = new SwerveModule(
                 "FL",

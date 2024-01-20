@@ -17,8 +17,7 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 
 import java.util.Optional;
 
-import static frc.robot.Constants.Chassis.PHOTON_DRIVE_PID_CONSTANTS;
-import static frc.robot.Constants.Chassis.TURN_PID_CONFIG;
+import static frc.robot.Constants.Chassis.*;
 import static frc.robot.Constants.LooperConfig.STRING_ODOMETRY_NAME;
 
 public class PhotonCameraModule extends PhotonCamera implements Subsystem {
@@ -47,9 +46,9 @@ public class PhotonCameraModule extends PhotonCamera implements Subsystem {
                 PHOTON_DRIVE_PID_CONSTANTS.kD
         );
         this.turnController = new PIDController(
-                TURN_PID_CONFIG.kP,
-                TURN_PID_CONFIG.kI,
-                TURN_PID_CONFIG.kD
+                PHOTON_TURN_PID_CONSTANTS.kP,
+                PHOTON_TURN_PID_CONSTANTS.kI,
+                PHOTON_TURN_PID_CONSTANTS.kD
         );
         DashTunablePID dashTune = new DashTunablePID("Photon Drive PID", PHOTON_DRIVE_PID_CONSTANTS);
         DashTunablePID turnTune = new DashTunablePID("Photon Turn PID", TURN_PID_CONFIG);
