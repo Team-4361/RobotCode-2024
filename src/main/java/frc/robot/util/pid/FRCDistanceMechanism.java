@@ -8,20 +8,11 @@ import frc.robot.util.motor.FRCSparkMax;
 public class FRCDistanceMechanism extends FRCMechanism {
     private final PeakMotorDistance maximumDistance;
 
-    @Override
-    public double getRotation() {
-        return maximumDistance.rotationToMeters(super.getRotation());
-    }
+    @Override public double getRotation() { return maximumDistance.rotationToMeters(super.getRotation()); }
 
-    @Override
-    public double getTargetRotation() {
-        return maximumDistance.rotationToMeters(super.getTargetRotation());
-    }
+    @Override public double getTargetRotation() { return maximumDistance.rotationToMeters(super.getTargetRotation()); }
 
-    @Override
-    public void setTarget(double distance) {
-        super.setTarget(maximumDistance.metersToRotation(distance));
-    }
+    @Override public void setTarget(double distance) { super.setTarget(maximumDistance.metersToRotation(distance)); }
 
     public FRCDistanceMechanism(String name, FRCSparkMax motor, PeakMotorDistance maxDistance, PIDConstants pidConstants) {
         super(name, motor, pidConstants);

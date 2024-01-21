@@ -5,12 +5,9 @@
 
 package frc.robot;
 
-import com.pathplanner.lib.util.PIDConstants;
-import com.revrobotics.CANSparkLowLevel;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -25,9 +22,6 @@ import frc.robot.util.io.*;
 import frc.robot.util.joystick.DriveJoystick;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.DriveXboxController;
-import frc.robot.util.math.GearRatio;
-import frc.robot.util.motor.FRCSparkMax;
-import frc.robot.util.pid.FRCAngledMechanism;
 import frc.robot.util.preset.PresetGroup;
 import frc.robot.util.preset.PresetMode;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -161,7 +155,7 @@ public class Robot extends LoggedRobot {
         CommandScheduler.getInstance().onCommandInterrupt(c -> logCommandFunction.accept(c, false));
 
         // *** IMPORTANT: Call this method at the VERY END of robotInit!!! *** //
-        registerAlerts();
+        registerAlerts(!useNormalSticks);
         configureBindings(!useNormalSticks);
         // ******************************************************************* //
     }
@@ -172,7 +166,7 @@ public class Robot extends LoggedRobot {
         IOManager.initLoop(STRING_ODOMETRY_NAME, ODOMETRY_INTERVAL);
     }
 
-    private void registerAlerts() {
+    private void registerAlerts(boolean xboxOnly) {
         IOManager.getAlert("Idle Voltage Low", AlertType.WARNING)
                 .setCondition(() -> Robot.pdh.getVoltage() < 12 && Robot.pdh.getTotalCurrent() <= 2.5);
 
@@ -182,6 +176,18 @@ public class Robot extends LoggedRobot {
                         !DriverStation.isJoystickConnected(0)
                                 || !DriverStation.isJoystickConnected(1)
                                 || !DriverStation.isJoystickConnected(2));
+
+        IOManager.getAlert("Debug mode enabled", AlertType.INFO)
+                .setCondition(() -> DEBUG_ENABLED)
+                .setPersistent(true);
+
+        if (!xboxOnly) {
+            IOManager.getAlert("Slow mode enabled", AlertType.INFO)
+                    .setCondition(() ->
+                            leftStick.getPresetName().equalsIgnoreCase("Slow Mode") ||
+                                    rightStick.getPresetName().equalsIgnoreCase("Slow Mode"))
+                    .setPersistent(false);
+        }
     }
 
     /**

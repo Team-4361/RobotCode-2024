@@ -18,7 +18,6 @@ import frc.robot.Robot;
 import frc.robot.util.io.AlertType;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveHIDBase;
-import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.swerve.SwerveModule;
 
 import java.util.Optional;
@@ -103,7 +102,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         this.odometry = new SwerveDriveOdometry(kinematics, getHeading(), getPositions());
         IOManager.getAlert(STRING_GYRO_CALIBRATING, AlertType.WARNING)
                 .setCondition(gyro::isCalibrating)
-                .setPersistence(false)
+                .setPersistent(false)
                 .setDisableDelay(2000)
                 .setOneUse(false);
 

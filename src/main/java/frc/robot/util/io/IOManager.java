@@ -9,8 +9,6 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.Robot;
-import frc.robot.util.storage.MutablePair;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
@@ -19,6 +17,7 @@ import java.util.function.Function;
 
 import static frc.robot.Constants.AlertConfig.ALERT_PERIODIC_MS;
 import static frc.robot.Constants.AlertConfig.STRING_HIGH_PERIODIC_MS;
+import static frc.robot.Constants.Control.DEBUG_ENABLED;
 
 /**
  * This {@link IOManager} class is designed to control ALL {@link Looper} and {@link Alert} instances. Since
@@ -49,7 +48,7 @@ public class IOManager {
                 .setCondition(() -> System.currentTimeMillis() - lastLoopUpdate >= 25)
                 .setEnableDelay(2000)
                 .setDisableDelay(2000)
-                .setPersistence(false)
+                .setPersistent(false)
                 .setOneUse(false);
     }
 
@@ -191,7 +190,7 @@ public class IOManager {
      * @param text   The {@link String} to broadcast.
      */
     public static void debug(Object sender, String text) {
-        if (Robot.verbosity != VerbosityLevel.DEBUG)
+        if (DEBUG_ENABLED)
             return;
         System.out.println(getLogHeader(sender, "DEBUG") + text);
     }

@@ -2,6 +2,7 @@ package frc.robot;
 
 import com.pathplanner.lib.util.PIDConstants;
 import com.revrobotics.CANSparkLowLevel.MotorType;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveMode;
@@ -40,7 +41,16 @@ public class Constants {
                 DriveMode.SLOW_MODE
         };
 
-        public static final boolean PID_TUNING_ENABLED = true;
+        public static final boolean SWERVE_TUNING_ENABLED = false;
+        public static final boolean PHOTON_TUNING_ENABLED = false;
+        public static final boolean MOTOR_BURN_FLASH = false;
+
+        public static final boolean DEBUG_ENABLED = false;
+    }
+
+    public static class VisionTracking {
+        /** The maximum duration a Camera must have no {@link Pose2d} for it to register. */
+        public static final double CAMERA_POSE_BUFFER_MILLIS = 500;
     }
 
     public static class AlertConfig {

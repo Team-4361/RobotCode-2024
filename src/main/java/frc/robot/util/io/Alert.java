@@ -133,7 +133,7 @@ public class Alert {
      * Enables/disables the ability for the {@link Alert} to expire after throwing.
      * @param persist The value to use.
      */
-    public Alert setPersistence(boolean persist) {
+    public Alert setPersistent(boolean persist) {
         this.persistent = persist;
         return this;
     }
