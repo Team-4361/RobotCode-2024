@@ -1,7 +1,6 @@
 package frc.robot.util.motor;
 
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkLowLevel;
 import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.jni.CANSparkMaxJNI;
@@ -74,7 +73,7 @@ public class FRCSparkMax extends CANSparkMax {
         conditionAlert = IOManager.getAlert(STRING_MOTOR_OVER_TEMP.replace("%ID%", String.valueOf(deviceId)), AlertType.ERROR)
                 .setEnableDelay(2000)
                 .setDisableDelay(2000)
-                .setPersistence(false)
+                .setPersistent(false)
                 .setOneUse(false);
 
         if (type == MotorType.kBrushed) {

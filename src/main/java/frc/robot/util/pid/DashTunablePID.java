@@ -1,9 +1,6 @@
 package frc.robot.util.pid;
 
 import com.pathplanner.lib.util.PIDConstants;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
-import java.util.ArrayList;
 import java.util.function.Consumer;
 
 public class DashTunablePID {
@@ -25,28 +22,36 @@ public class DashTunablePID {
     /**
      * Adds a new {@link Consumer} set to the {@link DashTunablePID}.
      *
-     * @param pC The {@link Consumer} to use for the P variable.
-     * @param iC The {@link Consumer} to use for the I variable.
-     * @param dC The {@link Consumer} to use for the D variable.
+     * @param pC The {@link Consumer} to use for the Proportional variable.
+     * @param iC The {@link Consumer} to use for the Integral variable.
+     * @param dC The {@link Consumer} to use for the Derivative variable.
+     * @see DashTunableNumber#addConsumer(Consumer)
      */
     public void addConsumer(Consumer<Double> pC, Consumer<Double> iC, Consumer<Double> dC) {
-        allPCs.add(pC);
-        allDCs.add(dC);
-        allICs.add(iC);
+        tuneP.addConsumer(pC);
+        tuneI.addConsumer(iC);
+        tuneD.addConsumer(dC);
     }
 
-    public double getP() { return this.kP; }
-    public double getI() { return this.kI; }
-    public double getD() { return this.kD; }
+    /** @return The current Proportional value. */
+    public double getP() { return tuneP.getValue(); }
 
+    /** @return The current Integral value. */
+    public double getI() { return tuneI.getValue(); }
+
+    /** @return The current Derivative value. */
+    public double getD() { return tuneD.getValue(); }
+
+    /** @return The current {@link String} name for the {@link DashTunablePID}. */
+    public String getName() { return this.name; }
+
+    /**
+     * Updates the {@link DashTunablePID}. <b>This method is required to be called!</b>
+     * @see DashTunableNumber#update()
+     */
     public void update() {
-        // Not the first run, GET the values from the Dashboard.
-        kP = SmartDashboard.getNumber(pStr, kP);
-        kI = SmartDashboard.getNumber(iStr, kI);
-        kD = SmartDashboard.getNumber(dStr, kD);
-
-        allPCs.forEach(o -> o.accept(kP));
-        allICs.forEach(o -> o.accept(kI));
-        allDCs.forEach(o -> o.accept(kD));
+        tuneP.update();
+        tuneI.update();
+        tuneD.update();
     }
 }

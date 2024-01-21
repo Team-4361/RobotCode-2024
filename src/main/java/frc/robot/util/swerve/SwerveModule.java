@@ -22,7 +22,7 @@ import frc.robot.util.pid.DashTunablePID;
 import static com.revrobotics.CANSparkBase.ControlType.kVelocity;
 import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 import static frc.robot.Constants.Chassis.*;
-import static frc.robot.Constants.Control.PID_TUNING_ENABLED;
+import static frc.robot.Constants.Control.*;
 
 /**
  * A {@link SwerveModule} is composed of two motors and two encoders:
@@ -43,11 +43,12 @@ public class SwerveModule {
     private final PIDConstants drivePIDConfig;
     private final PIDConstants turnPIDConfig;
     private final PIDController turnController;
+    private final DashTunablePID driveTune;
+    private final DashTunablePID turnTune;
     private final String name;
     private double dRPM, mRPM;
 
     private final SparkPIDController driveController;
-    public static long nextUpdate = System.currentTimeMillis();
 
     //public static final DashTunablePID driveTune = new DashTunablePID("Drive PID", DRIVE_PID_CONFIG);
     //public static final DashTunablePID steerTune = new DashTunablePID("Steer PID", TURN_PID_CONFIG);
@@ -85,9 +86,15 @@ public class SwerveModule {
         driveController.setI(drivePIDConfig.kI);
         driveController.setD(drivePIDConfig.kD);
 
-        if (PID_TUNING_ENABLED) {
-            //driveTune.addConsumer(driveController::setP, driveController::setI, driveController::setD);
-            //steerTune.addConsumer(turnController::setP, turnController::setI, turnController::setD);
+        if (SWERVE_TUNING_ENABLED) {
+            // PID tuning is enabled.
+            driveTune = new DashTunablePID(name + ": Drive PID", drivePIDConfig);
+            turnTune = new DashTunablePID(name + ": Turn PID", turnPIDConfig);
+            driveTune.addConsumer(driveController::setP, driveController::setI, driveController::setD);
+            turnTune.addConsumer(turnController::setP, turnController::setI, turnController::setD);
+        } else {
+            driveTune = null;
+            turnTune = null;
         }
 
         driveMotor.setIdleMode(CANSparkBase.IdleMode.kBrake);
@@ -95,15 +102,17 @@ public class SwerveModule {
         turnMotor.setIdleMode(CANSparkBase.IdleMode.kBrake);
         turnMotor.setSmartCurrentLimit(20);
 
-        FRCSparkMax.stageFlash(driveMotor);
-        FRCSparkMax.stageFlash(turnMotor);
+        if (MOTOR_BURN_FLASH) {
+            FRCSparkMax.stageFlash(driveMotor);
+            FRCSparkMax.stageFlash(turnMotor);
+        }
     }
 
     /**
      * @return The current {@link SwerveModule} velocity in meters per second.
      */
     public double getVelocity() {
-        return DRIVE_GEAR_RATIO.getFollowerRotation(
+        return DRIVE_GEAR_RATIO.getFollowerRotations(
                 driveEncoder.getVelocity() / 60) * SWERVE_WHEEL_CIRCUMFERENCE;
     }
 
@@ -124,9 +133,7 @@ public class SwerveModule {
     /**
      * @return The current {@link SwerveModule} Turn Angle in radians.
      */
-    public double getTurnAngle() {
-        return offsetRads + (rotationPWMEncoder.get() * 2 * Math.PI);
-    }
+    public double getTurnAngle() { return offsetRads + (rotationPWMEncoder.get() * 2 * Math.PI); }
 
     public void setState(SwerveModuleState state, boolean isClosedLoop) {
 
@@ -184,24 +191,29 @@ public class SwerveModule {
     }
 
     public void updateDashboard() {
-        String desiredRPM = name + ": desired rpm";
-        String maxRPM = name + ": max rpm";
-        String driveVelocity = name + ": motor rpm";
-        String drivePower = name + ": pow";
-        String turnPower = name + ": turn pow";
-        String turnPosition = name + ": turn rad";
-        String drivePosition = name + ": distance";
 
-        SmartDashboard.putNumber(driveVelocity, driveEncoder.getVelocity());
-        SmartDashboard.putNumber(turnPower, turnMotor.get());
-        SmartDashboard.putNumber(turnPosition, getTurnAngle());
-        SmartDashboard.putNumber(drivePower, driveMotor.get());
-        SmartDashboard.putNumber(drivePosition, getDistance());
+        if (DEBUG_ENABLED) {
+            // Debug mode is enabled; place individual numbers on the Dashboard.
+            String driveVelocity = name + ": motor rpm";
+            String drivePower = name + ": pow";
+            String turnPower = name + ": turn pow";
+            String turnPosition = name + ": turn rad";
+            String drivePosition = name + ": distance";
 
-        if (PID_TUNING_ENABLED && System.currentTimeMillis() >= nextUpdate) {
-            nextUpdate = System.currentTimeMillis() + 2000;
-            //driveTune.update();
-            //steerTune.update();
+            SmartDashboard.putNumber(driveVelocity, driveEncoder.getVelocity());
+            SmartDashboard.putNumber(turnPower, turnMotor.get());
+            SmartDashboard.putNumber(turnPosition, getTurnAngle());
+            SmartDashboard.putNumber(drivePower, driveMotor.get());
+            SmartDashboard.putNumber(drivePosition, getDistance());
+        } else {
+            // Debug mode is disabled; only display bare-minimum entries on the Dashboard.
+
+        }
+
+        // 1-20-24: The "DashTuneablePID" automatically enforces a delay between updates.
+        if (SWERVE_TUNING_ENABLED && driveTune != null && turnTune != null) {
+            driveTune.update();
+            turnTune.update();
         }
     }
 
@@ -211,7 +223,7 @@ public class SwerveModule {
     public double getDistance() {
         // The formula for calculating meters from total rotation is:
         // (Total Rotations * 2PI * Wheel Radius)
-        return (DRIVE_GEAR_RATIO.getFollowerRotation(driveEncoder.getPosition()) * (2 * Math.PI) * SWERVE_WHEEL_RADIUS);
+        return (DRIVE_GEAR_RATIO.getFollowerRotations(driveEncoder.getPosition()) * (2 * Math.PI) * SWERVE_WHEEL_RADIUS);
     }
 
     public void reset() {

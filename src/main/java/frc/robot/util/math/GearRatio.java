@@ -1,4 +1,7 @@
 package frc.robot.util.math;
+
+import edu.wpi.first.math.geometry.Rotation2d;
+
 /**
  * This {@link GearRatio} class enables operations with complex gear-ratios.
  *
@@ -54,7 +57,7 @@ public class GearRatio {
     public double getLeadGear() { return this.gearOne; }
 
     /** @return The second gear (driven gear) of the ratio. */
-    public double getFollower() { return this.gearTwo; }
+    public double getFollowerAngle() { return this.gearTwo; }
 
     /**
      * Combines two {@link GearRatio}s together by <b>multiplying</b> their ratios into a new instance.
@@ -63,23 +66,39 @@ public class GearRatio {
      */
     public GearRatio add(GearRatio other) {
         double combOne = getLeadGear() * other.getLeadGear();
-        double combTwo = getFollower() * other.getFollower();
+        double combTwo = getFollowerAngle() * other.getFollowerAngle();
         return new GearRatio(combOne, combTwo);
     }
 
     /**
      * @param leadRotations The number of rotations from the Leader Gear.
-     * @return The number of rotations of the Follower Gear.
+     * @return The {@link Rotation2d} angle.
      */
-    public double getFollowerRotation(double leadRotations) {
+    public Rotation2d getFollowerAngle(Rotation2d leadRotations) {
+        return Rotation2d.fromRotations(ExtendedMath.round(leadRotations.getRotations() * (gearTwo / gearOne)));
+    }
+
+    /**
+     * @param leadRotations The number of rotations from the Leader Gear.
+     * @return The number of rotations from the Follower Gear.
+     */
+    public double getFollowerRotations(double leadRotations) {
         return ExtendedMath.round(leadRotations * (gearTwo / gearOne));
+    }
+
+    /**
+     * @param followerRotations The number of rotations of the Follower Gear.
+     * @return The {@link Rotation2d} angle.
+     */
+    public Rotation2d getLeadAngle(Rotation2d followerRotations) {
+        return Rotation2d.fromRotations(ExtendedMath.round(followerRotations.getRotations() * (gearOne / gearTwo)));
     }
 
     /**
      * @param followerRotations The number of rotations of the Follower Gear.
      * @return The number of rotations from the Leader Gear.
      */
-    public double getLeadRotation(double followerRotations) {
+    public double getLeadRotations(double followerRotations) {
         return ExtendedMath.round(followerRotations * (gearOne / gearTwo));
     }
 
