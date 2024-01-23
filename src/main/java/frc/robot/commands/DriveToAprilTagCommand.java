@@ -36,11 +36,7 @@ public class DriveToAprilTagCommand extends Command {
     }
 
     public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters) {
-        this(desiredPose, 0, 0, true);
-    }
-
-    public DriveToAprilTagCommand(Pose2d desiredPose, boolean stopOnEnd) {
-        this(desiredPose, 0, stopOnEnd);
+        this(desiredPose, targetHeightMeters, 0, true);
     }
 
     @Override
@@ -91,7 +87,7 @@ public class DriveToAprilTagCommand extends Command {
         return new ChassisSpeeds(
                 jX * MAX_SPEED_MPS,
                 jY * MAX_SPEED_MPS,
-                jO * MAX_SPEED_MPShttps://github.com/Team-4361/RobotCode-2024/pull/4/conflict?name=src%252Fmain%252Fjava%252Ffrc%252Frobot%252Fcommands%252FDriveToAprilTagCommand.java&ancestor_oid=bbebdbf61d312c84e4b27dc2f1025f868e64a5b7&base_oid=cb08dc308db09d560c755faeb68a28032cb46072&head_oid=7c4fc9f588a34c88420ce6aef27bae03320cea86
+                jO * MAX_SPEED_MPS
         );
     }
 

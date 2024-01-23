@@ -35,7 +35,6 @@ import static frc.robot.Constants.Chassis.*;
 //import static frc.robot.Constants.ClimberPresets.*;
 import static frc.robot.Constants.Control.*;
 import static frc.robot.Constants.LooperConfig.*;
-import static frc.robot.Constants.TestPresets.ROTATION_PRESETS;
 
 
 /**
@@ -214,8 +213,8 @@ public class Robot extends LoggedRobot {
             );
         }
 
-        xbox.a().onTrue(Commands.runOnce(() -> ROTATION_PRESETS.setPreset(0)));
-        xbox.b().onTrue(Commands.runOnce(() -> ROTATION_PRESETS.setPreset(1)));
+        //xbox.a().onTrue(Commands.runOnce(() -> ROTATION_PRESETS.setPreset(0)));
+        //xbox.b().onTrue(Commands.runOnce(() -> ROTATION_PRESETS.setPreset(1)));
 
 //        xbox.a().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(ZERO_POSITION_NAME)));
 //        xbox.b().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(FLOOR_CUBE_NAME)));
@@ -239,7 +238,7 @@ public class Robot extends LoggedRobot {
                     new Pose2d(
                             new Translation2d(1, 0),
                             new Rotation2d(0)
-                    ), false
+                    ), 27
             ));
         }
     }

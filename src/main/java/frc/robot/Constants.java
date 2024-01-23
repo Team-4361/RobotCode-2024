@@ -3,15 +3,25 @@ package frc.robot;
 import com.pathplanner.lib.util.PIDConstants;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.IDriveMode;
 import frc.robot.util.math.GearRatio;
+import frc.robot.util.math.PeakMotorDistance;
+import frc.robot.util.motor.FRCSparkMax;
+import frc.robot.util.pid.FRCDistanceMechanism;
+import frc.robot.util.preset.PresetGroup;
 import frc.robot.util.preset.PresetMap;
+import frc.robot.util.preset.PresetMode;
 import frc.robot.util.swerve.SwerveModule;
 
 import java.util.function.Supplier;
+
+import static edu.wpi.first.units.BaseUnits.Distance;
+import static edu.wpi.first.units.Units.Inches;
+import static frc.robot.util.preset.PresetMode.PARALLEL;
 
 /**
  * This {@link Constants} class is an easy-to-use place for fixed value storage (ex. motor/controller IDs,
@@ -222,14 +232,31 @@ public class Constants {
         public static final int WRIST_MOTOR_ID = 22;
     }
 
+    /*
     public static class TestPresets {
+        public static PresetMap<Double> EXTENSION_PRESETS = new PresetMap<>("Extension Presets");
+        static {
+            EXTENSION_PRESETS.put("One", 10.0);
+            EXTENSION_PRESETS.put("Two", 20.0);
+            EXTENSION_PRESETS.put("Three", 30.0);
+        }
+        
         public static PresetMap<Double> ROTATION_PRESETS = new PresetMap<>("Rotation Presets");
         static {
             ROTATION_PRESETS.put("One", 10.0);
             ROTATION_PRESETS.put("Two", 20.0);
             ROTATION_PRESETS.put("Three", 30.0);
         }
+
+        public static PresetGroup ARM_GROUP = new PresetGroup("Arm", PARALLEL, EXTENSION_PRESETS, ROTATION_PRESETS);
+        public static FRCDistanceMechanism ARM_EXTENSION = new FRCDistanceMechanism(
+                "Arm Extension",
+                new FRCSparkMax(0, MotorType.kBrushless, DCMotor.getNEO(1)),
+                new PeakMotorDistance(Inches.of(10), 20),
+                new PIDConstants(0.1, 0, 0)
+        );
     }
+     */
 
 
     /*
