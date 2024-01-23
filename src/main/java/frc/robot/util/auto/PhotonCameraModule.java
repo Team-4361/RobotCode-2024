@@ -1,5 +1,7 @@
-package frc.robot.util;
+package frc.robot.util.auto;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -11,6 +13,7 @@ import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.pid.DashTunablePID;
 import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonUtils;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
@@ -20,16 +23,19 @@ import java.util.Optional;
 import static frc.robot.Constants.Chassis.*;
 import static frc.robot.Constants.Control.PHOTON_TUNING_ENABLED;
 import static frc.robot.Constants.LooperConfig.STRING_ODOMETRY_NAME;
+import static frc.robot.Constants.VisionTracking.CAMERA_OFFSET;
+import static org.photonvision.PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR;
 
 public class PhotonCameraModule extends PhotonCamera implements Subsystem {
-    private final double cameraHeight;
-    private final double cameraPitch;
     private final String cameraName;
-    private double targetHeight;
     private final PIDController driveController;
     private final PIDController turnController;
     private final DashTunablePID driveTune;
     private final DashTunablePID turnTune;
+  //  private final PhotonPoseEstimator poseEstimator;
+    private final double cameraHeight;
+    private final double cameraPitch;
+    private double targetHeight;
     private Pose2d trackedPose;
     private long lastFoundMillis = System.currentTimeMillis();
     private int aprilTagID = 0;
@@ -53,6 +59,13 @@ public class PhotonCameraModule extends PhotonCamera implements Subsystem {
                 PHOTON_TURN_PID_CONSTANTS.kI,
                 PHOTON_TURN_PID_CONSTANTS.kD
         );
+        /*
+        this.poseEstimator = new PhotonPoseEstimator(
+                FIELD_LAYOUT,
+                MULTI_TAG_PNP_ON_COPROCESSOR,
+                CAMERA_OFFSET);
+
+         */
 
         if (PHOTON_TUNING_ENABLED) {
             driveTune = new DashTunablePID("Photon: Drive PID", PHOTON_DRIVE_PID_CONSTANTS);
@@ -85,12 +98,21 @@ public class PhotonCameraModule extends PhotonCamera implements Subsystem {
             driveTune.update();
             turnTune.update();
         }
+
         PhotonPipelineResult result = getLatestResult();
         if (result.hasTargets()) {
-            PhotonTrackedTarget target = result.getBestTarget();
-            Transform3d targetTransform = target.getBestCameraToTarget();
+            Transform3d targetTransform;
+            if (result.getMultiTagResult().estimatedPose.isPresent) {
+
+                targetTransform = result.getMultiTagResult().estimatedPose.best;
+            } else {
+                PhotonTrackedTarget target = result.getBestTarget();
+                targetTransform = target.getBestCameraToTarget();
+                aprilTagID = target.getFiducialId();
+            }
 
             if (targetTransform.getX() == 0 || targetTransform.getY() == 0) {
+                /*
                 trackedPose = new Pose2d(
                         new Translation2d(
                                 PhotonUtils.calculateDistanceToTargetMeters(
@@ -100,12 +122,13 @@ public class PhotonCameraModule extends PhotonCamera implements Subsystem {
                                         target.getPitch()), 0),
                         new Rotation2d(target.getYaw())
                 );
+
+                 */
             } else {
                 trackedPose = new Pose2d(
                         new Translation2d(targetTransform.getX(), targetTransform.getY()),
-                        Rotation2d.fromDegrees(target.getYaw())
+                        Rotation2d.fromDegrees(targetTransform.getRotation().getAngle())
                 );
-                aprilTagID = target.getFiducialId();
             }
             lastFoundMillis = System.currentTimeMillis();
             SmartDashboard.putString("Photon Pose", trackedPose.toString());

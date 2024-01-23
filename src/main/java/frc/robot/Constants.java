@@ -2,7 +2,12 @@ package frc.robot;
 
 import com.pathplanner.lib.util.PIDConstants;
 import com.revrobotics.CANSparkLowLevel.MotorType;
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.util.io.IOManager;
@@ -11,6 +16,8 @@ import frc.robot.util.joystick.IDriveMode;
 import frc.robot.util.math.GearRatio;
 import frc.robot.util.math.PeakMotorDistance;
 import frc.robot.util.motor.FRCSparkMax;
+import frc.robot.util.pid.DashTunableNumber;
+import frc.robot.util.pid.DashTunablePID;
 import frc.robot.util.pid.FRCDistanceMechanism;
 import frc.robot.util.preset.PresetGroup;
 import frc.robot.util.preset.PresetMap;
@@ -52,15 +59,23 @@ public class Constants {
         };
 
         public static final boolean SWERVE_TUNING_ENABLED = false;
-        public static final boolean PHOTON_TUNING_ENABLED = false;
+        public static final boolean PHOTON_TUNING_ENABLED = true;
         public static final boolean MOTOR_BURN_FLASH = false;
 
+        public static final DashTunableNumber PHOTON_TURN_MAX_SPEED = new DashTunableNumber("Photon Turn Speed", 0.2, false);
+        public static final DashTunableNumber PHOTON_DISTANCE = new DashTunableNumber("Photon Distance", 1, false);
+        public static final DashTunableNumber PHOTON_DRIVE_MAX_SPEED = new DashTunableNumber("Photon Max Speed", 0.5, false);
         public static final boolean DEBUG_ENABLED = false;
     }
 
     public static class VisionTracking {
         /** The maximum duration a Camera must have no {@link Pose2d} for it to register. */
         public static final double CAMERA_POSE_BUFFER_MILLIS = 500;
+      //  public static final AprilTagFieldLayout FIELD_LAYOUT = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2024Crescendo.m_resourceFile);
+        public static final Transform3d CAMERA_OFFSET = new Transform3d(
+                new Translation3d(0.3, 0, 0.3),
+                new Rotation3d(0, 0, 0)
+        );
     }
 
     public static class AlertConfig {

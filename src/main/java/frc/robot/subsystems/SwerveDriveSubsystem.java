@@ -110,7 +110,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                 this::getPose,
                 this::reset,
                 this::getRobotVelocity,
-                this::driveRobotRelative,
+                this::drive,
                 new HolonomicPathFollowerConfig(
                         AUTO_DRIVE_PID_CONFIG,
                         AUTO_TURN_PID_CONFIG,
@@ -193,7 +193,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
      * Drives the Robot using one Joystick.
      * @param stick The {@link DriveHIDBase} to use.
      */
-    public void driveRobotRelative(DriveHIDBase stick) {
+    public void drive(DriveHIDBase stick) {
         // Calculate the maximum speed based on XY and Twist.
         double xS = stick.getRobotX() * MAX_SPEED_MPS;
         double yS = stick.getRobotY() * MAX_SPEED_MPS;
@@ -207,7 +207,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         driveRobotRelative(speeds, closedLoop);
     }
 
-    public void driveRobotRelative(DriveHIDBase xyStick, DriveHIDBase twistStick) {
+    public void drive(DriveHIDBase xyStick, DriveHIDBase twistStick) {
         double xS = xyStick.getRobotX() * MAX_SPEED_MPS;
         double yS = xyStick.getRobotY() * MAX_SPEED_MPS;
         double tS = twistStick.getRobotTwist() * MAX_SPEED_MPS;
@@ -220,7 +220,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         driveRobotRelative(speeds, closedLoop);
     }
 
-    public void driveRobotRelative(ChassisSpeeds speeds) {
+    public void drive(ChassisSpeeds speeds) {
         setStates(kinematics.toSwerveModuleStates(speeds), false);
     }
 

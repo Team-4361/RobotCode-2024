@@ -6,7 +6,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
@@ -15,6 +14,8 @@ import frc.robot.util.math.ExtendedMath;
 import java.util.Optional;
 
 import static frc.robot.Constants.Chassis.MAX_SPEED_MPS;
+import static frc.robot.Constants.Control.PHOTON_DRIVE_MAX_SPEED;
+import static frc.robot.Constants.Control.PHOTON_TURN_MAX_SPEED;
 
 public class DriveToAprilTagCommand extends Command {
     private final Pose2d desiredPose;
@@ -35,8 +36,8 @@ public class DriveToAprilTagCommand extends Command {
         addRequirements(Robot.swerve);
     }
 
-    public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters) {
-        this(desiredPose, targetHeightMeters, 0, true);
+    public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, boolean stopOnEnd) {
+        this(desiredPose, targetHeightMeters, 0, stopOnEnd);
     }
 
     @Override
@@ -74,21 +75,22 @@ public class DriveToAprilTagCommand extends Command {
         PIDController driveController = Robot.camera.getDriveController();
         PIDController turnController = Robot.camera.getTurnController();
 
-        double jX = MathUtil.clamp(driveController.calculate(currentPose.getX(), desiredPose.getX()), -1, 1);
-        double jY = MathUtil.clamp(driveController.calculate(currentPose.getY(), desiredPose.getY()),-1,1);
+        double mX = PHOTON_DRIVE_MAX_SPEED.getValue();
+        double jX = MathUtil.clamp(driveController.calculate(currentPose.getX(), desiredPose.getX()), -mX, mX);
+        double jY = MathUtil.clamp(driveController.calculate(currentPose.getY(), desiredPose.getY()),-mX,mX);
         double jO = MathUtil.clamp(
                 turnController.calculate(
                     currentPose.getRotation().getRadians(),
                     desiredPose.getRotation().getRadians()
                 ),
-                -0.25,
-                0.25
+                -PHOTON_TURN_MAX_SPEED.getValue(),
+                PHOTON_TURN_MAX_SPEED.getValue()
         );
-        return new ChassisSpeeds(
+        return ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(
                 jX * MAX_SPEED_MPS,
                 jY * MAX_SPEED_MPS,
                 jO * MAX_SPEED_MPS
-        );
+        ), Robot.swerve.getHeading());
     }
 
     /**

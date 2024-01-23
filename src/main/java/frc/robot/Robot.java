@@ -17,7 +17,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.DriveToAprilTagCommand;
 import frc.robot.subsystems.SwerveDriveSubsystem;
-import frc.robot.util.PhotonCameraModule;
+import frc.robot.util.auto.PhotonCameraModule;
 import frc.robot.util.io.*;
 import frc.robot.util.joystick.DriveJoystick;
 import frc.robot.util.joystick.DriveMode;
@@ -163,6 +163,10 @@ public class Robot extends LoggedRobot {
         IOManager.initLoop(STRING_PERIODIC_NAME, PERIODIC_INTERVAL);
         IOManager.initLoop(STRING_DASHBOARD_NAME, DASHBOARD_INTERVAL);
         IOManager.initLoop(STRING_ODOMETRY_NAME, ODOMETRY_INTERVAL);
+
+        IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, PHOTON_DISTANCE::update);
+        IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, PHOTON_DRIVE_MAX_SPEED::update);
+        IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, PHOTON_TURN_MAX_SPEED::update);
     }
 
     private void registerAlerts(boolean xboxOnly) {
@@ -202,13 +206,13 @@ public class Robot extends LoggedRobot {
         if (xboxOnly) {
             IOManager.debug(this, "Xbox-only/Simulation mode detected.");
             Robot.swerve.setDefaultCommand(Robot.swerve.runEnd(
-                    () -> Robot.swerve.driveRobotRelative(xbox),
+                    () -> Robot.swerve.drive(xbox),
                     () -> Robot.swerve.lock())
             );
         } else {
             IOManager.debug(this, "Regular mode detected.");
             Robot.swerve.setDefaultCommand(Robot.swerve.runEnd(
-                    () -> Robot.swerve.driveRobotRelative(leftStick, rightStick),
+                    () -> Robot.swerve.drive(leftStick, rightStick),
                     () -> Robot.swerve.lock())
             );
         }
@@ -236,9 +240,9 @@ public class Robot extends LoggedRobot {
             leftStick.button(2).whileTrue(Commands.run(() -> swerve.lock()));
             leftStick.button(4).whileTrue(new DriveToAprilTagCommand(
                     new Pose2d(
-                            new Translation2d(1, 0),
+                            new Translation2d(2, 0),
                             new Rotation2d(0)
-                    ), 27
+                    ), 27, 7, false
             ));
         }
     }
