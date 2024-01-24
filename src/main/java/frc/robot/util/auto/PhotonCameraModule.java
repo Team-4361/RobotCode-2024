@@ -50,14 +50,14 @@ public class PhotonCameraModule extends PhotonCamera implements Subsystem {
         this.cameraPitch = pitch;
 
         this.driveController = new PIDController(
-                PHOTON_DRIVE_PID_CONSTANTS.kP,
-                PHOTON_DRIVE_PID_CONSTANTS.kI,
-                PHOTON_DRIVE_PID_CONSTANTS.kD
+                CHASSIS_MODE.getAutoDrivePID().kP,
+                CHASSIS_MODE.getAutoDrivePID().kI,
+                CHASSIS_MODE.getAutoDrivePID().kD
         );
         this.turnController = new PIDController(
-                PHOTON_TURN_PID_CONSTANTS.kP,
-                PHOTON_TURN_PID_CONSTANTS.kI,
-                PHOTON_TURN_PID_CONSTANTS.kD
+                CHASSIS_MODE.getAutoTurnPID().kP,
+                CHASSIS_MODE.getAutoTurnPID().kI,
+                CHASSIS_MODE.getAutoTurnPID().kD
         );
         /*
         this.poseEstimator = new PhotonPoseEstimator(
@@ -68,8 +68,8 @@ public class PhotonCameraModule extends PhotonCamera implements Subsystem {
          */
 
         if (PHOTON_TUNING_ENABLED) {
-            driveTune = new DashTunablePID("Photon: Drive PID", PHOTON_DRIVE_PID_CONSTANTS);
-            turnTune = new DashTunablePID("Photon: Turn PID", PHOTON_TURN_PID_CONSTANTS);
+            driveTune = new DashTunablePID("Photon: Drive PID", CHASSIS_MODE.getAutoDrivePID());
+            turnTune = new DashTunablePID("Photon: Turn PID", CHASSIS_MODE.getAutoTurnPID());
             driveTune.addConsumer(driveController::setP, driveController::setI, driveController::setD);
             turnTune.addConsumer(turnController::setP, turnController::setI, turnController::setD);
         } else {

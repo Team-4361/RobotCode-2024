@@ -27,9 +27,9 @@ import static frc.robot.Constants.LooperConfig.STRING_PERIODIC_NAME;
  * @since 0.0.0
  * @version 0.0.1
  */
-public class FRCSparkMax extends CANSparkMax {
+public class FRCSparkMax extends CANSparkMax implements IMotorModel {
     private final Alert conditionAlert;
-    private final DCMotor model;
+    private final IMotorModel model;
     private long lastSimUpdateMillis;
     private static SequentialCommandGroup programGroup = new SequentialCommandGroup();
 
@@ -67,7 +67,7 @@ public class FRCSparkMax extends CANSparkMax {
      *                 Red and Black terminals only.
      * @param model    The {@link DCMotor} module which best represents the {@link FRCSparkMax}
      */
-    public FRCSparkMax(int deviceId, MotorType type, DCMotor model) {
+    public FRCSparkMax(int deviceId, MotorType type, IMotorModel model) {
         super(deviceId, type);
         this.model = model;
         conditionAlert = IOManager.getAlert(STRING_MOTOR_OVER_TEMP.replace("%ID%", String.valueOf(deviceId)), AlertType.ERROR)
@@ -86,14 +86,12 @@ public class FRCSparkMax extends CANSparkMax {
 
         // The motor is brushless; use the encoder to detect velocity for stall detection.
         conditionAlert.setCondition(() -> getMotorTemperature() >= 60 ||
-                (getOutputCurrent() >= model.stallCurrentAmps-20 && getEncoder().getVelocity() <= 10)
+                (getOutputCurrent() >= model.getMaximumStallCurrent()-20 && getEncoder().getVelocity() <= 10)
         );
 
         if (RobotBase.isSimulation()) {
-            IOManager.warnOnFail(
-                    setSimFreeSpeed(Units.radiansPerSecondToRotationsPerMinute(model.freeSpeedRadPerSec))
-            );
-            IOManager.warnOnFail(setSimStallTorque(model.stallTorqueNewtonMeters));
+            IOManager.warnOnFail(setSimFreeSpeed(model.getFreeSpeedRPM()));
+            IOManager.warnOnFail(setSimStallTorque(model.getStallTorqueNM()));
 
             IOManager.info(this, "Adding SparkMax ID #" + deviceId + " to simulation.");
 
@@ -113,9 +111,6 @@ public class FRCSparkMax extends CANSparkMax {
             });
         }
     }
-
-    /** @return The {@link DCMotor} model used for the {@link FRCSparkMax}. */
-    public DCMotor getModel() { return this.model; }
 
     /**
      * Set the free speed of the motor being simulated.
@@ -171,4 +166,13 @@ public class FRCSparkMax extends CANSparkMax {
         else
             this.getPIDController().setReference(value, controlType);
     }
+
+    /** @return The maximum <b>theoretical</b> stall current of this {@link IMotorModel} in <b>amperes.</b> */
+    @Override public int getMaximumStallCurrent() { return model.getMaximumStallCurrent(); }
+
+    /** @return The maximum <b>theoretical</b> free speed of this {@link IMotorModel} in <b>RPM.</b> */
+    @Override public double getFreeSpeedRPM() { return model.getFreeSpeedRPM(); }
+
+    /** @return The maximum <b>theoretical</b> stall torque of this {@link IMotorModel} in <b>newton-meters.</b> */
+    @Override public double getStallTorqueNM() { return model.getStallTorqueNM(); }
 }

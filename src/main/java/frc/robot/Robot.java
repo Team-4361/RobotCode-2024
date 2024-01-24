@@ -44,8 +44,6 @@ import static frc.robot.Constants.LooperConfig.*;
  * project.
  */
 public class Robot extends LoggedRobot {
-    public static final VerbosityLevel verbosity = VerbosityLevel.DEBUG;
-
     public static PowerDistribution pdh;
     public static DriveXboxController xbox;
     public static DriveJoystick leftStick;
@@ -53,7 +51,6 @@ public class Robot extends LoggedRobot {
     public static SwerveDriveSubsystem swerve;
     public static PresetGroup drivePresets;
     public static PhotonCameraModule camera;
-    //public static FRCAngledMechanism mechanism;
 
     /**
      * This method is run when the robot is first started up and should be used for any

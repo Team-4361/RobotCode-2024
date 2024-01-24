@@ -50,24 +50,31 @@ public class FRCMechanism extends SubsystemBase {
         this.targetRotation = getLimitAdjustedTarget(rotation);
     }
 
-    public FRCMechanism setReverseLimit(double limit) {
-        this.reverseLimit = limit;
-        return this;
-    }
+    /**
+     * Sets the minimum value this {@link FRCMechanism} is allowed to rotate.
+     * @param limit The {@link Double} value to use.
+     */
+    public void setReverseLimit(double limit) { this.reverseLimit = limit; }
 
-    public FRCMechanism setForwardLimit(double limit) {
-        this.forwardLimit = limit;
-        return this;
-    }
+    /**
+     * Sets the maximum value this {@link FRCMechanism} is allowed to rotate.
+     * @param limit The {@link Double} value to use.
+     */
+    public void setForwardLimit(double limit) { this.forwardLimit = limit; }
 
-    public FRCMechanism setLimitBypassSupplier(Supplier<Boolean> supplier) {
-        this.limitBypassSupplier = supplier;
-        return this;
-    }
+    /**
+     * Sets a {@link Supplier} which can bypass the forward/reverse limits.
+     * @param supplier The {@link Boolean} {@link Supplier} to use.
+     */
+    public void setLimitBypassSupplier(Supplier<Boolean> supplier) { this.limitBypassSupplier = supplier; }
 
+    /** @return The current reverse limit, or {@link Double#MIN_VALUE} if there is none. */
     public double getReverseLimit() { return this.reverseLimit; }
+
+    /** @return The current forward limit, or {@link Double#MAX_VALUE} if there is none. */
     public double getForwardLimit() { return this.forwardLimit; }
 
+    /** @return The {@link Supplier} which can bypass the forward/reverse limits. */
     public Supplier<Boolean> getLimitBypassSupplier() { return this.limitBypassSupplier; }
 
     public void registerPresets(PresetMap<Double> map) {
@@ -91,8 +98,7 @@ public class FRCMechanism extends SubsystemBase {
      * @param power A motor power from -1.0 to +1.0 to spin the motor.
      */
     public void translateMotor(double power) {
-        if (DriverStation.isTeleop())
-        {
+        if (DriverStation.isTeleop()) {
             if (power == 0 && teleopMode) {
                 // Set the target angle to the current rotations to freeze the value and prevent the PIDController from
                 // automatically adjusting to the previous value.
@@ -104,7 +110,6 @@ public class FRCMechanism extends SubsystemBase {
 
             motor.set(getLimitAdjustedPower(power));
         }
-
     }
 
     /**

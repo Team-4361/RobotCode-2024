@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.util.motor.FRCSparkMax;
+import frc.robot.util.motor.MotorModel;
 import frc.robot.util.pid.DashTunablePID;
 
 import static com.revrobotics.CANSparkBase.ControlType.kVelocity;
@@ -67,10 +68,11 @@ public class SwerveModule {
     public SwerveModule(String name, int driveMotorId, int turnMotorId, int digitalEncoderPort,
                         double offsetRads, PIDConstants drivePIDConfig, PIDConstants turnPIDConfig) {
         this.name = name;
-        this.driveMotor = new FRCSparkMax(driveMotorId, kBrushless, DCMotor.getNEO(1));
-        this.turnMotor = new FRCSparkMax(turnMotorId, kBrushless, DCMotor.getNEO(1));
+        this.driveMotor = new FRCSparkMax(driveMotorId, kBrushless, MotorModel.NEO);
+        this.turnMotor = new FRCSparkMax(turnMotorId, kBrushless, MotorModel.NEO);
         this.turnController = new PIDController(turnPIDConfig.kP, turnPIDConfig.kI, turnPIDConfig.kD, turnPIDConfig.kP);
         this.rotationPWMEncoder = new DutyCycleEncoder(digitalEncoderPort);
+
         driveMotor.enableVoltageCompensation(12);
 
         this.offsetRads = offsetRads;
@@ -112,41 +114,37 @@ public class SwerveModule {
      * @return The current {@link SwerveModule} velocity in meters per second.
      */
     public double getVelocity() {
-        return DRIVE_GEAR_RATIO.getFollowerRotations(
-                driveEncoder.getVelocity() / 60) * SWERVE_WHEEL_CIRCUMFERENCE;
+        return CHASSIS_MODE.getDriveRatio().getFollowerRotations(
+                driveEncoder.getVelocity() / 60) * (2 * Math.PI * CHASSIS_MODE.getWheelRadius()) ;
     }
 
-    /**
-     * @return The {@link PIDConstants} to use for closed-loop driving.
-     */
-    public PIDConstants getDrivePIDConfig() {
-        return this.drivePIDConfig;
-    }
+    /** @return The {@link PIDConstants} to use for closed-loop driving. */
+    public PIDConstants getDrivePIDConfig() { return this.drivePIDConfig; }
 
-    /**
-     * @return The {@link PIDConstants} to use for PWM turning.
-     */
-    public PIDConstants getTurnPIDConfig() {
-        return this.turnPIDConfig;
-    }
+    /** @return The {@link PIDConstants} to use for PWM turning. */
+    public PIDConstants getTurnPIDConfig() { return this.turnPIDConfig; }
 
-    /**
-     * @return The current {@link SwerveModule} Turn Angle in radians.
-     */
+    /** @return The current {@link SwerveModule} Turn Angle in radians. */
     public double getTurnAngle() { return offsetRads + (rotationPWMEncoder.get() * 2 * Math.PI); }
 
+    /**
+     * Sets the state of the {@link SwerveModule}.
+     *
+     * @param state The {@link SwerveModuleState} to use.
+     * @param isClosedLoop If closed-loop driving control should be used.
+     */
     public void setState(SwerveModuleState state, boolean isClosedLoop) {
-
         state = SwerveModuleState.optimize(state, Rotation2d.fromRadians(getTurnAngle()));
 
         if (isClosedLoop) {
             // Set the desired RPM to achieve the meters per second.
-            mRPM = Units.radiansPerSecondToRotationsPerMinute(driveMotor.getModel().freeSpeedRadPerSec);
-            dRPM = mRPM * (state.speedMetersPerSecond / MAX_SPEED_MPS);
+            dRPM = driveMotor.getFreeSpeedRPM() * (state.speedMetersPerSecond / CHASSIS_MODE.getMaxSpeed());
             driveController.setReference(dRPM, kVelocity, 0);
         } else {
             dRPM = state.speedMetersPerSecond;
-            driveMotor.set(MathUtil.clamp(state.speedMetersPerSecond / MAX_SPEED_MPS, -1, 1));
+            driveMotor.set(
+                    MathUtil.clamp(state.speedMetersPerSecond / CHASSIS_MODE.getMaxSpeed(), -1, 1)
+            );
         }
 
         turnMotor.set(MathUtil.clamp(turnController.calculate(getTurnAngle(), state.angle.getRadians()), -1, 1));
@@ -223,10 +221,11 @@ public class SwerveModule {
     public double getDistance() {
         // The formula for calculating meters from total rotation is:
         // (Total Rotations * 2PI * Wheel Radius)
-        return (DRIVE_GEAR_RATIO.getFollowerRotations(driveEncoder.getPosition()) * (2 * Math.PI) * SWERVE_WHEEL_RADIUS);
+        return (CHASSIS_MODE
+                .getDriveRatio()
+                .getFollowerRotations(driveEncoder.getPosition()) * (2 * Math.PI * CHASSIS_MODE.getWheelRadius()));
     }
 
-    public void reset() {
-        driveEncoder.setPosition(0);
-    }
+    /** Resets the relative drive encoder reading on the {@link SwerveModule}. */
+    public void reset() { driveEncoder.setPosition(0); }
 }

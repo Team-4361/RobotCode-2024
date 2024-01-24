@@ -13,7 +13,7 @@ import frc.robot.util.math.ExtendedMath;
 
 import java.util.Optional;
 
-import static frc.robot.Constants.Chassis.MAX_SPEED_MPS;
+import static frc.robot.Constants.Chassis.CHASSIS_MODE;
 import static frc.robot.Constants.Control.PHOTON_DRIVE_MAX_SPEED;
 import static frc.robot.Constants.Control.PHOTON_TURN_MAX_SPEED;
 
@@ -87,9 +87,9 @@ public class DriveToAprilTagCommand extends Command {
                 PHOTON_TURN_MAX_SPEED.getValue()
         );
         return ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(
-                jX * MAX_SPEED_MPS,
-                jY * MAX_SPEED_MPS,
-                jO * MAX_SPEED_MPS
+                jX * CHASSIS_MODE.getMaxSpeed(),
+                jY * CHASSIS_MODE.getMaxSpeed(),
+                jO * CHASSIS_MODE.getMaxSpeed()
         ), Robot.swerve.getHeading());
     }
 

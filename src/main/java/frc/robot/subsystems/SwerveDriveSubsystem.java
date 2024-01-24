@@ -93,6 +93,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         this.gyro.reset();
 
         // Define the distances relative to the center of the robot. +X is forward and +Y is left.
+        double SWERVE_CHASSIS_SIDE_LENGTH = CHASSIS_MODE.getSideLength();
         this.kinematics = new SwerveDriveKinematics(
                 new Translation2d(SWERVE_CHASSIS_SIDE_LENGTH / 2, SWERVE_CHASSIS_SIDE_LENGTH / 2),  // FL
                 new Translation2d(SWERVE_CHASSIS_SIDE_LENGTH / 2, -SWERVE_CHASSIS_SIDE_LENGTH / 2), // FR
@@ -112,9 +113,9 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                 this::getRobotVelocity,
                 this::drive,
                 new HolonomicPathFollowerConfig(
-                        AUTO_DRIVE_PID_CONFIG,
-                        AUTO_TURN_PID_CONFIG,
-                        MAX_SPEED_MPS,
+                        CHASSIS_MODE.getAutoDrivePID(),
+                        CHASSIS_MODE.getAutoTurnPID(),
+                        CHASSIS_MODE.getMaxSpeed(),
                         SWERVE_CHASSIS_SIDE_LENGTH/2,
                         new ReplanningConfig()
                 ), () -> {
@@ -171,7 +172,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     public Rotation2d getHeading() { return gyro.getRotation2d(); }
 
     public void setStates(SwerveModuleState[] states, boolean isClosedLoop) {
-        SwerveDriveKinematics.desaturateWheelSpeeds(states, MAX_SPEED_MPS);
+        SwerveDriveKinematics.desaturateWheelSpeeds(states, CHASSIS_MODE.getMaxSpeed());
 
         frontLeft.setState(states[0], isClosedLoop);
         frontRight.setState(states[1], isClosedLoop);
@@ -195,9 +196,9 @@ public class SwerveDriveSubsystem extends SubsystemBase {
      */
     public void drive(DriveHIDBase stick) {
         // Calculate the maximum speed based on XY and Twist.
-        double xS = stick.getRobotX() * MAX_SPEED_MPS;
-        double yS = stick.getRobotY() * MAX_SPEED_MPS;
-        double tS = stick.getRobotTwist() * MAX_SPEED_MPS;
+        double xS = stick.getRobotX() * CHASSIS_MODE.getMaxSpeed();
+        double yS = stick.getRobotY() * CHASSIS_MODE.getMaxSpeed();
+        double tS = stick.getRobotTwist() * CHASSIS_MODE.getMaxSpeed();
 
         ChassisSpeeds speeds = new ChassisSpeeds(xS, yS, tS);
 
@@ -207,10 +208,15 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         driveRobotRelative(speeds, closedLoop);
     }
 
+    /**
+     * Drives the Robot using two Joysticks (one for XY, one for Twist)
+     * @param xyStick The {@link DriveHIDBase} to use for XY translation.
+     * @param twistStick The {@link DriveHIDBase} to use for Twist.
+     */
     public void drive(DriveHIDBase xyStick, DriveHIDBase twistStick) {
-        double xS = xyStick.getRobotX() * MAX_SPEED_MPS;
-        double yS = xyStick.getRobotY() * MAX_SPEED_MPS;
-        double tS = twistStick.getRobotTwist() * MAX_SPEED_MPS;
+        double xS = xyStick.getRobotX() * CHASSIS_MODE.getMaxSpeed();
+        double yS = xyStick.getRobotY() * CHASSIS_MODE.getMaxSpeed();
+        double tS = twistStick.getRobotTwist() * CHASSIS_MODE.getMaxSpeed();
 
         ChassisSpeeds speeds = new ChassisSpeeds(xS, yS, tS);
 
@@ -220,9 +226,11 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         driveRobotRelative(speeds, closedLoop);
     }
 
-    public void drive(ChassisSpeeds speeds) {
-        setStates(kinematics.toSwerveModuleStates(speeds), false);
-    }
+    /**
+     * Drives the Robot without field orientated using an input {@link ChassisSpeeds}.
+     * @param speeds The {@link ChassisSpeeds} to use.
+     */
+    public void drive(ChassisSpeeds speeds) {setStates(kinematics.toSwerveModuleStates(speeds), false); }
 
     public void driveRobotRelative(ChassisSpeeds speeds, boolean isClosedLoop) {
         setStates(kinematics.toSwerveModuleStates(speeds), isClosedLoop);
