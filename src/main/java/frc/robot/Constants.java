@@ -202,10 +202,15 @@ public class Constants {
         L3(6.12),
         L4(5.14);
 
+        /** @return The starting ratio (X:1) of this setup. */
         public double getRatio() { return this.ratio; }
 
         private final double ratio;
 
+        /**
+         * Constructs a new {@link Mk4SDSRatio} with the parameter.
+         * @param ratio The ratio to use against 1 (X:1)
+         */
         Mk4SDSRatio(double ratio) {
             this.ratio = ratio;
         }

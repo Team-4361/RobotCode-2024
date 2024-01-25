@@ -81,7 +81,7 @@ public class SwerveModule {
 
         this.driveEncoder = driveMotor.getEncoder();
         this.driveController = driveMotor.getPIDController();
-        turnController.enableContinuousInput(-180, 180);
+        turnController.enableContinuousInput(0, 90);
 
         // Set the PID config for driving.
         driveController.setP(drivePIDConfig.kP);
