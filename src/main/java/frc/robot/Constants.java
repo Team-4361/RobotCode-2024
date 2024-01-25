@@ -1,36 +1,20 @@
 package frc.robot;
 
-import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.util.PIDConstants;
-import com.revrobotics.CANSparkLowLevel.MotorType;
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.IDriveMode;
 import frc.robot.util.math.GearRatio;
-import frc.robot.util.math.PeakMotorDistance;
-import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.pid.DashTunableNumber;
-import frc.robot.util.pid.DashTunablePID;
-import frc.robot.util.pid.FRCDistanceMechanism;
-import frc.robot.util.preset.PresetGroup;
-import frc.robot.util.preset.PresetMap;
-import frc.robot.util.preset.PresetMode;
+import frc.robot.util.swerve.ChassisSettings;
 import frc.robot.util.swerve.SwerveModule;
-import org.photonvision.PhotonCamera;
 
 import java.util.function.Supplier;
-
-import static edu.wpi.first.units.BaseUnits.Distance;
-import static edu.wpi.first.units.Units.Inches;
-import static frc.robot.util.preset.PresetMode.PARALLEL;
 
 /**
  * This {@link Constants} class is an easy-to-use place for fixed value storage (ex. motor/controller IDs,
@@ -42,6 +26,7 @@ import static frc.robot.util.preset.PresetMode.PARALLEL;
  * @since 0.0.0
  */
 public class Constants {
+
     public static class Control {
         /** The Left Joystick ID (typically 0) */
         public static final int LEFT_STICK_ID = 0;
@@ -107,90 +92,6 @@ public class Constants {
         public static final long DASHBOARD_INTERVAL = 250;
     }
 
-    /**
-     * This {@link ChassisSettings} interface is designed to store values regarding Driving the robot. This includes any offsets
-     * for Absolute Driving, dead-zones, and ports regarding the motors. Note that these motors usually <b>do not</b>
-     * need to be flipped due to the Field Oriented driving system.
-     */
-    public interface ChassisSettings {
-        /** @return The front-left offset. */
-        double getFLOffset();
-
-        /** @return The front-right offset. */
-        double getFROffset();
-
-        /** @return The back-left offset. */
-        double getBLOffset();
-
-        /** @return The back-right offset. */
-        double getBROffset();
-
-        /** @return The {@link Robot} side length in <b>meters.</b> */
-        double getSideLength();
-
-        /** @return The front-left drive ID. */
-        int getFLDriveID();
-
-        /** @return The front-right drive ID. */
-        int getFRDriveID();
-
-        /** @return The back-left drive ID. */
-        int getBLDriveID();
-
-        /** @return The back-right drive ID. */
-        int getBRDriveID();
-
-        /** @return The front-left turn ID. */
-        int getFLTurnID();
-
-        /** @return The front-right turn ID. */
-        int getFRTurnID();
-
-        /** @return The back-left turn ID. */
-        int getBLTurnID();
-
-        /** @return The back-right turn ID. */
-        int getBRTurnID();
-        
-        /** @return The encoder ID of the front-left module. */
-        int getFLEncoderID();
-
-        /** @return The encoder ID of the front-right module. */
-        int getFREncoderID();
-
-        /** @return The encoder ID of the back-left module. */
-        int getBLEncoderID();
-
-        /** @return The encoder ID of the back-right module. */
-        int getBREncoderID();
-
-        /** @return The {@link Robot} wheel radius in <b>meters.</b> */
-        double getWheelRadius();
-
-        /** @return The {@link GearRatio} used for driving. */
-        GearRatio getDriveRatio();
-
-        /** @return The maximum attainable speed of the {@link Robot} in m/s. */
-        double getMaxSpeed();
-
-        /** @return The {@link PIDConstants} used for closed-loop control. */
-        PIDConstants getDrivePID();
-
-        /** @return The {@link PIDConstants} used for turning. */
-        PIDConstants getTurnPID();
-
-        /** @return The {@link PIDConstants} used for {@link PathPlannerAuto} closed-loop control. */
-        PIDConstants getAutoDrivePID();
-
-        /** @return The {@link PIDConstants} used for {@link PathPlannerAuto} turning. */
-        PIDConstants getAutoTurnPID();
-
-        /** @return The {@link PIDConstants} used for {@link PhotonCamera} closed-loop control. */
-        PIDConstants getPhotonDrivePID();
-
-        /** @return The {@link PIDConstants} used for {@link PhotonCamera} turning. */
-        PIDConstants getPhotonTurnPID();
-    }
 
     /**
      * This {@link Mk4SDSRatio} enum represents commonly used Gear Reductions on the SDS Mk4.
@@ -294,6 +195,9 @@ public class Constants {
 
         /** @return The PIDConstants used for PhotonCamera turning. */
         @Override public PIDConstants getPhotonTurnPID() { return new PIDConstants(0.1, 0, 0); }
+
+        /** @return If the legacy CTRE magnetic encoders are being used. */
+        @Override public boolean usingMagEncoders() { return false; }
     }
 
     public static class Mk3Chassis implements ChassisSettings {
@@ -374,6 +278,9 @@ public class Constants {
 
         /** @return The PIDConstants used for PhotonCamera turning. */
         @Override public PIDConstants getPhotonTurnPID() { return new PIDConstants(0.1, 0, 0); }
+
+        /** @return If the legacy CTRE magnetic encoders are being used. */
+        @Override public boolean usingMagEncoders() { return true; }
     }
 
 
@@ -387,7 +294,8 @@ public class Constants {
                 CHASSIS_MODE.getFLEncoderID(),
                 CHASSIS_MODE.getFLOffset(),
                 CHASSIS_MODE.getDrivePID(),
-                CHASSIS_MODE.getTurnPID()
+                CHASSIS_MODE.getTurnPID(),
+                CHASSIS_MODE.usingMagEncoders()
         );
 
         public static final SwerveModule FR_MODULE = new SwerveModule(
@@ -397,7 +305,8 @@ public class Constants {
                 CHASSIS_MODE.getFREncoderID(),
                 CHASSIS_MODE.getFROffset(),
                 CHASSIS_MODE.getDrivePID(),
-                CHASSIS_MODE.getTurnPID()
+                CHASSIS_MODE.getTurnPID(),
+                CHASSIS_MODE.usingMagEncoders()
         );
 
         public static final SwerveModule BL_MODULE = new SwerveModule(
@@ -407,7 +316,8 @@ public class Constants {
                 CHASSIS_MODE.getBLEncoderID(),
                 CHASSIS_MODE.getBLOffset(),
                 CHASSIS_MODE.getDrivePID(),
-                CHASSIS_MODE.getTurnPID()
+                CHASSIS_MODE.getTurnPID(),
+                CHASSIS_MODE.usingMagEncoders()
         );
 
         public static final SwerveModule BR_MODULE = new SwerveModule(
@@ -417,7 +327,8 @@ public class Constants {
                 CHASSIS_MODE.getBREncoderID(),
                 CHASSIS_MODE.getBROffset(),
                 CHASSIS_MODE.getDrivePID(),
-                CHASSIS_MODE.getTurnPID()
+                CHASSIS_MODE.getTurnPID(),
+                CHASSIS_MODE.usingMagEncoders()
         );
     }
 }

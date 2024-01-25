@@ -1,9 +1,9 @@
 package frc.robot.util.pid;
 
 import com.pathplanner.lib.util.PIDConstants;
+import com.revrobotics.CANSparkLowLevel;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
@@ -11,9 +11,12 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.motor.FRCSparkMax;
+import frc.robot.util.motor.IMotorModel;
 import frc.robot.util.preset.PresetMap;
 
 import java.util.function.Supplier;
+
+import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 import static edu.wpi.first.math.MathUtil.clamp;
 
 /**
@@ -77,6 +80,10 @@ public class FRCMechanism extends SubsystemBase {
     /** @return The {@link Supplier} which can bypass the forward/reverse limits. */
     public Supplier<Boolean> getLimitBypassSupplier() { return this.limitBypassSupplier; }
 
+    /**
+     * Registers the mechanism with an associated Preset
+     * @param map The {@link PresetMap} to use.
+     */
     public void registerPresets(PresetMap<Double> map) {
         this.presetSupplier = map.getSupplier();
         map.addListener((name, value) -> updateTarget());
@@ -225,14 +232,21 @@ public class FRCMechanism extends SubsystemBase {
         return this;
     }
 
-    public FRCMechanism(String name, FRCSparkMax motor, PIDConstants pidOptions) {
+    /**
+     * Constructs a new {@link FRCMechanism} with the following parameters. <b>A brushless motor MUST be used!</b>
+     * @param name       The {@link String} name of the {@link FRCMechanism}.
+     * @param motorID    The Motor ID of the {@link FRCSparkMax}.
+     * @param model      The {@link IMotorModel} (type) of the Motor used.
+     * @param pidOptions The {@link PIDConstants} to use for closed-loop operation.
+     */
+    public FRCMechanism(String name, int motorID, IMotorModel model, PIDConstants pidOptions) {
         this.controller = new PIDController(
                 pidOptions.kP,
                 pidOptions.kI,
                 pidOptions.kD
         );
 
-        this.motor = motor;
+        this.motor = new FRCSparkMax(motorID, kBrushless, model);
         this.name = name;
         this.teleopMode = false;
         this.pidEnabledSupplier = () -> true;
