@@ -128,6 +128,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         //FRCSparkMax.burnAllFlash();
 
         IOManager.addPeriodicIfExists(STRING_ODOMETRY_NAME, () -> odometry.update(getHeading(), getPositions()));
+
+        /*
         IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, () -> {
             SmartDashboard.putString("Odometry", getPose().toString());
             frontLeft.updateDashboard();
@@ -135,6 +137,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
             backLeft.updateDashboard();
             backRight.updateDashboard();
         });
+
+         */
     }
 
     /**

@@ -9,7 +9,6 @@ import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.pathplanner.lib.util.PIDConstants;
 import com.revrobotics.CANSparkBase;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
@@ -18,17 +17,20 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.util.io.IOManager;
 import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.motor.MotorModel;
 import frc.robot.util.pid.DashTunablePID;
+import frc.robot.util.swerve.config.SwerveModuleIO;
+import frc.robot.util.swerve.config.SwerveModuleIO.SwerveModuleIOInputs;
 
 import static com.revrobotics.CANSparkBase.ControlType.kVelocity;
 import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 import static frc.robot.Constants.Chassis.*;
 import static frc.robot.Constants.Control.*;
+import static frc.robot.Constants.LooperConfig.STRING_PERIODIC_NAME;
 
 /**
  * A {@link SwerveModule} is composed of two motors and two encoders:
@@ -41,11 +43,6 @@ import static frc.robot.Constants.Control.*;
  * @author Eric Gold
  */
 public class SwerveModule {
-    private final FRCSparkMax driveMotor;
-    private final FRCSparkMax turnMotor;
-    private final RelativeEncoder driveEncoder;
-    private final DutyCycleEncoder magAbsEncoder;
-    private final CANcoder canAbsEncoder;
     private final double offsetRads;
     private final PIDConstants drivePIDConfig;
     private final PIDConstants turnPIDConfig;
@@ -53,9 +50,8 @@ public class SwerveModule {
     private final DashTunablePID driveTune;
     private final DashTunablePID turnTune;
     private final String name;
-    private final boolean isMag;
-
-    private final SparkPIDController driveController;
+    private final SwerveModuleIO io;
+    private SwerveModuleIOInputs inputs;
 
     //public static final DashTunablePID driveTune = new DashTunablePID("Drive PID", DRIVE_PID_CONFIG);
     //public static final DashTunablePID steerTune = new DashTunablePID("Steer PID", TURN_PID_CONFIG);
@@ -63,83 +59,48 @@ public class SwerveModule {
      * Creates a new {@link SwerveModule} instance using the specified parameters. The {@link CANSparkMax}
      * motor instance will be <b>created and reserved.</b>
      *
-     * @param name               The name of the swerve module.
-     * @param driveMotorId       The Motor ID used for driving the wheel.
-     * @param turnMotorId        The Motor ID used for turning the wheel.
-     * @param digitalEncoderPort The {@link DigitalInput} ID used for the Encoder.
-     * @param offsetRads         The offset to use for driving the wheel in <b>radians</b>.
-     * @param drivePIDConfig     The {@link PIDConstants} to use for closed-loop driving.
-     * @param turnPIDConfig      The {@link PIDConstants} to use for PWM turning.
-     * @param isMag              If the {@link SwerveModule} is using the legacy CTRE mag encoder.
+     * @param name            The name of the swerve module.
+     * @param io              The {@link SwerveModuleIO} adapter used for direct communication.
+     * @param offsetRads      The offset to use for driving the wheel in <b>radians</b>.
+     * @param drivePIDConfig  The {@link PIDConstants} to use for closed-loop driving.
+     * @param turnPIDConfig   The {@link PIDConstants} to use for PWM turning.
      */
-    public SwerveModule(String name, int driveMotorId, int turnMotorId, int digitalEncoderPort,
-                        double offsetRads, PIDConstants drivePIDConfig, PIDConstants turnPIDConfig, boolean isMag) {
-        this.name = name;
-        this.isMag = isMag;
-        this.driveMotor = new FRCSparkMax(driveMotorId, kBrushless, MotorModel.NEO);
-        this.turnMotor = new FRCSparkMax(turnMotorId, kBrushless, MotorModel.NEO);
+    public SwerveModule(String name, SwerveModuleIO io,
+                        double offsetRads, PIDConstants drivePIDConfig, PIDConstants turnPIDConfig) {
         this.turnController = new PIDController(turnPIDConfig.kP, turnPIDConfig.kI, turnPIDConfig.kD, turnPIDConfig.kP);
-
-        if (isMag) {
-            this.magAbsEncoder = new DutyCycleEncoder(digitalEncoderPort);
-            this.canAbsEncoder = null;
-        } else {
-            this.canAbsEncoder = new CANcoder(digitalEncoderPort);
-            this.magAbsEncoder = null;
-
-            CANcoderConfigurator encoderConfig = canAbsEncoder.getConfigurator();
-            encoderConfig.apply(new CANcoderConfiguration());
-
-            MagnetSensorConfigs magnetConfig = new MagnetSensorConfigs();
-            encoderConfig.refresh(magnetConfig);
-            encoderConfig.apply(magnetConfig
-                    .withAbsoluteSensorRange(AbsoluteSensorRangeValue.Unsigned_0To1)
-                    .withSensorDirection(SensorDirectionValue.CounterClockwise_Positive));
-        }
-
-        driveMotor.enableVoltageCompensation(12);
 
         this.offsetRads = offsetRads;
         this.drivePIDConfig = drivePIDConfig;
         this.turnPIDConfig = turnPIDConfig;
+        this.name = name;
+        this.io = io;
 
-        this.driveEncoder = driveMotor.getEncoder();
-        this.driveController = driveMotor.getPIDController();
+        // Shorten the travel as much as possible for efficency reasons.
         turnController.enableContinuousInput(0, 90);
 
         // Set the PID config for driving.
-        driveController.setP(drivePIDConfig.kP);
-        driveController.setI(drivePIDConfig.kI);
-        driveController.setD(drivePIDConfig.kD);
+        io.setPID(drivePIDConfig);
 
         if (SWERVE_TUNING_ENABLED) {
             // PID tuning is enabled.
             driveTune = new DashTunablePID(name + ": Drive PID", drivePIDConfig);
             turnTune = new DashTunablePID(name + ": Turn PID", turnPIDConfig);
-            driveTune.addConsumer(driveController::setP, driveController::setI, driveController::setD);
+            //driveTune.addConsumer(driveController::setP, driveController::setI, driveController::setD);
             turnTune.addConsumer(turnController::setP, turnController::setI, turnController::setD);
         } else {
             driveTune = null;
             turnTune = null;
         }
-
-        driveMotor.setIdleMode(CANSparkBase.IdleMode.kBrake);
-        driveMotor.setSmartCurrentLimit(40);
-        turnMotor.setIdleMode(CANSparkBase.IdleMode.kBrake);
-        turnMotor.setSmartCurrentLimit(20);
-
-        if (MOTOR_BURN_FLASH) {
-            FRCSparkMax.stageFlash(driveMotor);
-            FRCSparkMax.stageFlash(turnMotor);
-        }
     }
+
+    public void update() { io.updateInputs(inputs); }
 
     /**
      * @return The current {@link SwerveModule} velocity in meters per second.
      */
     public double getVelocity() {
         return CHASSIS_MODE.getDriveRatio().getFollowerRotations(
-                driveEncoder.getVelocity() / 60) * (2 * Math.PI * CHASSIS_MODE.getWheelRadius()) ;
+                inputs.driveRPM / 60) * (2 * Math.PI * CHASSIS_MODE.getWheelRadius()) ;
     }
 
     /** @return The {@link PIDConstants} to use for closed-loop driving. */
@@ -149,13 +110,7 @@ public class SwerveModule {
     public PIDConstants getTurnPIDConfig() { return this.turnPIDConfig; }
 
     /** @return The current {@link SwerveModule} Turn Angle in radians. */
-    public double getTurnAngle() {
-        double val = (isMag) ? magAbsEncoder.get() : canAbsEncoder
-                .getAbsolutePosition()
-                .refresh()
-                .getValueAsDouble();
-        return offsetRads + (val * 2 * Math.PI);
-    }
+    public double getTurnAngle() { return offsetRads + (inputs.turnRotations * 2 * Math.PI); }
 
     /**
      * Sets the state of the {@link SwerveModule}.
@@ -168,15 +123,14 @@ public class SwerveModule {
 
         if (isClosedLoop) {
             // Set the desired RPM to achieve the meters per second.
-            double desiredRPM = driveMotor.getFreeSpeedRPM() * (state.speedMetersPerSecond / CHASSIS_MODE.getMaxSpeed());
-            driveController.setReference(desiredRPM, kVelocity, 0);
+            double desiredRPM = io.getFreeSpeedRPM() * (state.speedMetersPerSecond / CHASSIS_MODE.getMaxSpeed());
+            io.driveClosedLoop(desiredRPM);
         } else {
-            driveMotor.set(
+            io.driveOpenLoop(
                     MathUtil.clamp(state.speedMetersPerSecond / CHASSIS_MODE.getMaxSpeed(), -1, 1)
             );
         }
-
-        turnMotor.set(MathUtil.clamp(turnController.calculate(getTurnAngle(), state.angle.getRadians()), -1, 1));
+        io.setTurnPower(MathUtil.clamp(turnController.calculate(getTurnAngle(), state.angle.getRadians()), -1, 1));
     }
 
     /**
@@ -217,6 +171,7 @@ public class SwerveModule {
         return name;
     }
 
+    /*
     public void updateDashboard() {
 
         if (DEBUG_ENABLED) {
@@ -246,6 +201,7 @@ public class SwerveModule {
             turnTune.update();
         }
     }
+     */
 
     /**
      * @return The total amount of meters the individual {@link SwerveModule} has traveled.
@@ -255,9 +211,9 @@ public class SwerveModule {
         // (Total Rotations * 2PI * Wheel Radius)
         return (CHASSIS_MODE
                 .getDriveRatio()
-                .getFollowerRotations(driveEncoder.getPosition()) * (2 * Math.PI * CHASSIS_MODE.getWheelRadius()));
+                .getFollowerRotations(inputs.driveRotations) * (2 * Math.PI * CHASSIS_MODE.getWheelRadius()));
     }
 
     /** Resets the relative drive encoder reading on the {@link SwerveModule}. */
-    public void reset() { driveEncoder.setPosition(0); }
+    public void reset() { io.reset(); }
 }
