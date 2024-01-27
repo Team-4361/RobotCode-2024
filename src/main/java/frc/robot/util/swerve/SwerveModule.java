@@ -141,7 +141,7 @@ public class SwerveModule {
      *
      * @param state The {@link SwerveModuleState} to use.
      */
-    public void setState(SwerveModuleState state, boolean isClosedLoop) {
+    public SwerveModuleState setState(SwerveModuleState state, boolean isClosedLoop) {
         // Optimize state based on current angle
         // Controllers run in "periodic" when the setpoint is not null
         var optimizedState = SwerveModuleState.optimize(state, getAngle());
@@ -150,6 +150,8 @@ public class SwerveModule {
 
         angleSetpoint = optimizedState.angle;
         speedSetpoint = optimizedState.speedMetersPerSecond;
+
+        return optimizedState;
     }
 
     /**

@@ -9,7 +9,11 @@ public interface GyroIO {
         public boolean connected = false;
         public Rotation2d yawPosition = new Rotation2d();
         public double yawVelocityRadPerSec = 0.0;
+        public Rotation2d pitchPosition = new Rotation2d();
+        public Rotation2d rollPosition = new Rotation2d();
+        public boolean isCalibrating = false;
     }
+    void reset();
 
     void updateInputs(GyroIOInputs inputs);
 }

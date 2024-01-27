@@ -5,10 +5,12 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.SPI;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.IDriveMode;
 import frc.robot.util.pid.DashTunableNumber;
+import frc.robot.util.swerve.GyroIONavX1;
 import frc.robot.util.swerve.SwerveModuleIOCAN;
 import frc.robot.util.swerve.config.ChassisSettings;
 import frc.robot.util.swerve.config.Mk4Chassis;
@@ -129,6 +131,8 @@ public class Constants {
                 CHASSIS_MODE.getSideLength() / 2.0
         );
         public static final double MAX_ANGULAR_MPS = CHASSIS_MODE.getMaxSpeed() / CHASSIS_BASE_RADIUS;
+
+        public static final GyroIONavX1 GYRO_MODULE = new GyroIONavX1(SPI.Port.kMXP);
 
         public static final SwerveModule FL_MODULE = new SwerveModule(
                 "FL",

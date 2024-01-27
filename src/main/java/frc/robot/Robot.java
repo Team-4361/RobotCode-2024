@@ -28,6 +28,7 @@ import frc.robot.util.preset.PresetGroup;
 import frc.robot.util.preset.PresetMode;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 import java.util.HashMap;
@@ -95,9 +96,8 @@ public class Robot extends LoggedRobot {
         }
 
         // TODO: setup replay/sim mode!
-        Logger.addDataReceiver(new WPILOGWriter());
-        //Logger.addDataReceiver(new NT4Publisher());
-        //Logger.start(); // start logging!
+        Logger.addDataReceiver(new NT4Publisher());
+        Logger.start(); // start logging!
         // endregion
 
         boolean useNormalSticks = !RobotBase.isSimulation() ||
@@ -146,16 +146,7 @@ public class Robot extends LoggedRobot {
         initLoops();
 
         pdh = new PowerDistribution();
-        /*
-        mechanism = new FRCAngledMechanism(
-                "Rotation Mechanism",
-                GearRatio.from(686, 1),
-                new FRCSparkMax(10, CANSparkLowLevel.MotorType.kBrushless, DCMotor.getNEO(1)),
-                new PIDConstants(0.1, 0, 0));
-        mechanism.registerPresets(ROTATION_PRESETS);
-         */
-
-        swerve = new SwerveDriveSubsystem(FL_MODULE, FR_MODULE, BL_MODULE, BR_MODULE);
+        swerve = new SwerveDriveSubsystem(FL_MODULE, FR_MODULE, BL_MODULE, BR_MODULE, GYRO_MODULE);
         camera = new PhotonCameraModule("FrontCamera", Units.inchesToMeters(27), 0);
 
 
