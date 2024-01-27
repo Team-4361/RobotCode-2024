@@ -15,9 +15,16 @@ import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.DriveToAprilTagCommand;
+import frc.robot.commands.IndexAutoMoverCommand;
+import frc.robot.commands.IntakeCommand;
+import frc.robot.commands.ShootCommand;
+import frc.robot.subsystems.IndexSubsystem;
+import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SwerveDriveSubsystem;
 import frc.robot.util.auto.PhotonCameraModule;
 import frc.robot.util.io.*;
@@ -34,6 +41,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
+import static frc.robot.Constants.*;
 import static frc.robot.Constants.Chassis.*;
 //import static frc.robot.Constants.ClimberPresets.*;
 import static frc.robot.Constants.Control.*;
@@ -54,6 +62,11 @@ public class Robot extends LoggedRobot {
     public static SwerveDriveSubsystem swerve;
     public static PresetGroup drivePresets;
     public static PhotonCameraModule camera;
+    public static ShooterSubsystem shooter;
+    public static IntakeSubsystem intake;
+    public static IndexSubsystem indexer;
+    // add a "public static" variable for your Subsystem type and name.
+    // look above for examples.
 
     /**
      * This method is run when the robot is first started up and should be used for any
@@ -145,6 +158,10 @@ public class Robot extends LoggedRobot {
 
         initLoops();
 
+        //////////////////////////////////////////////////////////////////////////
+
+        // initialize your subsystem like how it's done below.
+
         pdh = new PowerDistribution();
         /*
         mechanism = new FRCAngledMechanism(
@@ -214,6 +231,7 @@ public class Robot extends LoggedRobot {
      * joysticks}.
      */
     private void configureBindings(boolean xboxOnly) {
+
         if (xboxOnly) {
             IOManager.debug(this, "Xbox-only/Simulation mode detected.");
             Robot.swerve.setDefaultCommand(Robot.swerve.runEnd(
@@ -228,6 +246,15 @@ public class Robot extends LoggedRobot {
             );
         }
 
+        xbox.a().whileTrue(new SequentialCommandGroup(
+                new ShootCommand(FAST_SPEED),
+                new IndexAutoMoverCommand()
+        ));
+        xbox.b().whileTrue(new SequentialCommandGroup(
+                new ShootCommand(SLOW_SPEED),
+                new IndexAutoMoverCommand()
+        ));
+
         //xbox.a().onTrue(Commands.runOnce(() -> ROTATION_PRESETS.setPreset(0)));
         //xbox.b().onTrue(Commands.runOnce(() -> ROTATION_PRESETS.setPreset(1)));
 
@@ -241,6 +268,7 @@ public class Robot extends LoggedRobot {
 //        xbox.rightBumper().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(HIGH_CONE_NAME)));
 
         if (!xboxOnly) {
+            xbox.a().onTrue(new IntakeCommand(INTAKE_SPEED));
             leftStick.button(10).onTrue(Commands.runOnce(() -> drivePresets.nextPreset(true)));
             leftStick.button(12).onTrue(swerve.toggleClosedLoopCommand());
             leftStick.button(11).onTrue(swerve.resetCommand());

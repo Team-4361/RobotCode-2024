@@ -5,6 +5,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.I2C;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.IDriveMode;
@@ -170,4 +171,20 @@ public class Constants {
                 CHASSIS_MODE.getTurnPID()
         );
     }
+    public static final int SHOOTER_MOTOR_1_ID = 10;
+    public static final int SHOOTER_MOTOR_2_ID = 11;
+    public static final double SLOW_SPEED = 0.5;
+    public static final double FAST_SPEED = 1;
+    public static final double INTAKE_SPEED = 0.25;
+    public static final int INTAKE_MOTOR_ID = 12;
+    public static final int INDEX_MOTOR_1_ID = 13;
+    public static final int INDEX_MOTOR_2_ID = 14;
+    public static final I2C.Port INDEX_SENSOR_PORT = I2C.Port.kMXP;
+    public static final double RED_MINIMUM_TOLERANCE = 0;
+    public static final double RED_MAXIMUM_TOLERANCE = 100;
+    public static final double BLUE_MINIMUM_TOLERANCE = 0;
+    public static final double BLUE_MAXIMUM_TOLERANCE = 100;
+    public static final double GREEN_MINIMUM_TOLERANCE = 0;
+    public static final double GREEN_MAXIMUM_TOLERANCE = 100;
+    public static final double INDEX_SPEED = 0.5;
 }
