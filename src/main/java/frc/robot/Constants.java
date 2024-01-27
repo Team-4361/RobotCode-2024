@@ -19,6 +19,9 @@ import frc.robot.util.swerve.config.SwerveModuleIO;
 
 import java.util.function.Supplier;
 
+import static frc.robot.Constants.LooperConfig.*;
+import static frc.robot.Constants.LooperConfig.STRING_DASHBOARD_NAME;
+
 /**
  * This {@link Constants} class is an easy-to-use place for fixed value storage (ex. motor/controller IDs,
  * ratios, etc.)
@@ -60,6 +63,16 @@ public class Constants {
         public static final DashTunableNumber PHOTON_DISTANCE = new DashTunableNumber("Photon Distance", 1, false);
         public static final DashTunableNumber PHOTON_DRIVE_MAX_SPEED = new DashTunableNumber("Photon Max Speed", 0.5, false);
         public static final boolean DEBUG_ENABLED = false;
+
+        static {
+            IOManager.initLoop(STRING_PERIODIC_NAME, PERIODIC_INTERVAL);
+            IOManager.initLoop(STRING_DASHBOARD_NAME, DASHBOARD_INTERVAL);
+            IOManager.initLoop(STRING_ODOMETRY_NAME, ODOMETRY_INTERVAL);
+
+            IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, PHOTON_DISTANCE::update);
+            IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, PHOTON_DRIVE_MAX_SPEED::update);
+            IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, PHOTON_TURN_MAX_SPEED::update);
+        }
     }
 
     public static class VisionTracking {

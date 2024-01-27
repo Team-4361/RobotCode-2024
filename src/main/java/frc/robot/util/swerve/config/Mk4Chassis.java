@@ -71,7 +71,7 @@ public class Mk4Chassis implements ChassisSettings {
     @Override public double getMaxSpeed() { return 12.5; }
 
     /** @return The PIDConstants used for closed-loop control. */
-    @Override public PIDConstants getDrivePID() { return new PIDConstants(2e-4, 0, 0); }
+    @Override public PIDConstants getDrivePID() { return new PIDConstants(0.1, 0, 0); }
 
     /** @return The PIDConstants used for turning. */
     @Override public PIDConstants getTurnPID() { return new PIDConstants(0.5, 0, 0); }

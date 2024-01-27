@@ -101,8 +101,9 @@ public class Robot extends LoggedRobot {
         Logger.start(); // start logging!
         // endregion
 
-        boolean useNormalSticks = !RobotBase.isSimulation() ||
-                (DriverStation.isJoystickConnected(0) && DriverStation.isJoystickConnected(1));
+        //boolean useNormalSticks = !RobotBase.isSimulation() ||
+        //        (DriverStation.isJoystickConnected(0) && DriverStation.isJoystickConnected(1));
+        boolean useNormalSticks = true;
 
         // Use a PresetGroup to keep the presets synchronized. We don't want one joystick sensitive
         // and the other one non-sensitive.
@@ -143,8 +144,6 @@ public class Robot extends LoggedRobot {
 
         if (!useNormalSticks)
             drivePresets.add(xbox); // only add the Xbox Controller if used for driving.
-
-        initLoops();
 
         pdh = new PowerDistribution();
 
@@ -190,16 +189,6 @@ public class Robot extends LoggedRobot {
         registerAlerts(!useNormalSticks);
         configureBindings(!useNormalSticks);
         // ******************************************************************* //
-    }
-
-    private void initLoops() {
-        IOManager.initLoop(STRING_PERIODIC_NAME, PERIODIC_INTERVAL);
-        IOManager.initLoop(STRING_DASHBOARD_NAME, DASHBOARD_INTERVAL);
-        IOManager.initLoop(STRING_ODOMETRY_NAME, ODOMETRY_INTERVAL);
-
-        IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, PHOTON_DISTANCE::update);
-        IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, PHOTON_DRIVE_MAX_SPEED::update);
-        IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, PHOTON_TURN_MAX_SPEED::update);
     }
 
     private void registerAlerts(boolean xboxOnly) {
