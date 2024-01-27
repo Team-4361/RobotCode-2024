@@ -12,6 +12,9 @@ public class GearRatio {
     private double gearOne;
     private double gearTwo;
 
+    /** A direct drive {@link GearRatio} (1:1 ratio). */
+    public static GearRatio DIRECT_DRIVE = GearRatio.from(1, 1);
+
     /**
      * Constructs a new {@link GearRatio} with a pre-determined Ratio.
      * @param ratio The {@link String}-equivalent ratio (ex. <code>1:5</code> or <code>0.5:2</code>)
@@ -58,6 +61,9 @@ public class GearRatio {
 
     /** @return The second gear (driven gear) of the ratio. */
     public double getFollowerAngle() { return this.gearTwo; }
+
+    /** @return The {@link Double} divisor (lead / follower) of the {@link GearRatio}. */
+    public double getDivisor() { return gearOne / gearTwo; }
 
     /**
      * Combines two {@link GearRatio}s together by <b>multiplying</b> their ratios into a new instance.

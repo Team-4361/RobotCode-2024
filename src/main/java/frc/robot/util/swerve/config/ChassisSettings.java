@@ -69,6 +69,9 @@ public interface ChassisSettings {
     /** @return The {@link GearRatio} used for driving. */
     GearRatio getDriveRatio();
 
+    /** @return The {@link GearRatio} used for turning. */
+    GearRatio getTurnRatio();
+
     /** @return The maximum attainable speed of the {@link Robot} in m/s. */
     double getMaxSpeed();
 

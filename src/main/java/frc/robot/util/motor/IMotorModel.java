@@ -1,5 +1,6 @@
 package frc.robot.util.motor;
 
+import edu.wpi.first.math.system.plant.DCMotor;
 import frc.robot.Robot;
 
 /**
@@ -17,4 +18,10 @@ public interface IMotorModel {
 
     /** @return The maximum <b>theoretical</b> stall torque of this {@link IMotorModel} in <b>newton-meters.</b> */
     double getStallTorqueNM();
+
+    /**
+     * @param numMotors The number of motors to process.
+     * @return The {@link DCMotor} instance used for simulation.
+     */
+    DCMotor getMotorInstance(int numMotors);
 }

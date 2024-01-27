@@ -4,6 +4,8 @@ import com.pathplanner.lib.util.PIDConstants;
 import frc.robot.Constants;
 import frc.robot.util.math.GearRatio;
 
+import static frc.robot.Constants.Mk4SDSRatio.L2;
+
 public class Mk4Chassis implements ChassisSettings {
     /** @return The front-left offset. */
     @Override public double getFLOffset() { return 0; }
@@ -60,7 +62,10 @@ public class Mk4Chassis implements ChassisSettings {
     @Override public double getWheelRadius() { return 0.0508; }
 
     /** @return The GearRatio used for driving. */
-    @Override public GearRatio getDriveRatio() { return GearRatio.from(Constants.Mk4SDSRatio.L2.getRatio(), 1); }
+    @Override public GearRatio getDriveRatio() { return GearRatio.from(L2.getRatio(), 1); }
+
+    /** @return The {@link GearRatio} used for turning. */
+    @Override public GearRatio getTurnRatio() { return GearRatio.from(12.8, 1); }
 
     /** @return The maximum attainable speed of the Robot in m/s. */
     @Override public double getMaxSpeed() { return 12.5; }

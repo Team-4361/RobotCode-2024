@@ -61,6 +61,9 @@ public class Mk3Chassis implements ChassisSettings {
     /** @return The GearRatio used for driving. */
     @Override public GearRatio getDriveRatio() { return GearRatio.from(6.86, 1); }
 
+    /** @return The {@link GearRatio} used for turning. */
+    @Override public GearRatio getTurnRatio() { return GearRatio.from(12.8, 1); }
+
     /** @return The maximum attainable speed of the Robot in m/s. */
     @Override public double getMaxSpeed() { return 12.5; }
 

@@ -46,6 +46,7 @@ public class SwerveModule {
     private final double offsetRads;
     private final PIDConstants drivePIDConfig;
     private final PIDConstants turnPIDConfig;
+    private final PIDController driveController;
     private final PIDController turnController;
     private final DashTunablePID driveTune;
     private final DashTunablePID turnTune;
@@ -67,7 +68,9 @@ public class SwerveModule {
      */
     public SwerveModule(String name, SwerveModuleIO io,
                         double offsetRads, PIDConstants drivePIDConfig, PIDConstants turnPIDConfig) {
-        this.turnController = new PIDController(turnPIDConfig.kP, turnPIDConfig.kI, turnPIDConfig.kD, turnPIDConfig.kP);
+
+        this.driveController = new PIDController(drivePIDConfig.kP, drivePIDConfig.kI, drivePIDConfig.kD);
+        this.turnController  = new PIDController(turnPIDConfig.kP, turnPIDConfig.kI, turnPIDConfig.kD);
 
         this.offsetRads = offsetRads;
         this.drivePIDConfig = drivePIDConfig;
@@ -77,9 +80,6 @@ public class SwerveModule {
 
         // Shorten the travel as much as possible for efficency reasons.
         turnController.enableContinuousInput(0, 90);
-
-        // Set the PID config for driving.
-        io.setPID(drivePIDConfig);
 
         if (SWERVE_TUNING_ENABLED) {
             // PID tuning is enabled.

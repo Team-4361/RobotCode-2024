@@ -39,6 +39,11 @@
 # Compiled class file
 *.class
 
+# Simulation files
+simgui.json
+simgui-ds.json
+simgui-window.json
+
 # Log file
 *.log
 

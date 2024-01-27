@@ -9,7 +9,6 @@ import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.IDriveMode;
 import frc.robot.util.pid.DashTunableNumber;
-import frc.robot.util.swerve.SwerveModuleIOCAN;
 import frc.robot.util.swerve.config.ChassisSettings;
 import frc.robot.util.swerve.config.Mk4Chassis;
 import frc.robot.util.swerve.SwerveModule;
@@ -28,6 +27,8 @@ import java.util.function.Supplier;
  */
 public class Constants {
 
+    public enum OperationMode { REAL, REPLAY, SIM}
+
     public static class Control {
         /** The Left Joystick ID (typically 0) */
         public static final int LEFT_STICK_ID = 0;
@@ -35,6 +36,8 @@ public class Constants {
         public static final int RIGHT_STICK_ID = 1;
         /** The Xbox Controller ID (typically 2) */
         public static final int XBOX_CONTROLLER_ID = 2;
+
+        public static final OperationMode OP_MODE = OperationMode.REAL;
 
         /** The default deadband value to use on Controllers. */
         public static final double DEADBAND = 0.05;
