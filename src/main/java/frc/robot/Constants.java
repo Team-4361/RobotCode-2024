@@ -6,17 +6,22 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.I2C;
+import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.SPI;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.IDriveMode;
 import frc.robot.util.pid.DashTunableNumber;
+import frc.robot.util.swerve.GyroIONavX1;
 import frc.robot.util.swerve.SwerveModuleIOCAN;
 import frc.robot.util.swerve.config.ChassisSettings;
 import frc.robot.util.swerve.config.Mk4Chassis;
-import frc.robot.util.swerve.SwerveModule;
 import frc.robot.util.swerve.config.SwerveModuleIO;
 
 import java.util.function.Supplier;
+
+import static frc.robot.Constants.LooperConfig.*;
+import static frc.robot.Constants.LooperConfig.STRING_DASHBOARD_NAME;
 
 /**
  * This {@link Constants} class is an easy-to-use place for fixed value storage (ex. motor/controller IDs,
@@ -29,6 +34,8 @@ import java.util.function.Supplier;
  */
 public class Constants {
 
+    public enum OperationMode { REAL, REPLAY, SIM}
+
     public static class Control {
         /** The Left Joystick ID (typically 0) */
         public static final int LEFT_STICK_ID = 0;
@@ -36,6 +43,8 @@ public class Constants {
         public static final int RIGHT_STICK_ID = 1;
         /** The Xbox Controller ID (typically 2) */
         public static final int XBOX_CONTROLLER_ID = 2;
+
+        public static final OperationMode OP_MODE = (RobotBase.isSimulation()) ? OperationMode.SIM : OperationMode.REAL;
 
         /** The default deadband value to use on Controllers. */
         public static final double DEADBAND = 0.05;
@@ -55,6 +64,16 @@ public class Constants {
         public static final DashTunableNumber PHOTON_DISTANCE = new DashTunableNumber("Photon Distance", 1, false);
         public static final DashTunableNumber PHOTON_DRIVE_MAX_SPEED = new DashTunableNumber("Photon Max Speed", 0.5, false);
         public static final boolean DEBUG_ENABLED = false;
+
+        static {
+            IOManager.initLoop(STRING_PERIODIC_NAME, PERIODIC_INTERVAL);
+            IOManager.initLoop(STRING_DASHBOARD_NAME, DASHBOARD_INTERVAL);
+            IOManager.initLoop(STRING_ODOMETRY_NAME, ODOMETRY_INTERVAL);
+
+            IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, PHOTON_DISTANCE::update);
+            IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, PHOTON_DRIVE_MAX_SPEED::update);
+            IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, PHOTON_TURN_MAX_SPEED::update);
+        }
     }
 
     public static class VisionTracking {
@@ -122,53 +141,41 @@ public class Constants {
 
     public static class Chassis {
         public static final ChassisSettings CHASSIS_MODE = new Mk4Chassis();
+        public static final double CHASSIS_BASE_RADIUS = Math.hypot(
+                CHASSIS_MODE.getSideLength() / 2.0,
+                CHASSIS_MODE.getSideLength() / 2.0
+        );
+        public static final double MAX_ANGULAR_MPS = CHASSIS_MODE.getMaxSpeed() / CHASSIS_BASE_RADIUS;
 
-        public static final SwerveModule FL_MODULE = new SwerveModule(
-                "FL",
-                new SwerveModuleIOCAN(
-                        CHASSIS_MODE.getFLDriveID(),
-                        CHASSIS_MODE.getFLTurnID(),
-                        CHASSIS_MODE.getFLEncoderID()
-                ),
-                CHASSIS_MODE.getFLOffset(),
-                CHASSIS_MODE.getDrivePID(),
-                CHASSIS_MODE.getTurnPID()
+        public static final GyroIONavX1 GYRO_MODULE = new GyroIONavX1(SPI.Port.kMXP);
+
+        public static final SwerveModuleIO FL_MODULE_IO = new SwerveModuleIOCAN(
+                CHASSIS_MODE.getFLDriveID(),
+                CHASSIS_MODE.getFLTurnID(),
+                CHASSIS_MODE.getFLEncoderID(),
+                CHASSIS_MODE.getFLOffsetRad()
+
         );
 
-        public static final SwerveModule FR_MODULE = new SwerveModule(
-                "FR",
-                new SwerveModuleIOCAN(
-                        CHASSIS_MODE.getFRDriveID(),
-                        CHASSIS_MODE.getFRTurnID(),
-                        CHASSIS_MODE.getFREncoderID()
-                ),
-                CHASSIS_MODE.getFROffset(),
-                CHASSIS_MODE.getDrivePID(),
-                CHASSIS_MODE.getTurnPID()
+        public static final SwerveModuleIO FR_MODULE_IO = new SwerveModuleIOCAN(
+                CHASSIS_MODE.getFRDriveID(),
+                CHASSIS_MODE.getFRTurnID(),
+                CHASSIS_MODE.getFREncoderID(),
+                CHASSIS_MODE.getFROffset()
         );
 
-        public static final SwerveModule BL_MODULE = new SwerveModule(
-                "BL",
-                new SwerveModuleIOCAN(
-                        CHASSIS_MODE.getBLDriveID(),
-                        CHASSIS_MODE.getBLTurnID(),
-                        CHASSIS_MODE.getBLEncoderID()
-                ),
-                CHASSIS_MODE.getBLOffset(),
-                CHASSIS_MODE.getDrivePID(),
-                CHASSIS_MODE.getTurnPID()
+        public static final SwerveModuleIO BL_MODULE_IO = new SwerveModuleIOCAN(
+                CHASSIS_MODE.getBLDriveID(),
+                CHASSIS_MODE.getBLTurnID(),
+                CHASSIS_MODE.getBLEncoderID(),
+                CHASSIS_MODE.getBLOffset()
         );
 
-        public static final SwerveModule BR_MODULE = new SwerveModule(
-                "BR",
-                new SwerveModuleIOCAN(
-                        CHASSIS_MODE.getBRDriveID(),
-                        CHASSIS_MODE.getBRTurnID(),
-                        CHASSIS_MODE.getBREncoderID()
-                ),
-                CHASSIS_MODE.getBROffset(),
-                CHASSIS_MODE.getDrivePID(),
-                CHASSIS_MODE.getTurnPID()
+        public static final SwerveModuleIO BR_MODULE_IO = new SwerveModuleIOCAN(
+                CHASSIS_MODE.getBRDriveID(),
+                CHASSIS_MODE.getBRTurnID(),
+                CHASSIS_MODE.getBREncoderID(),
+                CHASSIS_MODE.getBROffset()
         );
     }
     public static final int SHOOTER_MOTOR_1_ID = 10;

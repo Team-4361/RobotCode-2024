@@ -33,9 +33,11 @@ import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.DriveXboxController;
 import frc.robot.util.preset.PresetGroup;
 import frc.robot.util.preset.PresetMode;
+import frc.robot.util.swerve.config.GyroIO;
+import frc.robot.util.swerve.config.SwerveModuleIO;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.wpilog.WPILOGWriter;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -108,13 +110,13 @@ public class Robot extends LoggedRobot {
         }
 
         // TODO: setup replay/sim mode!
-        Logger.addDataReceiver(new WPILOGWriter());
-        //Logger.addDataReceiver(new NT4Publisher());
-        //Logger.start(); // start logging!
+        Logger.addDataReceiver(new NT4Publisher());
+        Logger.start(); // start logging!
         // endregion
 
-        boolean useNormalSticks = !RobotBase.isSimulation() ||
-                (DriverStation.isJoystickConnected(0) && DriverStation.isJoystickConnected(1));
+        //boolean useNormalSticks = !RobotBase.isSimulation() ||
+        //        (DriverStation.isJoystickConnected(0) && DriverStation.isJoystickConnected(1));
+        boolean useNormalSticks = true;
 
         // Use a PresetGroup to keep the presets synchronized. We don't want one joystick sensitive
         // and the other one non-sensitive.
@@ -156,25 +158,40 @@ public class Robot extends LoggedRobot {
         if (!useNormalSticks)
             drivePresets.add(xbox); // only add the Xbox Controller if used for driving.
 
-        initLoops();
-
-        //////////////////////////////////////////////////////////////////////////
-
-        // initialize your subsystem like how it's done below.
-
         pdh = new PowerDistribution();
-        /*
-        mechanism = new FRCAngledMechanism(
-                "Rotation Mechanism",
-                GearRatio.from(686, 1),
-                new FRCSparkMax(10, CANSparkLowLevel.MotorType.kBrushless, DCMotor.getNEO(1)),
-                new PIDConstants(0.1, 0, 0));
-        mechanism.registerPresets(ROTATION_PRESETS);
-         */
 
-        swerve = new SwerveDriveSubsystem(FL_MODULE, FR_MODULE, BL_MODULE, BR_MODULE);
+        switch (OP_MODE) {
+            case REAL: {
+                swerve = new SwerveDriveSubsystem(
+                        FL_MODULE_IO,
+                        FR_MODULE_IO,
+                        BL_MODULE_IO,
+                        BR_MODULE_IO,
+                        GYRO_MODULE
+                );
+                break;
+            }
+            case SIM: {
+                swerve = new SwerveDriveSubsystem(
+                        FL_MODULE_IO,
+                        FR_MODULE_IO,
+                        BL_MODULE_IO,
+                        BR_MODULE_IO,
+                        new GyroIO() {}
+                );
+                break;
+            }
+            case REPLAY: {
+                swerve = new SwerveDriveSubsystem(
+                        new SwerveModuleIO() {},
+                        new SwerveModuleIO() {},
+                        new SwerveModuleIO() {},
+                        new SwerveModuleIO() {},
+                        new GyroIO() {}
+                );
+            }
+        }
         camera = new PhotonCameraModule("FrontCamera", Units.inchesToMeters(27), 0);
-
 
         BiConsumer<Command, Boolean> logCommandFunction = getCommandActivity();
         CommandScheduler.getInstance().onCommandInitialize(c -> logCommandFunction.accept(c, true));
@@ -185,16 +202,6 @@ public class Robot extends LoggedRobot {
         registerAlerts(!useNormalSticks);
         configureBindings(!useNormalSticks);
         // ******************************************************************* //
-    }
-
-    private void initLoops() {
-        IOManager.initLoop(STRING_PERIODIC_NAME, PERIODIC_INTERVAL);
-        IOManager.initLoop(STRING_DASHBOARD_NAME, DASHBOARD_INTERVAL);
-        IOManager.initLoop(STRING_ODOMETRY_NAME, ODOMETRY_INTERVAL);
-
-        IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, PHOTON_DISTANCE::update);
-        IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, PHOTON_DRIVE_MAX_SPEED::update);
-        IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, PHOTON_TURN_MAX_SPEED::update);
     }
 
     private void registerAlerts(boolean xboxOnly) {

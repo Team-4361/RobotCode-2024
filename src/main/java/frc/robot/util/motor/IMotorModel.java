@@ -1,5 +1,6 @@
 package frc.robot.util.motor;
 
+import edu.wpi.first.math.system.plant.DCMotor;
 import frc.robot.Robot;
 
 /**
@@ -10,11 +11,17 @@ import frc.robot.Robot;
  */
 public interface IMotorModel {
     /** @return The maximum <b>theoretical</b> stall current of this {@link IMotorModel} in <b>amperes.</b> */
-    int getMaximumStallCurrent();
+    default int getMaximumStallCurrent() { return 0; };
 
     /** @return The maximum <b>theoretical</b> free speed of this {@link IMotorModel} in <b>RPM.</b> */
-    double getFreeSpeedRPM();
+    default double getFreeSpeedRPM() { return 0; };
 
     /** @return The maximum <b>theoretical</b> stall torque of this {@link IMotorModel} in <b>newton-meters.</b> */
-    double getStallTorqueNM();
+    default double getStallTorqueNM() { return 0; };
+
+    /**
+     * @param numMotors The number of motors to process.
+     * @return The {@link DCMotor} instance used for simulation.
+     */
+    default DCMotor getMotorInstance(int numMotors) { return DCMotor.getNEO(1); };
 }

@@ -5,7 +5,7 @@ import frc.robot.util.math.GearRatio;
 
 public class Mk3Chassis implements ChassisSettings {
     /** @return The front-left offset. */
-    @Override public double getFLOffset() { return ((9.401)+0.045647)+(Math.PI/2) - (Math.PI / 2); }
+    @Override public double getFLOffsetRad() { return ((9.401)+0.045647)+(Math.PI/2) - (Math.PI / 2); }
 
     /** @return The front-right offset. */
     @Override public double getFROffset() { return  ((-2.38)+0)+(Math.PI/2) - (2 * Math.PI) + (Math.PI); }
@@ -60,6 +60,9 @@ public class Mk3Chassis implements ChassisSettings {
 
     /** @return The GearRatio used for driving. */
     @Override public GearRatio getDriveRatio() { return GearRatio.from(6.86, 1); }
+
+    /** @return The {@link GearRatio} used for turning. */
+    @Override public GearRatio getTurnRatio() { return GearRatio.from(12.8, 1); }
 
     /** @return The maximum attainable speed of the Robot in m/s. */
     @Override public double getMaxSpeed() { return 12.5; }
