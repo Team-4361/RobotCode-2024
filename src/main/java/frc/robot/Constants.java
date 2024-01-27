@@ -1,20 +1,26 @@
 package frc.robot;
 
-import com.pathplanner.lib.util.PIDConstants;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.SPI;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.IDriveMode;
-import frc.robot.util.math.GearRatio;
 import frc.robot.util.pid.DashTunableNumber;
-import frc.robot.util.swerve.ChassisSettings;
-import frc.robot.util.swerve.SwerveModule;
+import frc.robot.util.swerve.GyroIONavX1;
+import frc.robot.util.swerve.SwerveModuleIOCAN;
+import frc.robot.util.swerve.config.ChassisSettings;
+import frc.robot.util.swerve.config.Mk4Chassis;
+import frc.robot.util.swerve.config.SwerveModuleIO;
 
 import java.util.function.Supplier;
+
+import static frc.robot.Constants.LooperConfig.*;
+import static frc.robot.Constants.LooperConfig.STRING_DASHBOARD_NAME;
 
 /**
  * This {@link Constants} class is an easy-to-use place for fixed value storage (ex. motor/controller IDs,
@@ -27,6 +33,8 @@ import java.util.function.Supplier;
  */
 public class Constants {
 
+    public enum OperationMode { REAL, REPLAY, SIM}
+
     public static class Control {
         /** The Left Joystick ID (typically 0) */
         public static final int LEFT_STICK_ID = 0;
@@ -34,6 +42,8 @@ public class Constants {
         public static final int RIGHT_STICK_ID = 1;
         /** The Xbox Controller ID (typically 2) */
         public static final int XBOX_CONTROLLER_ID = 2;
+
+        public static final OperationMode OP_MODE = (RobotBase.isSimulation()) ? OperationMode.SIM : OperationMode.REAL;
 
         /** The default deadband value to use on Controllers. */
         public static final double DEADBAND = 0.05;
@@ -53,6 +63,16 @@ public class Constants {
         public static final DashTunableNumber PHOTON_DISTANCE = new DashTunableNumber("Photon Distance", 1, false);
         public static final DashTunableNumber PHOTON_DRIVE_MAX_SPEED = new DashTunableNumber("Photon Max Speed", 0.5, false);
         public static final boolean DEBUG_ENABLED = false;
+
+        static {
+            IOManager.initLoop(STRING_PERIODIC_NAME, PERIODIC_INTERVAL);
+            IOManager.initLoop(STRING_DASHBOARD_NAME, DASHBOARD_INTERVAL);
+            IOManager.initLoop(STRING_ODOMETRY_NAME, ODOMETRY_INTERVAL);
+
+            IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, PHOTON_DISTANCE::update);
+            IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, PHOTON_DRIVE_MAX_SPEED::update);
+            IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, PHOTON_TURN_MAX_SPEED::update);
+        }
     }
 
     public static class VisionTracking {
@@ -117,218 +137,44 @@ public class Constants {
         }
     }
 
-    public static class Mk4Chassis implements ChassisSettings {
-        /** @return The front-left offset. */
-        @Override public double getFLOffset() { return 0; }
-
-        /** @return The front-right offset. */
-        @Override public double getFROffset() { return 0; }
-
-        /** @return The back-left offset. */
-        @Override public double getBLOffset() { return 0; }
-
-        /** @return The back-right offset. */
-        @Override public double getBROffset() { return 0; }
-
-        /** @return The Robot side length in meters. */
-        @Override public double getSideLength() { return 0.867; } // 34 inches (30 in + bumper estimate)
-
-        /** @return The front-left drive ID. */
-        @Override public int getFLDriveID() { return 2; }
-
-        /** @return The front-right drive ID. */
-        @Override public int getFRDriveID() { return 4; }
-
-        /** @return The back-left drive ID. */
-        @Override public int getBLDriveID() { return 6; }
-
-        /** @return The back-right drive ID. */
-        @Override public int getBRDriveID() { return 8; }
-
-        /** @return The front-left turn ID. */
-        @Override public int getFLTurnID() { return 1; }
-
-        /** @return The front-right turn ID. */
-        @Override public int getFRTurnID() { return 3; }
-
-        /** @return The back-left turn ID. */
-        @Override public int getBLTurnID() { return 5; }
-
-        /** @return The back-right turn ID. */
-        @Override public int getBRTurnID() { return 7; }
-
-        /** @return The encoder ID of the front-left module. */
-        @Override public int getFLEncoderID() { return 0; }
-
-        /** @return The encoder ID of the front-right module. */
-        @Override public int getFREncoderID() { return 1; }
-
-        /** @return The encoder ID of the back-left module. */
-        @Override public int getBLEncoderID() { return 2; }
-
-        /** @return The encoder ID of the back-right module. */
-        @Override public int getBREncoderID() { return 3; }
-
-        /** @return The Robot wheel radius in meters. */
-        @Override public double getWheelRadius() { return 0.0508; }
-
-        /** @return The GearRatio used for driving. */
-        @Override public GearRatio getDriveRatio() { return GearRatio.from(Mk4SDSRatio.L2.getRatio(), 1); }
-
-        /** @return The maximum attainable speed of the Robot in m/s. */
-        @Override public double getMaxSpeed() { return 12.5; }
-
-        /** @return The PIDConstants used for closed-loop control. */
-        @Override public PIDConstants getDrivePID() { return new PIDConstants(2e-4, 0, 0); }
-
-        /** @return The PIDConstants used for turning. */
-        @Override public PIDConstants getTurnPID() { return new PIDConstants(0.5, 0, 0); }
-
-        /** @return The PIDConstants used for PathPlannerAuto closed-loop control. */
-        @Override public PIDConstants getAutoDrivePID() { return new PIDConstants(5, 0, 0); }
-
-        /** @return The PIDConstants used for PathPlannerAuto turning. */
-        @Override public PIDConstants getAutoTurnPID() { return new PIDConstants(1,0,0); }
-
-        /** @return The PIDConstants used for PhotonCamera closed-loop control. */
-        @Override public PIDConstants getPhotonDrivePID() { return new PIDConstants(0.5, 0, 0); }
-
-        /** @return The PIDConstants used for PhotonCamera turning. */
-        @Override public PIDConstants getPhotonTurnPID() { return new PIDConstants(0.1, 0, 0); }
-
-        /** @return If the legacy CTRE magnetic encoders are being used. */
-        @Override public boolean usingMagEncoders() { return false; }
-    }
-
-    public static class Mk3Chassis implements ChassisSettings {
-        /** @return The front-left offset. */
-        @Override public double getFLOffset() { return  ((9.401)+0.045647)+(Math.PI/2) - (Math.PI / 2); }
-
-        /** @return The front-right offset. */
-        @Override public double getFROffset() { return  ((-2.38)+0)+(Math.PI/2) - (2 * Math.PI) + (Math.PI); }
-
-        /** @return The back-left offset. */
-        @Override public double getBLOffset() { return ((6.12)+0.339057)+(Math.PI/2) - (2 * Math.PI) - (Math.PI / 2); }
-
-        /** @return The back-right offset. */
-        @Override public double getBROffset() { return ((-3.345)+0.009)+(Math.PI/2) - (Math.PI / 2) - (2 * Math.PI); }
-
-        /** @return The Robot side length in meters. */
-        @Override public double getSideLength() { return 0.762; }
-
-        /** @return The front-left drive ID. */
-        @Override public int getFLDriveID() { return 2; }
-
-        /** @return The front-right drive ID. */
-        @Override public int getFRDriveID() { return 4; }
-
-        /** @return The back-left drive ID. */
-        @Override public int getBLDriveID() { return 6; }
-
-        /** @return The back-right drive ID. */
-        @Override public int getBRDriveID() { return 8; }
-
-        /** @return The front-left turn ID. */
-        @Override public int getFLTurnID() { return 1; }
-
-        /** @return The front-right turn ID. */
-        @Override public int getFRTurnID() { return 3; }
-
-        /** @return The back-left turn ID. */
-        @Override public int getBLTurnID() { return 5; }
-
-        /** @return The back-right turn ID. */
-        @Override public int getBRTurnID() { return 7; }
-
-        /** @return The encoder ID of the front-left module. */
-        @Override public int getFLEncoderID() { return 0; }
-
-        /** @return The encoder ID of the front-right module. */
-        @Override public int getFREncoderID() { return 1; }
-
-        /** @return The encoder ID of the back-left module. */
-        @Override public int getBLEncoderID() { return 2; }
-
-        /** @return The encoder ID of the back-right module. */
-        @Override public int getBREncoderID() { return 3; }
-
-        /** @return The Robot wheel radius in meters. */
-        @Override public double getWheelRadius() { return 0.0508; }
-
-        /** @return The GearRatio used for driving. */
-        @Override public GearRatio getDriveRatio() { return GearRatio.from(6.86, 1); }
-
-        /** @return The maximum attainable speed of the Robot in m/s. */
-        @Override public double getMaxSpeed() { return 12.5; }
-
-        /** @return The PIDConstants used for closed-loop control. */
-        @Override public PIDConstants getDrivePID() { return new PIDConstants(2e-4, 0, 0); }
-
-        /** @return The PIDConstants used for turning. */
-        @Override public PIDConstants getTurnPID() { return new PIDConstants(0.5, 0, 0); }
-
-        /** @return The PIDConstants used for PathPlannerAuto closed-loop control. */
-        @Override public PIDConstants getAutoDrivePID() { return new PIDConstants(5, 0, 0); }
-
-        /** @return The PIDConstants used for PathPlannerAuto turning. */
-        @Override public PIDConstants getAutoTurnPID() { return new PIDConstants(1,0,0); }
-
-        /** @return The PIDConstants used for PhotonCamera closed-loop control. */
-        @Override public PIDConstants getPhotonDrivePID() { return new PIDConstants(0.5, 0, 0); }
-
-        /** @return The PIDConstants used for PhotonCamera turning. */
-        @Override public PIDConstants getPhotonTurnPID() { return new PIDConstants(0.1, 0, 0); }
-
-        /** @return If the legacy CTRE magnetic encoders are being used. */
-        @Override public boolean usingMagEncoders() { return true; }
-    }
-
 
     public static class Chassis {
-        public static final ChassisSettings CHASSIS_MODE = new Mk3Chassis();
+        public static final ChassisSettings CHASSIS_MODE = new Mk4Chassis();
+        public static final double CHASSIS_BASE_RADIUS = Math.hypot(
+                CHASSIS_MODE.getSideLength() / 2.0,
+                CHASSIS_MODE.getSideLength() / 2.0
+        );
+        public static final double MAX_ANGULAR_MPS = CHASSIS_MODE.getMaxSpeed() / CHASSIS_BASE_RADIUS;
 
-        public static final SwerveModule FL_MODULE = new SwerveModule(
-                "FL",
+        public static final GyroIONavX1 GYRO_MODULE = new GyroIONavX1(SPI.Port.kMXP);
+
+        public static final SwerveModuleIO FL_MODULE_IO = new SwerveModuleIOCAN(
                 CHASSIS_MODE.getFLDriveID(),
                 CHASSIS_MODE.getFLTurnID(),
                 CHASSIS_MODE.getFLEncoderID(),
-                CHASSIS_MODE.getFLOffset(),
-                CHASSIS_MODE.getDrivePID(),
-                CHASSIS_MODE.getTurnPID(),
-                CHASSIS_MODE.usingMagEncoders()
+                CHASSIS_MODE.getFLOffsetRad()
+
         );
 
-        public static final SwerveModule FR_MODULE = new SwerveModule(
-                "FR",
+        public static final SwerveModuleIO FR_MODULE_IO = new SwerveModuleIOCAN(
                 CHASSIS_MODE.getFRDriveID(),
                 CHASSIS_MODE.getFRTurnID(),
                 CHASSIS_MODE.getFREncoderID(),
-                CHASSIS_MODE.getFROffset(),
-                CHASSIS_MODE.getDrivePID(),
-                CHASSIS_MODE.getTurnPID(),
-                CHASSIS_MODE.usingMagEncoders()
+                CHASSIS_MODE.getFROffset()
         );
 
-        public static final SwerveModule BL_MODULE = new SwerveModule(
-                "BL",
+        public static final SwerveModuleIO BL_MODULE_IO = new SwerveModuleIOCAN(
                 CHASSIS_MODE.getBLDriveID(),
                 CHASSIS_MODE.getBLTurnID(),
                 CHASSIS_MODE.getBLEncoderID(),
-                CHASSIS_MODE.getBLOffset(),
-                CHASSIS_MODE.getDrivePID(),
-                CHASSIS_MODE.getTurnPID(),
-                CHASSIS_MODE.usingMagEncoders()
+                CHASSIS_MODE.getBLOffset()
         );
 
-        public static final SwerveModule BR_MODULE = new SwerveModule(
-                "BR",
+        public static final SwerveModuleIO BR_MODULE_IO = new SwerveModuleIOCAN(
                 CHASSIS_MODE.getBRDriveID(),
                 CHASSIS_MODE.getBRTurnID(),
                 CHASSIS_MODE.getBREncoderID(),
-                CHASSIS_MODE.getBROffset(),
-                CHASSIS_MODE.getDrivePID(),
-                CHASSIS_MODE.getTurnPID(),
-                CHASSIS_MODE.usingMagEncoders()
+                CHASSIS_MODE.getBROffset()
         );
     }
 }
