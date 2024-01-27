@@ -93,21 +93,21 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
     /**
      * Constructs a new {@link SwerveDriveSubsystem} with the specified modules.
-     * @param frontLeft  The front left {@link SwerveModule} to use.
-     * @param frontRight The front right {@link SwerveModule} to use.
-     * @param backLeft   The back left {@link SwerveModule} to use.
-     * @param backRight  The back right {@link SwerveModule} to use.
+     * @param frontLeftIO  The front left {@link SwerveModuleIO} to use.
+     * @param frontRightIO The front right {@link SwerveModuleIO} to use.
+     * @param backLeftIO   The back left {@link SwerveModuleIO} to use.
+     * @param backRightIO  The back right {@link SwerveModuleIO} to use.
      */
-    public SwerveDriveSubsystem(SwerveModule frontLeft,
-                                SwerveModule frontRight,
-                                SwerveModule backLeft,
-                                SwerveModule backRight,
+    public SwerveDriveSubsystem(SwerveModuleIO frontLeftIO,
+                                SwerveModuleIO frontRightIO,
+                                SwerveModuleIO backLeftIO,
+                                SwerveModuleIO backRightIO,
                                 GyroIO gyroIO) {
         this.modules = new SwerveModule[]{
-                frontLeft,
-                frontRight,
-                backLeft,
-                backRight
+                new SwerveModule("FL", frontLeftIO, CHASSIS_MODE.getDrivePID(), CHASSIS_MODE.getTurnPID()),
+                new SwerveModule("FR", frontRightIO, CHASSIS_MODE.getDrivePID(), CHASSIS_MODE.getTurnPID()),
+                new SwerveModule("BL", backLeftIO, CHASSIS_MODE.getDrivePID(), CHASSIS_MODE.getTurnPID()),
+                new SwerveModule("BR", backRightIO, CHASSIS_MODE.getDrivePID(), CHASSIS_MODE.getTurnPID()),
         };
         this.gyroIO = gyroIO;
         this.pitchOffset = Rotation2d.fromDegrees(0);

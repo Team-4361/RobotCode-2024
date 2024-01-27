@@ -24,15 +24,15 @@ public interface SwerveModuleIO extends IMotorModel {
     }
 
     /** Resets all the encoders on the Swerve Module. */
-    void reset();
+    default void reset() {};
 
     /**
      * Updates the inputs of the {@link SwerveModuleIO}.
      * @param inputs The {@link SwerveModuleIOInputs} to use.
      */
-    void updateInputs(SwerveModuleIOInputs inputs);
+    default void updateInputs(SwerveModuleIOInputs inputs) {};
 
-    void setDriveVoltage(double volts);
+    default void setDriveVoltage(double volts) {};
 
-    void setTurnVoltage(double volts);
+    default void setTurnVoltage(double volts) {};
 }

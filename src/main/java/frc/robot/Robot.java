@@ -26,10 +26,11 @@ import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.DriveXboxController;
 import frc.robot.util.preset.PresetGroup;
 import frc.robot.util.preset.PresetMode;
+import frc.robot.util.swerve.config.GyroIO;
+import frc.robot.util.swerve.config.SwerveModuleIO;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
-import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -146,9 +147,39 @@ public class Robot extends LoggedRobot {
         initLoops();
 
         pdh = new PowerDistribution();
-        swerve = new SwerveDriveSubsystem(FL_MODULE, FR_MODULE, BL_MODULE, BR_MODULE, GYRO_MODULE);
-        camera = new PhotonCameraModule("FrontCamera", Units.inchesToMeters(27), 0);
 
+        switch (OP_MODE) {
+            case REAL: {
+                swerve = new SwerveDriveSubsystem(
+                        FL_MODULE_IO,
+                        FR_MODULE_IO,
+                        BL_MODULE_IO,
+                        BR_MODULE_IO,
+                        GYRO_MODULE
+                );
+                break;
+            }
+            case SIM: {
+                swerve = new SwerveDriveSubsystem(
+                        FL_MODULE_IO,
+                        FR_MODULE_IO,
+                        BL_MODULE_IO,
+                        BR_MODULE_IO,
+                        new GyroIO() {}
+                );
+                break;
+            }
+            case REPLAY: {
+                swerve = new SwerveDriveSubsystem(
+                        new SwerveModuleIO() {},
+                        new SwerveModuleIO() {},
+                        new SwerveModuleIO() {},
+                        new SwerveModuleIO() {},
+                        new GyroIO() {}
+                );
+            }
+        }
+        camera = new PhotonCameraModule("FrontCamera", Units.inchesToMeters(27), 0);
 
         BiConsumer<Command, Boolean> logCommandFunction = getCommandActivity();
         CommandScheduler.getInstance().onCommandInitialize(c -> logCommandFunction.accept(c, true));

@@ -13,7 +13,7 @@ public interface GyroIO {
         public Rotation2d rollPosition = new Rotation2d();
         public boolean isCalibrating = false;
     }
-    void reset();
+    default void reset() {};
 
-    void updateInputs(GyroIOInputs inputs);
+    default void updateInputs(GyroIOInputs inputs) {};
 }
