@@ -11,7 +11,6 @@ import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.motor.IMotorModel;
 import frc.robot.util.motor.MotorModel;
@@ -20,7 +19,7 @@ import frc.robot.util.swerve.config.SwerveModuleIO;
 import static com.revrobotics.CANSparkBase.IdleMode.kBrake;
 import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 
-public class SwerveModuleIOSparkMax implements SwerveModuleIO {
+public class SwerveModuleIOCAN implements SwerveModuleIO {
     private final FRCSparkMax driveMotor;
     private final FRCSparkMax turnMotor;
     private final Rotation2d absOffset;
@@ -30,7 +29,7 @@ public class SwerveModuleIOSparkMax implements SwerveModuleIO {
 
     private final StatusSignal<Double> absEncoderPosition;
 
-    public SwerveModuleIOSparkMax(int driveId, int turnId, int dioPort, Rotation2d offset) {
+    public SwerveModuleIOCAN(int driveId, int turnId, int dioPort, double offsetRad) {
         this.driveMotor = new FRCSparkMax(driveId, kBrushless, MotorModel.NEO);
         this.turnMotor = new FRCSparkMax(turnId, kBrushless, MotorModel.NEO);
 
@@ -63,7 +62,7 @@ public class SwerveModuleIOSparkMax implements SwerveModuleIO {
         ///////////////////////////////////////////////////////////////// Encoder Configuration
         CANcoderConfigurator config;
         try (CANcoder absEncoder = new CANcoder(dioPort)) {
-            this.absOffset = offset;
+            this.absOffset = Rotation2d.fromRotations(offsetRad);
             this.absEncoderPosition = absEncoder.getAbsolutePosition();
 
             config = absEncoder.getConfigurator();

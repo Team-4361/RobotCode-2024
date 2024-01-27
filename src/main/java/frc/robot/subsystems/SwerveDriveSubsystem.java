@@ -2,8 +2,11 @@ package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PathPlannerLogging;
 import com.pathplanner.lib.util.ReplanningConfig;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -14,14 +17,21 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Robot;
+import frc.robot.util.auto.LocalADStarAK;
 import frc.robot.util.io.AlertType;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveHIDBase;
 import frc.robot.util.swerve.SwerveModule;
+import frc.robot.util.swerve.config.GyroIO;
+import frc.robot.util.swerve.config.GyroIOInputsAutoLogged;
+import frc.robot.util.swerve.config.SwerveModuleIO;
+import org.littletonrobotics.junction.Logger;
 
 import java.util.Optional;
 
+import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.Constants.AlertConfig.STRING_GYRO_CALIBRATING;
 import static frc.robot.Constants.Chassis.*;
 import static frc.robot.Constants.LooperConfig.*;
@@ -41,7 +51,18 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     private final SwerveModule frontRight;
     private final SwerveModule backLeft;
     private final SwerveModule backRight;
-    private final AHRS gyro;
+    private final GyroIO gyroIO;
+    private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
+    private final SwerveModulePosition[] lastModulePositions = new SwerveModulePosition[] {
+            new SwerveModulePosition(),
+            new SwerveModulePosition(),
+            new SwerveModulePosition(),
+            new SwerveModulePosition()
+    };
+    private final SysIdRoutine sysId;
+
+    private Rotation2d rawGyroRotation = new Rotation2d();
+    private final SwerveDrivePoseEstimator poseEstimator;
 
     // Used for keeping the gyro angle at zero when the floor
     // is not PERFECTLY flat. A YAW OFFSET is not required due to integrated
@@ -81,16 +102,15 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     public SwerveDriveSubsystem(SwerveModule frontLeft,
                                 SwerveModule frontRight,
                                 SwerveModule backLeft,
-                                SwerveModule backRight) {
+                                SwerveModule backRight,
+                                GyroIO gyroIO) {
         this.frontLeft = frontLeft;
         this.frontRight = frontRight;
         this.backLeft = backLeft;
         this.backRight = backRight;
+        this.gyroIO = gyroIO;
         this.pitchOffset = 0;
         this.rollOffset = 0;
-
-        this.gyro = new AHRS(SPI.Port.kMXP);
-        this.gyro.reset();
 
         // Define the distances relative to the center of the robot. +X is forward and +Y is left.
         double SWERVE_CHASSIS_SIDE_LENGTH = CHASSIS_MODE.getSideLength();
@@ -100,6 +120,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                 new Translation2d(-SWERVE_CHASSIS_SIDE_LENGTH / 2, SWERVE_CHASSIS_SIDE_LENGTH / 2), // BL
                 new Translation2d(-SWERVE_CHASSIS_SIDE_LENGTH / 2, -SWERVE_CHASSIS_SIDE_LENGTH / 2) // BR
         );
+        this.poseEstimator = new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
         this.odometry = new SwerveDriveOdometry(kinematics, getHeading(), getPositions());
         IOManager.getAlert(STRING_GYRO_CALIBRATING, AlertType.WARNING)
                 .setCondition(gyro::isCalibrating)
@@ -113,19 +134,40 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                 this::getRobotVelocity,
                 this::drive,
                 new HolonomicPathFollowerConfig(
-                        CHASSIS_MODE.getAutoDrivePID(),
-                        CHASSIS_MODE.getAutoTurnPID(),
-                        CHASSIS_MODE.getMaxSpeed(),
-                        SWERVE_CHASSIS_SIDE_LENGTH/2,
-                        new ReplanningConfig()
+                        CHASSIS_MODE.getMaxSpeed(), CHASSIS_BASE_RADIUS, new ReplanningConfig()
                 ), () -> {
                     Optional<DriverStation.Alliance> alliance = DriverStation.getAlliance();
                     return alliance.filter(value -> value == DriverStation.Alliance.Red).isPresent();
                 },
                 this
         );
+        Pathfinding.setPathfinder(new LocalADStarAK());
+        PathPlannerLogging.setLogActivePathCallback(
+                (activePath) -> {
+                    Logger.recordOutput(
+                            "Odometry/Trajectory", activePath.toArray(new Pose2d[activePath.size()]));
+                });
+        PathPlannerLogging.setLogTargetPoseCallback(
+                (targetPose) -> Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose)
+        );
 
-        //FRCSparkMax.burnAllFlash();
+        // Configure SysId
+        sysId =
+                new SysIdRoutine(
+                        new SysIdRoutine.Config(
+                                null,
+                                null,
+                                null,
+                                (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
+                        new SysIdRoutine.Mechanism(
+                                (voltage) -> {
+                                    frontLeft.runCharacterization(voltage.in(Volts));
+                                    frontRight.runCharacterization(voltage.in(Volts));
+                                    backLeft.runCharacterization(voltage.in(Volts));
+                                    backRight.runCharacterization(voltage.in(Volts));
+                                },
+                                null,
+                                this));
 
         IOManager.addPeriodicIfExists(STRING_ODOMETRY_NAME, () -> odometry.update(getHeading(), getPositions()));
 

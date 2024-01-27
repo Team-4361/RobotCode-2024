@@ -13,7 +13,7 @@ import org.photonvision.PhotonCamera;
  */
 public interface ChassisSettings {
     /** @return The front-left offset. */
-    double getFLOffset();
+    double getFLOffsetRad();
 
     /** @return The front-right offset. */
     double getFROffset();

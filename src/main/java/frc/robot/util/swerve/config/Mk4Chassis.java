@@ -8,7 +8,7 @@ import static frc.robot.Constants.Mk4SDSRatio.L2;
 
 public class Mk4Chassis implements ChassisSettings {
     /** @return The front-left offset. */
-    @Override public double getFLOffset() { return 0; }
+    @Override public double getFLOffsetRad() { return 0; }
 
     /** @return The front-right offset. */
     @Override public double getFROffset() { return 0; }

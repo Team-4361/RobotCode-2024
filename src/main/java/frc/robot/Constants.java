@@ -9,10 +9,10 @@ import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.IDriveMode;
 import frc.robot.util.pid.DashTunableNumber;
+import frc.robot.util.swerve.SwerveModuleIOCAN;
 import frc.robot.util.swerve.config.ChassisSettings;
 import frc.robot.util.swerve.config.Mk4Chassis;
 import frc.robot.util.swerve.SwerveModule;
-import frc.robot.util.swerve.config.SwerveModuleIO;
 
 import java.util.function.Supplier;
 
@@ -124,15 +124,20 @@ public class Constants {
 
     public static class Chassis {
         public static final ChassisSettings CHASSIS_MODE = new Mk4Chassis();
+        public static final double CHASSIS_BASE_RADIUS = Math.hypot(
+                CHASSIS_MODE.getSideLength() / 2.0,
+                CHASSIS_MODE.getSideLength() / 2.0
+        );
+        public static final double MAX_ANGULAR_MPS = CHASSIS_MODE.getMaxSpeed() / CHASSIS_BASE_RADIUS;
 
         public static final SwerveModule FL_MODULE = new SwerveModule(
                 "FL",
                 new SwerveModuleIOCAN(
                         CHASSIS_MODE.getFLDriveID(),
                         CHASSIS_MODE.getFLTurnID(),
-                        CHASSIS_MODE.getFLEncoderID()
+                        CHASSIS_MODE.getFLEncoderID(),
+                        CHASSIS_MODE.getFLOffsetRad()
                 ),
-                CHASSIS_MODE.getFLOffset(),
                 CHASSIS_MODE.getDrivePID(),
                 CHASSIS_MODE.getTurnPID()
         );
@@ -142,9 +147,9 @@ public class Constants {
                 new SwerveModuleIOCAN(
                         CHASSIS_MODE.getFRDriveID(),
                         CHASSIS_MODE.getFRTurnID(),
-                        CHASSIS_MODE.getFREncoderID()
+                        CHASSIS_MODE.getFREncoderID(),
+                        CHASSIS_MODE.getFROffset()
                 ),
-                CHASSIS_MODE.getFROffset(),
                 CHASSIS_MODE.getDrivePID(),
                 CHASSIS_MODE.getTurnPID()
         );
@@ -154,9 +159,9 @@ public class Constants {
                 new SwerveModuleIOCAN(
                         CHASSIS_MODE.getBLDriveID(),
                         CHASSIS_MODE.getBLTurnID(),
-                        CHASSIS_MODE.getBLEncoderID()
+                        CHASSIS_MODE.getBLEncoderID(),
+                        CHASSIS_MODE.getBLOffset()
                 ),
-                CHASSIS_MODE.getBLOffset(),
                 CHASSIS_MODE.getDrivePID(),
                 CHASSIS_MODE.getTurnPID()
         );
@@ -166,9 +171,9 @@ public class Constants {
                 new SwerveModuleIOCAN(
                         CHASSIS_MODE.getBRDriveID(),
                         CHASSIS_MODE.getBRTurnID(),
-                        CHASSIS_MODE.getBREncoderID()
+                        CHASSIS_MODE.getBREncoderID(),
+                        CHASSIS_MODE.getBROffset()
                 ),
-                CHASSIS_MODE.getBROffset(),
                 CHASSIS_MODE.getDrivePID(),
                 CHASSIS_MODE.getTurnPID()
         );
