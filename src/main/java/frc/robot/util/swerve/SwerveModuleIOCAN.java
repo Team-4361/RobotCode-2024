@@ -101,9 +101,8 @@ public class SwerveModuleIOCAN implements SwerveModuleIO {
 
         inputs.driveAppliedVolts = driveMotor.getAppliedVoltage();
         inputs.driveCurrentAmps = driveMotor.getOutputCurrent();
-
-        absEncoderPosition.refresh();
-        inputs.turnAbsolutePosition = Rotation2d.fromRotations(absEncoderPosition.getValueAsDouble())
+        inputs.turnAbsolutePosition = Rotation2d.fromRotations(
+                absEncoderPosition.refresh().getValueAsDouble())
                 .minus(absOffset);
         inputs.turnPosition = Rotation2d.fromRotations(turnEncoder.getPosition() / turnMotor.getRatio().getDivisor());
         inputs.turnVelocityRadPerSec = Units.rotationsToRadians(turnEncoder.getVelocity())

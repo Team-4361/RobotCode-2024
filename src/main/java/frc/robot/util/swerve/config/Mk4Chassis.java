@@ -3,6 +3,7 @@ package frc.robot.util.swerve.config;
 import com.pathplanner.lib.util.PIDConstants;
 import frc.robot.Constants;
 import frc.robot.util.math.GearRatio;
+import frc.robot.util.pid.PIDConstantsAK;
 
 import static frc.robot.Constants.Mk4SDSRatio.L2;
 
@@ -71,22 +72,52 @@ public class Mk4Chassis implements ChassisSettings {
     @Override public double getMaxSpeed() { return 12.5; }
 
     /** @return The PIDConstants used for closed-loop control. */
-    @Override public PIDConstants getDrivePID() { return new PIDConstants(0.1, 0, 0); }
+    @Override
+    public PIDConstantsAK getDrivePID() {
+        return new PIDConstantsAK(
+                2e-4, 0, 0,
+                0.1, 0, 0,
+                0, 0, 0
+        );
+    }
 
     /** @return The PIDConstants used for turning. */
-    @Override public PIDConstants getTurnPID() { return new PIDConstants(0.5, 0, 0); }
+    @Override
+    public PIDConstantsAK getTurnPID() {
+        return new PIDConstantsAK(
+                0.5, 0, 0,
+                10, 0, 0,
+                0, 0, 0
+        );
+    }
 
     /** @return The PIDConstants used for PathPlannerAuto closed-loop control. */
-    @Override public PIDConstants getAutoDrivePID() { return new PIDConstants(5, 0, 0); }
+    @Override
+    public PIDConstantsAK getAutoDrivePID() {
+        // TODO: tuning is required!
+        return new PIDConstantsAK(5, 0, 0);
+    }
 
     /** @return The PIDConstants used for PathPlannerAuto turning. */
-    @Override public PIDConstants getAutoTurnPID() { return new PIDConstants(1,0,0); }
+    @Override
+    public PIDConstantsAK getAutoTurnPID() {
+        // TODO: tuning is required!
+        return new PIDConstantsAK(1,0,0);
+    }
 
     /** @return The PIDConstants used for PhotonCamera closed-loop control. */
-    @Override public PIDConstants getPhotonDrivePID() { return new PIDConstants(0.5, 0, 0); }
+    @Override
+    public PIDConstantsAK getPhotonDrivePID() {
+        // TODO: tuning is required!
+        return new PIDConstantsAK(0.5, 0, 0);
+    }
 
     /** @return The PIDConstants used for PhotonCamera turning. */
-    @Override public PIDConstants getPhotonTurnPID() { return new PIDConstants(0.1, 0, 0); }
+    @Override
+    public PIDConstantsAK getPhotonTurnPID() {
+        // TODO: tuning is required!
+        return new PIDConstantsAK(0.1, 0, 0);
+    }
 
     /** @return If the legacy CTRE magnetic encoders are being used. */
     @Override public boolean usingMagEncoders() { return false; }

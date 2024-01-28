@@ -4,6 +4,7 @@ import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.util.PIDConstants;
 import frc.robot.Robot;
 import frc.robot.util.math.GearRatio;
+import frc.robot.util.pid.PIDConstantsAK;
 import org.photonvision.PhotonCamera;
 
 /**
@@ -76,22 +77,22 @@ public interface ChassisSettings {
     double getMaxSpeed();
 
     /** @return The {@link PIDConstants} used for closed-loop control. */
-    PIDConstants getDrivePID();
+    PIDConstantsAK getDrivePID();
 
     /** @return The {@link PIDConstants} used for turning. */
-    PIDConstants getTurnPID();
+    PIDConstantsAK getTurnPID();
 
     /** @return The {@link PIDConstants} used for {@link PathPlannerAuto} closed-loop control. */
-    PIDConstants getAutoDrivePID();
+    PIDConstantsAK getAutoDrivePID();
 
     /** @return The {@link PIDConstants} used for {@link PathPlannerAuto} turning. */
-    PIDConstants getAutoTurnPID();
+    PIDConstantsAK getAutoTurnPID();
 
     /** @return The {@link PIDConstants} used for {@link PhotonCamera} closed-loop control. */
-    PIDConstants getPhotonDrivePID();
+    PIDConstantsAK getPhotonDrivePID();
 
     /** @return The {@link PIDConstants} used for {@link PhotonCamera} turning. */
-    PIDConstants getPhotonTurnPID();
+    PIDConstantsAK getPhotonTurnPID();
 
     /** @return If the legacy CTRE magnetic encoders are being used. */
     boolean usingMagEncoders();

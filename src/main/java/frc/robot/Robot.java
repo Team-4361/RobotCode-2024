@@ -114,9 +114,9 @@ public class Robot extends LoggedRobot {
         Logger.start(); // start logging!
         // endregion
 
-        //boolean useNormalSticks = !RobotBase.isSimulation() ||
-        //        (DriverStation.isJoystickConnected(0) && DriverStation.isJoystickConnected(1));
-        boolean useNormalSticks = true;
+        boolean useNormalSticks = !RobotBase.isSimulation() ||
+                (DriverStation.isJoystickConnected(0) && DriverStation.isJoystickConnected(1));
+
 
         // Use a PresetGroup to keep the presets synchronized. We don't want one joystick sensitive
         // and the other one non-sensitive.
@@ -159,6 +159,9 @@ public class Robot extends LoggedRobot {
             drivePresets.add(xbox); // only add the Xbox Controller if used for driving.
 
         pdh = new PowerDistribution();
+        intake = new IntakeSubsystem();
+        shooter = new ShooterSubsystem();
+        indexer = new IndexSubsystem();
 
         switch (OP_MODE) {
             case REAL: {

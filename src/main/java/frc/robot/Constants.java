@@ -56,7 +56,7 @@ public class Constants {
                 DriveMode.SLOW_MODE
         };
 
-        public static final boolean SWERVE_TUNING_ENABLED = false;
+        public static final boolean SWERVE_TUNING_ENABLED = true;
         public static final boolean PHOTON_TUNING_ENABLED = true;
         public static final boolean MOTOR_BURN_FLASH = false;
 

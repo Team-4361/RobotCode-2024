@@ -104,10 +104,10 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                                 SwerveModuleIO backRightIO,
                                 GyroIO gyroIO) {
         this.modules = new SwerveModule[]{
-                new SwerveModule("FL", frontLeftIO, CHASSIS_MODE.getDrivePID(), CHASSIS_MODE.getTurnPID()),
-                new SwerveModule("FR", frontRightIO, CHASSIS_MODE.getDrivePID(), CHASSIS_MODE.getTurnPID()),
-                new SwerveModule("BL", backLeftIO, CHASSIS_MODE.getDrivePID(), CHASSIS_MODE.getTurnPID()),
-                new SwerveModule("BR", backRightIO, CHASSIS_MODE.getDrivePID(), CHASSIS_MODE.getTurnPID()),
+                new SwerveModule("FL", frontLeftIO, CHASSIS_MODE.getDrivePID().get(), CHASSIS_MODE.getTurnPID().get()),
+                new SwerveModule("FR", frontRightIO, CHASSIS_MODE.getDrivePID().get(), CHASSIS_MODE.getTurnPID().get()),
+                new SwerveModule("BL", backLeftIO, CHASSIS_MODE.getDrivePID().get(), CHASSIS_MODE.getTurnPID().get()),
+                new SwerveModule("BR", backRightIO, CHASSIS_MODE.getDrivePID().get(), CHASSIS_MODE.getTurnPID().get()),
         };
         this.gyroIO = gyroIO;
         this.pitchOffset = Rotation2d.fromDegrees(0);
