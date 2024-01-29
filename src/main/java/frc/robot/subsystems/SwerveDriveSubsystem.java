@@ -121,7 +121,9 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                 new Translation2d(-SWERVE_CHASSIS_SIDE_LENGTH / 2, SWERVE_CHASSIS_SIDE_LENGTH / 2), // BL
                 new Translation2d(-SWERVE_CHASSIS_SIDE_LENGTH / 2, -SWERVE_CHASSIS_SIDE_LENGTH / 2) // BR
         );
-        this.poseEstimator = new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
+        this.poseEstimator = new SwerveDrivePoseEstimator(
+                kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
+
         IOManager.getAlert(STRING_GYRO_CALIBRATING, AlertType.WARNING)
                 .setCondition(() -> gyroInputs.isCalibrating)
                 .setPersistent(false)
