@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.motor.MotorModel;
+import org.littletonrobotics.junction.Logger;
 
 import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 import static frc.robot.Constants.*;
@@ -36,7 +37,7 @@ public class IndexSubsystem extends SubsystemBase {
     }
     //SmartDashboard
     @Override
-    public void periodic(){
+    public void periodic() {
         SmartDashboard.putString("Indexer 1 Speed: ", ""+motor1.get());
         SmartDashboard.putString("Indexer 2 Speed: ", ""+motor2.get());
 

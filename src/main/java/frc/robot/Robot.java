@@ -114,9 +114,9 @@ public class Robot extends LoggedRobot {
         Logger.start(); // start logging!
         // endregion
 
-        boolean useNormalSticks = !RobotBase.isSimulation() ||
-                (DriverStation.isJoystickConnected(0) && DriverStation.isJoystickConnected(1));
-
+        //boolean useNormalSticks = !RobotBase.isSimulation() ||
+        //        (DriverStation.isJoystickConnected(0) && DriverStation.isJoystickConnected(1));
+        boolean useNormalSticks = true;
 
         // Use a PresetGroup to keep the presets synchronized. We don't want one joystick sensitive
         // and the other one non-sensitive.

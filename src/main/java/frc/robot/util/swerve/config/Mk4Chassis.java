@@ -86,7 +86,7 @@ public class Mk4Chassis implements ChassisSettings {
     public PIDConstantsAK getTurnPID() {
         return new PIDConstantsAK(
                 0.5, 0, 0,
-                10, 0, 0,
+                0.2, 0, 0,
                 0, 0, 0
         );
     }

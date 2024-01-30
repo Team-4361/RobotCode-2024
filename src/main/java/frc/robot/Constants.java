@@ -13,8 +13,11 @@ import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.IDriveMode;
 import frc.robot.util.pid.DashTunableNumber;
 import frc.robot.util.swerve.GyroIONavX1;
+import frc.robot.util.swerve.SwerveModule;
 import frc.robot.util.swerve.SwerveModuleIOCAN;
+import frc.robot.util.swerve.SwerveModuleIOMAG;
 import frc.robot.util.swerve.config.ChassisSettings;
+import frc.robot.util.swerve.config.Mk3Chassis;
 import frc.robot.util.swerve.config.Mk4Chassis;
 import frc.robot.util.swerve.config.SwerveModuleIO;
 
@@ -57,7 +60,7 @@ public class Constants {
         };
 
         public static final boolean SWERVE_TUNING_ENABLED = true;
-        public static final boolean PHOTON_TUNING_ENABLED = true;
+        public static final boolean PHOTON_TUNING_ENABLED = false;
         public static final boolean MOTOR_BURN_FLASH = false;
 
         public static final DashTunableNumber PHOTON_TURN_MAX_SPEED = new DashTunableNumber("Photon Turn Speed", 0.2, false);
@@ -140,7 +143,7 @@ public class Constants {
 
 
     public static class Chassis {
-        public static final ChassisSettings CHASSIS_MODE = new Mk4Chassis();
+        public static final ChassisSettings CHASSIS_MODE = new Mk3Chassis();
         public static final double CHASSIS_BASE_RADIUS = Math.hypot(
                 CHASSIS_MODE.getSideLength() / 2.0,
                 CHASSIS_MODE.getSideLength() / 2.0
@@ -149,35 +152,66 @@ public class Constants {
 
         public static final GyroIONavX1 GYRO_MODULE = new GyroIONavX1(SPI.Port.kMXP);
 
-        public static final SwerveModuleIO FL_MODULE_IO = new SwerveModuleIOCAN(
-                CHASSIS_MODE.getFLDriveID(),
-                CHASSIS_MODE.getFLTurnID(),
-                CHASSIS_MODE.getFLEncoderID(),
-                CHASSIS_MODE.getFLOffsetRad()
+        public static SwerveModuleIO FL_MODULE_IO;
+        public static SwerveModuleIO FR_MODULE_IO;
+        public static SwerveModuleIO BL_MODULE_IO;
+        public static SwerveModuleIO BR_MODULE_IO;
 
-        );
-
-        public static final SwerveModuleIO FR_MODULE_IO = new SwerveModuleIOCAN(
-                CHASSIS_MODE.getFRDriveID(),
-                CHASSIS_MODE.getFRTurnID(),
-                CHASSIS_MODE.getFREncoderID(),
-                CHASSIS_MODE.getFROffset()
-        );
-
-        public static final SwerveModuleIO BL_MODULE_IO = new SwerveModuleIOCAN(
-                CHASSIS_MODE.getBLDriveID(),
-                CHASSIS_MODE.getBLTurnID(),
-                CHASSIS_MODE.getBLEncoderID(),
-                CHASSIS_MODE.getBLOffset()
-        );
-
-        public static final SwerveModuleIO BR_MODULE_IO = new SwerveModuleIOCAN(
-                CHASSIS_MODE.getBRDriveID(),
-                CHASSIS_MODE.getBRTurnID(),
-                CHASSIS_MODE.getBREncoderID(),
-                CHASSIS_MODE.getBROffset()
-        );
+        static {
+            if (CHASSIS_MODE.usingMagEncoders()) {
+                FL_MODULE_IO = new SwerveModuleIOMAG(
+                        CHASSIS_MODE.getFLDriveID(),
+                        CHASSIS_MODE.getFLTurnID(),
+                        CHASSIS_MODE.getFLEncoderID(),
+                        CHASSIS_MODE.getFLOffsetRad()
+                );
+                FR_MODULE_IO = new SwerveModuleIOMAG(
+                        CHASSIS_MODE.getFRDriveID(),
+                        CHASSIS_MODE.getFRTurnID(),
+                        CHASSIS_MODE.getFREncoderID(),
+                        CHASSIS_MODE.getFROffset()
+                );
+                BL_MODULE_IO = new SwerveModuleIOMAG(
+                        CHASSIS_MODE.getBLDriveID(),
+                        CHASSIS_MODE.getBLTurnID(),
+                        CHASSIS_MODE.getBLEncoderID(),
+                        CHASSIS_MODE.getBLOffset()
+                );
+                BR_MODULE_IO = new SwerveModuleIOMAG(
+                        CHASSIS_MODE.getBRDriveID(),
+                        CHASSIS_MODE.getBRTurnID(),
+                        CHASSIS_MODE.getBREncoderID(),
+                        CHASSIS_MODE.getBROffset()
+                );
+            } else {
+                FL_MODULE_IO = new SwerveModuleIOCAN(
+                        CHASSIS_MODE.getFLDriveID(),
+                        CHASSIS_MODE.getFLTurnID(),
+                        CHASSIS_MODE.getFLEncoderID(),
+                        CHASSIS_MODE.getFLOffsetRad()
+                );
+                FR_MODULE_IO = new SwerveModuleIOCAN(
+                        CHASSIS_MODE.getFRDriveID(),
+                        CHASSIS_MODE.getFRTurnID(),
+                        CHASSIS_MODE.getFREncoderID(),
+                        CHASSIS_MODE.getFROffset()
+                );
+                BL_MODULE_IO = new SwerveModuleIOCAN(
+                        CHASSIS_MODE.getBLDriveID(),
+                        CHASSIS_MODE.getBLTurnID(),
+                        CHASSIS_MODE.getBLEncoderID(),
+                        CHASSIS_MODE.getBLOffset()
+                );
+                BR_MODULE_IO = new SwerveModuleIOCAN(
+                        CHASSIS_MODE.getBRDriveID(),
+                        CHASSIS_MODE.getBRTurnID(),
+                        CHASSIS_MODE.getBREncoderID(),
+                        CHASSIS_MODE.getBROffset()
+                );
+            }
+        }
     }
+
     public static final int SHOOTER_MOTOR_1_ID = 10;
     public static final int SHOOTER_MOTOR_2_ID = 11;
     public static final double SLOW_SPEED = 0.5;

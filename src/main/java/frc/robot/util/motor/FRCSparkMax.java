@@ -213,12 +213,14 @@ public class FRCSparkMax extends CANSparkMax implements IMotorModel {
         this.enableVoltageCompensation(12.0);
         this.setControlFramePeriodMs(50);
 
-        // The motor is brushless; use the encoder to detect velocity for stall detection.
+        // The motor is brushless; use the encoder to detect velocity for stall detection
+       /* FIXME: Bad alerts when not there.
         if (!RobotBase.isSimulation()) {
             conditionAlert.setCondition(() -> getMotorTemperature() >= 60 ||
                     (getOutputCurrent() >= model.getMaximumStallCurrent() - 20 && getEncoder().getVelocity() <= 10)
             );
         }
+        */
 
         if (RobotBase.isSimulation()) {
             IOManager.warnOnFail(setSimFreeSpeed(model.getFreeSpeedRPM()));

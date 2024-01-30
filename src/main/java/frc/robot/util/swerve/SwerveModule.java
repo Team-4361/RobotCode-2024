@@ -2,8 +2,10 @@ package frc.robot.util.swerve;
 
 import com.pathplanner.lib.util.PIDConstants;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.SparkPIDController;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -36,6 +38,7 @@ public class SwerveModule {
 
     private final PIDConstants drivePIDConfig;
     private final PIDConstants turnPIDConfig;
+    private final SimpleMotorFeedforward driveFF;
     private final PIDController driveController;
     private final PIDController turnController;
     private final DashTunablePID driveTune;
@@ -58,6 +61,9 @@ public class SwerveModule {
     public SwerveModule(String name, SwerveModuleIO io, PIDConstants drivePIDConfig, PIDConstants turnPIDConfig) {
         this.driveController = new PIDController(drivePIDConfig.kP, drivePIDConfig.kI, drivePIDConfig.kD);
         this.turnController  = new PIDController(turnPIDConfig.kP, turnPIDConfig.kI, turnPIDConfig.kD);
+        this.driveFF         = new SimpleMotorFeedforward(0.1, 0.13, 0);
+
+
 
         this.drivePIDConfig = drivePIDConfig;
         this.turnPIDConfig = turnPIDConfig;
@@ -71,6 +77,7 @@ public class SwerveModule {
             // PID tuning is enabled.
             driveTune = new DashTunablePID(name + ": Drive PID", drivePIDConfig);
             turnTune = new DashTunablePID(name + ": Turn PID", turnPIDConfig);
+
             driveTune.addConsumer(driveController::setP, driveController::setI, driveController::setD);
             turnTune.addConsumer(turnController::setP, turnController::setI, turnController::setD);
 
@@ -94,7 +101,7 @@ public class SwerveModule {
         // Run closed loop turn control
         if (angleSetpoint != null) {
             io.setTurnVoltage(
-                    turnController.calculate(getAngle().getRadians(), angleSetpoint.getRadians()));
+                    turnController.calculate(getAngle().getDegrees(), angleSetpoint.getDegrees()));
 
             // Run closed loop drive control
             // Only allowed if closed loop turn control is running
@@ -106,7 +113,10 @@ public class SwerveModule {
 
                 // Run drive controller
                 double velocityRadPerSec = adjustSpeedSetpoint / CHASSIS_MODE.getWheelRadius();
-                io.setDriveVoltage(driveController.calculate(inputs.driveVelocityRadPerSec, velocityRadPerSec));
+                io.setDriveVoltage(
+                        driveFF.calculate(velocityRadPerSec)
+                            + driveController.calculate(inputs.driveVelocityRadPerSec, velocityRadPerSec)
+                );
             }
         }
     }
@@ -115,7 +125,8 @@ public class SwerveModule {
         if (turnRelativeOffset == null) {
             return new Rotation2d();
         } else {
-            return inputs.turnPosition.plus(turnRelativeOffset);
+            //return inputs.turnPosition.plus(turnRelativeOffset);
+            return inputs.turnAbsolutePosition;
         }
     }
 
