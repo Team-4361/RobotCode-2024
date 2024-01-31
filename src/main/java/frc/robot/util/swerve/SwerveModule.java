@@ -15,6 +15,7 @@ import frc.robot.util.pid.DashTunablePID;
 import frc.robot.util.swerve.config.SwerveModuleIO;
 import frc.robot.util.swerve.config.SwerveModuleIO.SwerveModuleIOInputs;
 import frc.robot.util.swerve.config.SwerveModuleIOInputsAutoLogged;
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import static frc.robot.Constants.Chassis.*;
@@ -33,6 +34,7 @@ import static frc.robot.Constants.LooperConfig.STRING_DASHBOARD_NAME;
  */
 public class SwerveModule {
     private Rotation2d angleSetpoint = null;
+    private Rotation2d turnRelativeOffset = null;
     private Double speedSetpoint = null;
 
     private final PIDConstants drivePIDConfig;
@@ -41,8 +43,11 @@ public class SwerveModule {
     private final SimpleMotorFeedforward turnFF;
     private final PIDController driveController;
     private final PIDController turnController;
-    private final DashTunablePID driveTune;
-    private final DashTunablePID turnTune;
+
+    private static DashTunablePID driveTune = null;
+    private static DashTunablePID turnTune = null;
+
+
     private final String name;
     private final SwerveModuleIO io;
     private final SwerveModuleIOInputsAutoLogged inputs = new SwerveModuleIOInputsAutoLogged();
@@ -75,16 +80,18 @@ public class SwerveModule {
 
         if (SWERVE_TUNING_ENABLED) {
             // PID tuning is enabled.
-            driveTune = new DashTunablePID(name + ": Drive PID", drivePIDConfig);
-            turnTune = new DashTunablePID(name + ": Turn PID", turnPIDConfig);
+            if (driveTune == null || turnTune == null) {
+                driveTune = new DashTunablePID("Swerve: Drive PID", drivePIDConfig);
+                turnTune = new DashTunablePID("Swerve: Turn PID", turnPIDConfig);
+
+                IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, () -> {
+                    driveTune.update();
+                    turnTune.update();
+                });
+            }
 
             driveTune.addConsumer(driveController::setP, driveController::setI, driveController::setD);
             turnTune.addConsumer(turnController::setP, turnController::setI, turnController::setD);
-
-            IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, () -> {
-                driveTune.update();
-                turnTune.update();
-            });
         } else {
             driveTune = null;
             turnTune = null;
@@ -94,6 +101,11 @@ public class SwerveModule {
     public void update() {
         io.updateInputs(inputs);
         Logger.processInputs("Drive/Module" + name, inputs);
+        Logger.recordOutput("Drive/Module" + name + "/RawTurnPos", io.getRawAbsolutePosition());
+
+        if (turnRelativeOffset == null && inputs.turnAbsolutePosition.getRadians() != 0.0) {
+            turnRelativeOffset = inputs.turnAbsolutePosition.minus(inputs.turnPosition);
+        }
 
         // Run closed loop turn control
         if (angleSetpoint != null) {
@@ -118,7 +130,12 @@ public class SwerveModule {
     }
 
     public Rotation2d getAngle() {
-        return inputs.turnPosition;
+        //return inputs.turnPosition;
+        if (turnRelativeOffset == null) {
+            return new Rotation2d();
+        } else {
+            return inputs.turnPosition.plus(turnRelativeOffset);
+        }
     }
 
     /** Returns the current drive velocity of the module in meters per second. */

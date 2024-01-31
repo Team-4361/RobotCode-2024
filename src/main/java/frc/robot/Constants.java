@@ -143,7 +143,7 @@ public class Constants {
 
 
     public static class Chassis {
-        public static final ChassisSettings CHASSIS_MODE = new Mk3Chassis();
+        public static final ChassisSettings CHASSIS_MODE = new Mk4Chassis();
         public static final double CHASSIS_BASE_RADIUS = Math.hypot(
                 CHASSIS_MODE.getSideLength() / 2.0,
                 CHASSIS_MODE.getSideLength() / 2.0
@@ -184,7 +184,7 @@ public class Constants {
                         CHASSIS_MODE.getBROffset()
                 );
             } else {
-                /* 
+
                 FL_MODULE_IO = new SwerveModuleIOCAN(
                         CHASSIS_MODE.getFLDriveID(),
                         CHASSIS_MODE.getFLTurnID(),
@@ -209,7 +209,7 @@ public class Constants {
                         CHASSIS_MODE.getBREncoderID(),
                         CHASSIS_MODE.getBROffset()
                 );
-                */
+
             }
         }
     }

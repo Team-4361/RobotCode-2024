@@ -17,6 +17,7 @@ public interface SwerveModuleIO extends IMotorModel {
         public double driveAppliedVolts = 0.0;
         public double driveCurrentAmps = 0.0;
         public Rotation2d turnPosition = new Rotation2d();
+        public Rotation2d turnAbsolutePosition = new Rotation2d();
         public double turnVelocityRadPerSec = 0.0;
         public double turnCurrentAmps = 0.0;
         public double turnAppliedVolts = 0.0;
@@ -34,4 +35,6 @@ public interface SwerveModuleIO extends IMotorModel {
     default void setDriveVoltage(double volts) {};
 
     default void setTurnVoltage(double volts) {};
+
+    default Rotation2d getRawAbsolutePosition() { return Rotation2d.fromRotations(0); }
 }
