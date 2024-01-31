@@ -6,16 +6,16 @@ import frc.robot.util.pid.PIDConstantsAK;
 
 public class Mk3Chassis implements ChassisSettings {
     /** @return The front-left offset. */
-    @Override public double getFLOffsetRad() { return ((9.401)+0.045647)+(Math.PI/2) - (Math.PI / 2); }
+    @Override public double getFLOffsetRad() { return -3.129; }//return ((9.401)+0.045647)+(Math.PI/2) - (Math.PI / 2); }
 
     /** @return The front-right offset. */
-    @Override public double getFROffset() { return  ((-2.38)+0)+(Math.PI/2) - (2 * Math.PI) + (Math.PI); }
+    @Override public double getFROffset() { return -2.387; }//return  ((-2.38)+0)+(Math.PI/2) - (2 * Math.PI) + (Math.PI); }
 
     /** @return The back-left offset. */
-    @Override public double getBLOffset() { return ((6.12)+0.339057)+(Math.PI/2) - (2 * Math.PI) - (Math.PI / 2); }
+    @Override public double getBLOffset() { return -0.125; }//return ((6.12)+0.339057)+(Math.PI/2) - (2 * Math.PI) - (Math.PI / 2); }
 
     /** @return The back-right offset. */
-    @Override public double getBROffset() { return ((-3.345)+0.009)+(Math.PI/2) - (Math.PI / 2) - (2 * Math.PI); }
+    @Override public double getBROffset() { return -2.964; }//return ((-3.345)+0.009)+(Math.PI/2) - (Math.PI / 2) - (2 * Math.PI); }
 
     /** @return The Robot side length in meters. */
     @Override public double getSideLength() { return 0.762; }
@@ -82,7 +82,7 @@ public class Mk3Chassis implements ChassisSettings {
     @Override
     public PIDConstantsAK getTurnPID() {
         return new PIDConstantsAK(
-                0.5, 0, 0,
+                2, 0, 0,
                 10, 0, 0,
                 0, 0, 0
         );

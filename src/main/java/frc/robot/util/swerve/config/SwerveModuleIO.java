@@ -16,7 +16,6 @@ public interface SwerveModuleIO extends IMotorModel {
         public double driveVelocityRadPerSec = 0.0;
         public double driveAppliedVolts = 0.0;
         public double driveCurrentAmps = 0.0;
-        public Rotation2d turnAbsolutePosition = new Rotation2d();
         public Rotation2d turnPosition = new Rotation2d();
         public double turnVelocityRadPerSec = 0.0;
         public double turnCurrentAmps = 0.0;

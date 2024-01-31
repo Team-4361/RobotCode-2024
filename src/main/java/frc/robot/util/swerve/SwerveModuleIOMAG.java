@@ -20,6 +20,8 @@ import frc.robot.util.swerve.config.SwerveModuleIO;
 
 import static com.revrobotics.CANSparkBase.IdleMode.kBrake;
 import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
+import static frc.robot.Constants.Chassis.CHASSIS_BASE_RADIUS;
+import static frc.robot.Constants.Chassis.CHASSIS_MODE;
 
 public class SwerveModuleIOMAG implements SwerveModuleIO {
     private final FRCSparkMax driveMotor;
@@ -38,30 +40,11 @@ public class SwerveModuleIOMAG implements SwerveModuleIO {
         this.turnEncoder = turnMotor.getEncoder();
         this.absOffset = Rotation2d.fromRadians(offsetRad);
 
-        driveMotor.setCANTimeout(250);
-        turnMotor.setCANTimeout(250);
-
         driveMotor.enableVoltageCompensation(12.0);
         turnMotor.enableVoltageCompensation(12.0);
 
-        turnMotor.setInverted(true);
-
         driveEncoder.setPosition(0.0);
-        driveEncoder.setMeasurementPeriod(10);
-        driveEncoder.setAverageDepth(2);
-
         turnEncoder.setPosition(0.0);
-        turnEncoder.setMeasurementPeriod(10);
-        turnEncoder.setAverageDepth(2);
-
-        driveMotor.setIdleMode(kBrake);
-        turnMotor.setIdleMode(kBrake);
-
-        driveMotor.setSmartCurrentLimit(40);
-        turnMotor.setSmartCurrentLimit(20);
-
-        driveMotor.setCANTimeout(0);
-        turnMotor.setCANTimeout(0);
 
         ///////////////////////////////////////////////////////////////// Encoder Configuration
         this.absEncoder = new DutyCycleEncoder(dioPort);
@@ -85,20 +68,24 @@ public class SwerveModuleIOMAG implements SwerveModuleIO {
         driveEncoder = driveMotor.getEncoder();
         turnEncoder = turnMotor.getEncoder();
 
-        inputs.drivePositionRad = Units.rotationsToRadians(driveEncoder.getPosition())
-                / driveMotor.getRatio().getDivisor();
-        inputs.driveVelocityRadPerSec = Units.rotationsPerMinuteToRadiansPerSecond(driveEncoder.getVelocity())
-                / driveMotor.getRatio().getDivisor();
+        inputs.drivePositionRad = CHASSIS_MODE
+                .getDriveRatio()
+                .getFollowerAngle(Rotation2d.fromRotations(driveEncoder.getPosition()))
+                .getRadians();
+
+        inputs.driveVelocityRadPerSec = CHASSIS_MODE
+                .getDriveRatio()
+                .getFollowerAngle(Rotation2d.fromRotations(driveEncoder.getVelocity()))
+                .getRadians();
 
         inputs.driveAppliedVolts = driveMotor.getAppliedVoltage();
         inputs.driveCurrentAmps = driveMotor.getOutputCurrent();
-        inputs.turnAbsolutePosition = Rotation2d.fromRotations(
-                absEncoder.getAbsolutePosition())
-                .minus(absOffset);
-       // inputs.turnPosition = Rotation2d.fromRotations(turnEncoder.getPosition() / turnMotor.getRatio().getDivisor());
-        inputs.turnPosition = Rotation2d.fromRotations(inputs.turnAbsolutePosition.getRotations() / turnMotor.getRatio().getDivisor());
-        inputs.turnVelocityRadPerSec = Units.rotationsToRadians(turnEncoder.getVelocity())
-                / turnMotor.getRatio().getDivisor();
+
+        inputs.turnPosition = Rotation2d.fromRotations(absEncoder.get()).minus(absOffset);
+        inputs.turnVelocityRadPerSec = CHASSIS_MODE
+                .getTurnRatio()
+                .getFollowerAngle(Rotation2d.fromRotations(turnEncoder.getVelocity()))
+                .getRadians();
 
         inputs.turnAppliedVolts = turnMotor.getAppliedVoltage();
         inputs.turnCurrentAmps = turnMotor.getOutputCurrent();

@@ -32,13 +32,13 @@ import static frc.robot.Constants.LooperConfig.STRING_DASHBOARD_NAME;
  * @author Eric Gold
  */
 public class SwerveModule {
-    private Rotation2d turnRelativeOffset = null;
     private Rotation2d angleSetpoint = null;
     private Double speedSetpoint = null;
 
     private final PIDConstants drivePIDConfig;
     private final PIDConstants turnPIDConfig;
     private final SimpleMotorFeedforward driveFF;
+    private final SimpleMotorFeedforward turnFF;
     private final PIDController driveController;
     private final PIDController turnController;
     private final DashTunablePID driveTune;
@@ -62,7 +62,7 @@ public class SwerveModule {
         this.driveController = new PIDController(drivePIDConfig.kP, drivePIDConfig.kI, drivePIDConfig.kD);
         this.turnController  = new PIDController(turnPIDConfig.kP, turnPIDConfig.kI, turnPIDConfig.kD);
         this.driveFF         = new SimpleMotorFeedforward(0.1, 0.13, 0);
-
+        this.turnFF          = new SimpleMotorFeedforward(0.1, 0.06, 0);
 
 
         this.drivePIDConfig = drivePIDConfig;
@@ -94,14 +94,10 @@ public class SwerveModule {
     public void update() {
         io.updateInputs(inputs);
         Logger.processInputs("Drive/Module" + name, inputs);
-        if (turnRelativeOffset == null && inputs.turnAbsolutePosition.getRadians() != 0.0) {
-            turnRelativeOffset = inputs.turnAbsolutePosition.minus(inputs.turnPosition);
-        }
 
         // Run closed loop turn control
         if (angleSetpoint != null) {
-            io.setTurnVoltage(
-                    turnController.calculate(getAngle().getDegrees(), angleSetpoint.getDegrees()));
+            io.setTurnVoltage(turnController.calculate(getAngle().getRadians(), angleSetpoint.getRadians()));
 
             // Run closed loop drive control
             // Only allowed if closed loop turn control is running
@@ -122,12 +118,7 @@ public class SwerveModule {
     }
 
     public Rotation2d getAngle() {
-        if (turnRelativeOffset == null) {
-            return new Rotation2d();
-        } else {
-            //return inputs.turnPosition.plus(turnRelativeOffset);
-            return inputs.turnAbsolutePosition;
-        }
+        return inputs.turnPosition;
     }
 
     /** Returns the current drive velocity of the module in meters per second. */

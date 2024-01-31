@@ -184,6 +184,7 @@ public class Constants {
                         CHASSIS_MODE.getBROffset()
                 );
             } else {
+                /* 
                 FL_MODULE_IO = new SwerveModuleIOCAN(
                         CHASSIS_MODE.getFLDriveID(),
                         CHASSIS_MODE.getFLTurnID(),
@@ -208,6 +209,7 @@ public class Constants {
                         CHASSIS_MODE.getBREncoderID(),
                         CHASSIS_MODE.getBROffset()
                 );
+                */
             }
         }
     }
