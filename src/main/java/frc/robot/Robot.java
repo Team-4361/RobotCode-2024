@@ -33,8 +33,6 @@ import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.DriveXboxController;
 import frc.robot.util.preset.PresetGroup;
 import frc.robot.util.preset.PresetMode;
-import frc.robot.util.swerve.config.GyroIO;
-import frc.robot.util.swerve.config.SwerveModuleIO;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
@@ -47,7 +45,6 @@ import static frc.robot.Constants.*;
 import static frc.robot.Constants.Chassis.*;
 //import static frc.robot.Constants.ClimberPresets.*;
 import static frc.robot.Constants.Control.*;
-import static frc.robot.Constants.LooperConfig.*;
 
 
 /**
@@ -114,9 +111,8 @@ public class Robot extends LoggedRobot {
         Logger.start(); // start logging!
         // endregion
 
-        //boolean useNormalSticks = !RobotBase.isSimulation() ||
-        //        (DriverStation.isJoystickConnected(0) && DriverStation.isJoystickConnected(1));
-        boolean useNormalSticks = true;
+        boolean useNormalSticks = !RobotBase.isSimulation() ||
+                (DriverStation.isJoystickConnected(0) && DriverStation.isJoystickConnected(1));
 
         // Use a PresetGroup to keep the presets synchronized. We don't want one joystick sensitive
         // and the other one non-sensitive.
@@ -163,37 +159,7 @@ public class Robot extends LoggedRobot {
         shooter = new ShooterSubsystem();
         indexer = new IndexSubsystem();
 
-        switch (OP_MODE) {
-            case REAL: {
-                swerve = new SwerveDriveSubsystem(
-                        FL_MODULE_IO,
-                        FR_MODULE_IO,
-                        BL_MODULE_IO,
-                        BR_MODULE_IO,
-                        GYRO_MODULE
-                );
-                break;
-            }
-            case SIM: {
-                swerve = new SwerveDriveSubsystem(
-                        FL_MODULE_IO,
-                        FR_MODULE_IO,
-                        BL_MODULE_IO,
-                        BR_MODULE_IO,
-                        new GyroIO() {}
-                );
-                break;
-            }
-            case REPLAY: {
-                swerve = new SwerveDriveSubsystem(
-                        new SwerveModuleIO() {},
-                        new SwerveModuleIO() {},
-                        new SwerveModuleIO() {},
-                        new SwerveModuleIO() {},
-                        new GyroIO() {}
-                );
-            }
-        }
+        swerve = new SwerveDriveSubsystem();
         camera = new PhotonCameraModule("FrontCamera", Units.inchesToMeters(27), 0);
 
         BiConsumer<Command, Boolean> logCommandFunction = getCommandActivity();
@@ -280,7 +246,6 @@ public class Robot extends LoggedRobot {
         if (!xboxOnly) {
             xbox.a().onTrue(new IntakeCommand(INTAKE_SPEED));
             leftStick.button(10).onTrue(Commands.runOnce(() -> drivePresets.nextPreset(true)));
-            leftStick.button(12).onTrue(swerve.toggleClosedLoopCommand());
             leftStick.button(11).onTrue(swerve.resetCommand());
             leftStick.trigger().whileTrue(Commands.runEnd(
                     () -> drivePresets.setPreset(2),

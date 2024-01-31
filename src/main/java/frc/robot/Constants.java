@@ -12,14 +12,8 @@ import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.IDriveMode;
 import frc.robot.util.pid.DashTunableNumber;
-import frc.robot.util.swerve.GyroIONavX1;
-import frc.robot.util.swerve.SwerveModule;
-import frc.robot.util.swerve.SwerveModuleIOCAN;
-import frc.robot.util.swerve.SwerveModuleIOMAG;
 import frc.robot.util.swerve.config.ChassisSettings;
-import frc.robot.util.swerve.config.Mk3Chassis;
 import frc.robot.util.swerve.config.Mk4Chassis;
-import frc.robot.util.swerve.config.SwerveModuleIO;
 
 import java.util.function.Supplier;
 
@@ -38,6 +32,11 @@ import static frc.robot.Constants.LooperConfig.STRING_DASHBOARD_NAME;
 public class Constants {
 
     public enum OperationMode { REAL, REPLAY, SIM}
+
+    /** If the {@link Robot} is operating under a REPLAY mode. */
+    public static boolean isReplay() {
+        return Control.OP_MODE == OperationMode.REPLAY;
+    }
 
     public static class Control {
         /** The Left Joystick ID (typically 0) */
@@ -148,70 +147,7 @@ public class Constants {
                 CHASSIS_MODE.getSideLength() / 2.0,
                 CHASSIS_MODE.getSideLength() / 2.0
         );
-        public static final double MAX_ANGULAR_MPS = CHASSIS_MODE.getMaxSpeed() / CHASSIS_BASE_RADIUS;
-
-        public static final GyroIONavX1 GYRO_MODULE = new GyroIONavX1(SPI.Port.kMXP);
-
-        public static SwerveModuleIO FL_MODULE_IO;
-        public static SwerveModuleIO FR_MODULE_IO;
-        public static SwerveModuleIO BL_MODULE_IO;
-        public static SwerveModuleIO BR_MODULE_IO;
-
-        static {
-            if (CHASSIS_MODE.usingMagEncoders()) {
-                FL_MODULE_IO = new SwerveModuleIOMAG(
-                        CHASSIS_MODE.getFLDriveID(),
-                        CHASSIS_MODE.getFLTurnID(),
-                        CHASSIS_MODE.getFLEncoderID(),
-                        CHASSIS_MODE.getFLOffsetRad()
-                );
-                FR_MODULE_IO = new SwerveModuleIOMAG(
-                        CHASSIS_MODE.getFRDriveID(),
-                        CHASSIS_MODE.getFRTurnID(),
-                        CHASSIS_MODE.getFREncoderID(),
-                        CHASSIS_MODE.getFROffset()
-                );
-                BL_MODULE_IO = new SwerveModuleIOMAG(
-                        CHASSIS_MODE.getBLDriveID(),
-                        CHASSIS_MODE.getBLTurnID(),
-                        CHASSIS_MODE.getBLEncoderID(),
-                        CHASSIS_MODE.getBLOffset()
-                );
-                BR_MODULE_IO = new SwerveModuleIOMAG(
-                        CHASSIS_MODE.getBRDriveID(),
-                        CHASSIS_MODE.getBRTurnID(),
-                        CHASSIS_MODE.getBREncoderID(),
-                        CHASSIS_MODE.getBROffset()
-                );
-            } else {
-
-                FL_MODULE_IO = new SwerveModuleIOCAN(
-                        CHASSIS_MODE.getFLDriveID(),
-                        CHASSIS_MODE.getFLTurnID(),
-                        CHASSIS_MODE.getFLEncoderID(),
-                        CHASSIS_MODE.getFLOffsetRad()
-                );
-                FR_MODULE_IO = new SwerveModuleIOCAN(
-                        CHASSIS_MODE.getFRDriveID(),
-                        CHASSIS_MODE.getFRTurnID(),
-                        CHASSIS_MODE.getFREncoderID(),
-                        CHASSIS_MODE.getFROffset()
-                );
-                BL_MODULE_IO = new SwerveModuleIOCAN(
-                        CHASSIS_MODE.getBLDriveID(),
-                        CHASSIS_MODE.getBLTurnID(),
-                        CHASSIS_MODE.getBLEncoderID(),
-                        CHASSIS_MODE.getBLOffset()
-                );
-                BR_MODULE_IO = new SwerveModuleIOCAN(
-                        CHASSIS_MODE.getBRDriveID(),
-                        CHASSIS_MODE.getBRTurnID(),
-                        CHASSIS_MODE.getBREncoderID(),
-                        CHASSIS_MODE.getBROffset()
-                );
-
-            }
-        }
+       // public static final double MAX_ANGULAR_MPS = CHASSIS_MODE.getMaxSpeed() / CHASSIS_BASE_RADIUS;
     }
 
     public static final int SHOOTER_MOTOR_1_ID = 10;

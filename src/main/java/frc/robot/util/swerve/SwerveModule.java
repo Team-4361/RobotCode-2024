@@ -1,23 +1,37 @@
 package frc.robot.util.swerve;
 
+import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.CANcoderConfigurator;
+import com.ctre.phoenix6.configs.MagnetSensorConfigs;
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.pathplanner.lib.util.PIDConstants;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.SparkPIDController;
-import edu.wpi.first.math.MathUtil;
+import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import frc.robot.Constants;
+import frc.robot.util.io.AlertType;
 import frc.robot.util.io.IOManager;
+import frc.robot.util.motor.FRCSparkMax;
+import frc.robot.util.motor.MotorModel;
 import frc.robot.util.pid.DashTunablePID;
-import frc.robot.util.swerve.config.SwerveModuleIO;
-import frc.robot.util.swerve.config.SwerveModuleIO.SwerveModuleIOInputs;
-import frc.robot.util.swerve.config.SwerveModuleIOInputsAutoLogged;
-import org.littletonrobotics.junction.AutoLogOutput;
+import frc.robot.util.pid.PIDConstantsAK;
+import frc.robot.util.swerve.config.ModuleSettings;
+import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.inputs.LoggableInputs;
 
+import java.util.function.Supplier;
+
+import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 import static frc.robot.Constants.Chassis.*;
 import static frc.robot.Constants.Control.*;
 import static frc.robot.Constants.LooperConfig.STRING_DASHBOARD_NAME;
@@ -32,25 +46,38 @@ import static frc.robot.Constants.LooperConfig.STRING_DASHBOARD_NAME;
  *
  * @author Eric Gold
  */
-public class SwerveModule {
+public class SwerveModule implements LoggableInputs {
     private Rotation2d angleSetpoint = null;
     private Rotation2d turnRelativeOffset = null;
     private Double speedSetpoint = null;
 
-    private final PIDConstants drivePIDConfig;
-    private final PIDConstants turnPIDConfig;
     private final SimpleMotorFeedforward driveFF;
-    private final SimpleMotorFeedforward turnFF;
     private final PIDController driveController;
     private final PIDController turnController;
 
     private static DashTunablePID driveTune = null;
     private static DashTunablePID turnTune = null;
 
+    private double drivePositionRad = 0.0;
+    private double driveVelocityRadPerSec = 0.0;
+    private double driveAppliedVolts = 0.0;
+    private double driveCurrentAmps = 0.0;
+    private Rotation2d turnPosition = new Rotation2d();
+    private Rotation2d turnAbsolutePosition = new Rotation2d();
+    private double turnVelocityRadPerSec = 0.0;
+    private double turnCurrentAmps = 0.0;
+    private double turnAppliedVolts = 0.0;
+
+    private final FRCSparkMax driveMotor;
+    private final FRCSparkMax turnMotor;
+
+    private final Rotation2d absOffset;
+
+    private RelativeEncoder driveEncoder;
+    private RelativeEncoder turnEncoder;
+    private Supplier<Rotation2d> absSupplier;
 
     private final String name;
-    private final SwerveModuleIO io;
-    private final SwerveModuleIOInputsAutoLogged inputs = new SwerveModuleIOInputsAutoLogged();
 
     //public static final DashTunablePID driveTune = new DashTunablePID("Drive PID", DRIVE_PID_CONFIG);
     //public static final DashTunablePID steerTune = new DashTunablePID("Steer PID", TURN_PID_CONFIG);
@@ -58,31 +85,70 @@ public class SwerveModule {
      * Creates a new {@link SwerveModule} instance using the specified parameters. The {@link CANSparkMax}
      * motor instance will be <b>created and reserved.</b>
      *
-     * @param name            The name of the swerve module.
-     * @param io              The {@link SwerveModuleIO} adapter used for direct communication.
-     * @param drivePIDConfig  The {@link PIDConstants} to use for closed-loop driving.
-     * @param turnPIDConfig   The {@link PIDConstants} to use for PWM turning.
+     * @param name            The {@link String} name of the {@link SwerveModule}.
+     * @param settings        The {@link ModuleSettings} of the {@link SwerveModule}.
      */
-    public SwerveModule(String name, SwerveModuleIO io, PIDConstants drivePIDConfig, PIDConstants turnPIDConfig) {
-        this.driveController = new PIDController(drivePIDConfig.kP, drivePIDConfig.kI, drivePIDConfig.kD);
-        this.turnController  = new PIDController(turnPIDConfig.kP, turnPIDConfig.kI, turnPIDConfig.kD);
+    public SwerveModule(String name, ModuleSettings settings) {
+        this.driveController = PIDConstantsAK.generateController(CHASSIS_MODE.getDrivePID());
+        this.turnController  = PIDConstantsAK.generateController(CHASSIS_MODE.getTurnPID());
+        this.driveMotor      = new FRCSparkMax(settings.getDriveID(), kBrushless, MotorModel.NEO);
+        this.turnMotor       = new FRCSparkMax(settings.getTurnID(),  kBrushless, MotorModel.NEO);
+        this.absSupplier     = () -> Rotation2d.fromRotations(0);
+        this.absOffset       = settings.getOffset();
+
         this.driveFF         = new SimpleMotorFeedforward(0.1, 0.13, 0);
-        this.turnFF          = new SimpleMotorFeedforward(0.1, 0.06, 0);
 
-
-        this.drivePIDConfig = drivePIDConfig;
-        this.turnPIDConfig = turnPIDConfig;
+        this.driveEncoder    = driveMotor.getEncoder();
+        this.turnEncoder     = turnMotor.getEncoder();
         this.name = name;
-        this.io = io;
 
-        // Shorten the travel as much as possible for efficency reasons.
+        // Shorten the travel as much as possible for efficiency reasons.
         turnController.enableContinuousInput(-Math.PI, Math.PI);
+
+        // Enable voltage compensation to base calculations off a nominal 12V. Our robot *should* hopefully
+        // exceed this figure during a match or while practice driving.
+        driveMotor.enableVoltageCompensation(12.0);
+        turnMotor.enableVoltageCompensation(12.0);
+
+        driveEncoder.setPosition(0.0);
+        turnEncoder.setPosition(0.0);
+
+        // Create the absolute encoder instance based upon the CHASSIS_MODE.
+        if (CHASSIS_MODE.usingMagEncoders()) {
+            try (DutyCycleEncoder encoder = new DutyCycleEncoder(settings.getEncoderID())) {
+                absSupplier = () -> Rotation2d.fromRotations(encoder.getAbsolutePosition());
+            } catch (Exception ex) {
+                IOManager.getAlert("Module " + name + ": Failed to create ABS encoder!", AlertType.ERROR)
+                        .setPersistent(true)
+                        .setEnabled(true);
+            }
+        } else {
+            CANcoderConfigurator config;
+            StatusSignal<Double> signal;
+            try (CANcoder encoder = new CANcoder(settings.getEncoderID())) {
+                signal = encoder.getAbsolutePosition();
+                config = encoder.getConfigurator();
+
+                config.apply(new CANcoderConfiguration());
+                MagnetSensorConfigs magnetConfig = new MagnetSensorConfigs();
+                config.refresh(magnetConfig);
+                config.apply(magnetConfig
+                        .withAbsoluteSensorRange(AbsoluteSensorRangeValue.Unsigned_0To1)
+                        .withSensorDirection(SensorDirectionValue.CounterClockwise_Positive));
+
+                absSupplier = () -> Rotation2d.fromRotations(signal.refresh().getValueAsDouble());
+            } catch (Exception ex) {
+                IOManager.getAlert("Module " + name + ": Failed to create ABS encoder!", AlertType.ERROR)
+                        .setPersistent(true)
+                        .setEnabled(true);
+            }
+        }
 
         if (SWERVE_TUNING_ENABLED) {
             // PID tuning is enabled.
             if (driveTune == null || turnTune == null) {
-                driveTune = new DashTunablePID("Swerve: Drive PID", drivePIDConfig);
-                turnTune = new DashTunablePID("Swerve: Turn PID", turnPIDConfig);
+                driveTune = new DashTunablePID("Swerve: Drive PID", CHASSIS_MODE.getDrivePID());
+                turnTune = new DashTunablePID("Swerve: Turn PID", CHASSIS_MODE.getTurnPID());
 
                 IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, () -> {
                     driveTune.update();
@@ -99,32 +165,62 @@ public class SwerveModule {
     }
 
     public void update() {
-        io.updateInputs(inputs);
-        Logger.processInputs("Drive/Module" + name, inputs);
-        Logger.recordOutput("Drive/Module" + name + "/RawTurnPos", io.getRawAbsolutePosition());
+        driveEncoder = driveMotor.getEncoder();
+        turnEncoder = turnMotor.getEncoder();
 
-        if (turnRelativeOffset == null && inputs.turnAbsolutePosition.getRadians() != 0.0) {
-            turnRelativeOffset = inputs.turnAbsolutePosition.minus(inputs.turnPosition);
+        ////////////////////////////////////////////// Update all the inputs inside this method.
+        drivePositionRad = CHASSIS_MODE
+                .getDriveRatio()
+                .getFollowerAngle(Rotation2d.fromRotations(driveEncoder.getPosition()))
+                .getRadians();
+
+        driveVelocityRadPerSec = CHASSIS_MODE
+                .getDriveRatio()
+                .getFollowerAngle(Rotation2d.fromRotations(driveEncoder.getVelocity()))
+                .getRadians();
+
+        driveAppliedVolts = driveMotor.getAppliedVoltage();
+        driveCurrentAmps = driveMotor.getOutputCurrent();
+
+        turnAbsolutePosition = absSupplier.get().minus(absOffset);
+        turnPosition = CHASSIS_MODE
+                .getTurnRatio()
+                .getFollowerAngle(Rotation2d.fromRotations(turnEncoder.getPosition()));
+
+        turnVelocityRadPerSec = CHASSIS_MODE
+                .getTurnRatio()
+                .getFollowerAngle(Rotation2d.fromRotations(turnEncoder.getVelocity()))
+                .getRadians();
+
+        turnAppliedVolts = turnMotor.getAppliedVoltage();
+        turnCurrentAmps = turnMotor.getOutputCurrent();
+        //////////////////////////////////////////////////////////////////////////////////////
+
+        Logger.processInputs("Drive/Module" + name, this);
+        Logger.recordOutput("Drive/Module" + name + "/RawTurnPos", absSupplier.get());
+
+        if (turnRelativeOffset == null && turnAbsolutePosition.getRadians() != 0.0) {
+            turnRelativeOffset = turnAbsolutePosition.minus(turnPosition);
         }
 
         // Run closed loop turn control
         if (angleSetpoint != null) {
-            io.setTurnVoltage(turnController.calculate(getAngle().getRadians(), angleSetpoint.getRadians()));
+            if (!Constants.isReplay()) {
+                turnMotor.setVoltage(
+                        turnController.calculate(getAngle().getRadians(), angleSetpoint.getRadians()));
+            }
 
-            // Run closed loop drive control
-            // Only allowed if closed loop turn control is running
             if (speedSetpoint != null) {
-                // When the error is 90°, the velocity setpoint should be 0. As the wheel turns
-                // towards the setpoint, its velocity should increase. This is achieved by
-                // taking the component of the velocity in the direction of the setpoint.
-                double adjustSpeedSetpoint = speedSetpoint * Math.cos(turnController.getPositionError());
+                double velocityRadPerSec = (speedSetpoint * Math.cos(turnController.getPositionError()))
+                        / CHASSIS_MODE.getWheelRadius();
 
-                // Run drive controller
-                double velocityRadPerSec = adjustSpeedSetpoint / CHASSIS_MODE.getWheelRadius();
-                io.setDriveVoltage(
-                        driveFF.calculate(velocityRadPerSec)
-                            + driveController.calculate(inputs.driveVelocityRadPerSec, velocityRadPerSec)
-                );
+                // *** IMPORTANT: Do not actually set the motor values during replay! ***
+                if (!Constants.isReplay()) {
+                    driveMotor.setVoltage(
+                            driveFF.calculate(velocityRadPerSec)
+                                    + driveController.calculate(driveVelocityRadPerSec, velocityRadPerSec)
+                    );
+                }
             }
         }
     }
@@ -134,38 +230,25 @@ public class SwerveModule {
         if (turnRelativeOffset == null) {
             return new Rotation2d();
         } else {
-            return inputs.turnPosition.plus(turnRelativeOffset);
+            return turnPosition.plus(turnRelativeOffset);
         }
     }
 
     /** Returns the current drive velocity of the module in meters per second. */
-    public double getVelocityMetersPerSec() {
-        return inputs.driveVelocityRadPerSec * CHASSIS_MODE.getWheelRadius();
-    }
-
+    public double getVelocityMetersPerSec() { return driveVelocityRadPerSec * CHASSIS_MODE.getWheelRadius(); }
 
     /** Returns the drive velocity in radians/sec. */
-    public double getCharacterizationVelocity() {
-        return inputs.driveVelocityRadPerSec;
-    }
-
-    /** @return The {@link PIDConstants} to use for closed-loop driving. */
-    public PIDConstants getDrivePIDConfig() { return this.drivePIDConfig; }
-
-    /** @return The {@link PIDConstants} to use for PWM turning. */
-    public PIDConstants getTurnPIDConfig() { return this.turnPIDConfig; }
+    public double getCharacterizationVelocity() { return driveVelocityRadPerSec; }
 
     /**
      * Sets the state of the {@link SwerveModule}.
      *
      * @param state The {@link SwerveModuleState} to use.
      */
-    public SwerveModuleState setState(SwerveModuleState state, boolean isClosedLoop) {
+    public SwerveModuleState setState(SwerveModuleState state) {
         // Optimize state based on current angle
         // Controllers run in "periodic" when the setpoint is not null
-        var optimizedState = SwerveModuleState.optimize(state, getAngle());
-
-        // Update setpoints, controllers run in "periodic"
+        SwerveModuleState optimizedState = SwerveModuleState.optimize(state, getAngle());
 
         angleSetpoint = optimizedState.angle;
         speedSetpoint = optimizedState.speedMetersPerSecond;
@@ -207,7 +290,8 @@ public class SwerveModule {
     public void runCharacterization(double volts) {
         angleSetpoint = new Rotation2d();
 
-        io.setDriveVoltage(volts);
+        if (!Constants.isReplay())
+            driveMotor.setVoltage(volts);
         speedSetpoint = null;
     }
 
@@ -256,9 +340,43 @@ public class SwerveModule {
     public double getDistance() {
         // The formula for calculating meters from total rotation is:
         // (Total Rotations * 2PI * Wheel Radius)
-        return inputs.drivePositionRad * CHASSIS_MODE.getWheelRadius();
+        return drivePositionRad * CHASSIS_MODE.getWheelRadius();
     }
 
     /** Resets the relative drive encoder reading on the {@link SwerveModule}. */
-    public void reset() { io.reset(); }
+    public void reset() { driveEncoder.setPosition(0); }
+
+    /**
+     * Updates a LogTable with the data to log.
+     * @param table The {@link LogTable} which is provided.
+     */
+    @Override
+    public void toLog(LogTable table) {
+        table.put("DrivePositionRad",       this.drivePositionRad);
+        table.put("DriveVelocityRadPerSec", this.driveVelocityRadPerSec);
+        table.put("DriveAppliedVolts",      this.driveAppliedVolts);
+        table.put("DriveCurrentAmps",       this.driveCurrentAmps);
+        table.put("TurnAbsolutePosition",   this.turnAbsolutePosition);
+        table.put("TurnPosition",           this.turnPosition);
+        table.put("TurnVelocityRadPerSec",  this.turnVelocityRadPerSec);
+        table.put("TurnCurrentAmps",        this.turnCurrentAmps);
+        table.put("TurnAppliedVolts",       this.turnAppliedVolts);
+    }
+
+    /**
+     * Updates data based on a LogTable.
+     * @param table The {@link LogTable} which is provided.
+     */
+    @Override
+    public void fromLog(LogTable table) {
+        this.drivePositionRad       = table.get("DrivePositionRad", this.drivePositionRad);
+        this.driveVelocityRadPerSec = table.get("DriveVelocityRadPerSec", this.driveVelocityRadPerSec);
+        this.driveAppliedVolts      = table.get("DriveAppliedVolts", this.driveAppliedVolts);
+        this.driveCurrentAmps       = table.get("DriveCurrentAmps", this.driveCurrentAmps);
+        this.turnAbsolutePosition   = table.get("TurnAbsolutePosition", this.turnAbsolutePosition);
+        this.turnPosition           = table.get("TurnPosition", this.turnPosition);
+        this.turnVelocityRadPerSec  = table.get("TurnVelocityRadPerSec", this.turnVelocityRadPerSec);
+        this.turnCurrentAmps        = table.get("TurnCurrentAmps", this.turnCurrentAmps);
+        this.turnAppliedVolts       = table.get("TurnAppliedVolts", this.turnAppliedVolts);
+    }
 }

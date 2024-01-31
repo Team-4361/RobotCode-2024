@@ -1,6 +1,7 @@
 package frc.robot.util.pid;
 
 import com.pathplanner.lib.util.PIDConstants;
+import edu.wpi.first.math.controller.PIDController;
 import frc.robot.Constants;
 import frc.robot.Constants.OperationMode;
 import frc.robot.Robot;
@@ -16,6 +17,15 @@ public class PIDConstantsAK {
     public final double kP;
     public final double kI;
     public final double kD;
+
+    /**
+     * Generates a {@link PIDController} based upon the input {@link PIDConstantsAK}.
+     * @param constants The {@link PIDConstantsAK} to use.
+     * @return The created {@link PIDController} instance.
+     */
+    public static PIDController generateController(PIDConstantsAK constants) {
+        return new PIDController(constants.kP, constants.kI, constants.kD);
+    }
 
     /**
      * Constructs a new {@link PIDConstantsAK} with the following parameters.

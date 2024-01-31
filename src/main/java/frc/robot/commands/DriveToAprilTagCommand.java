@@ -68,7 +68,7 @@ public class DriveToAprilTagCommand extends Command {
             firstTarget = false;
         currentPose = storedPose.get();
 
-        Robot.swerve.driveRobotRelative(calculateSpeeds(), false);
+        Robot.swerve.driveRobotRelative(calculateSpeeds());
     }
 
     private ChassisSpeeds calculateSpeeds() {
@@ -113,7 +113,7 @@ public class DriveToAprilTagCommand extends Command {
                             new SwerveModuleState(0, new Rotation2d(0)),
                             new SwerveModuleState(0, new Rotation2d(0)),
                             new SwerveModuleState(0, new Rotation2d(0))
-                    }, false);
+                    });
         }
     }
 
