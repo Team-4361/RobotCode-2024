@@ -46,7 +46,7 @@ import static frc.robot.Constants.LooperConfig.STRING_DASHBOARD_NAME;
  *
  * @author Eric Gold
  */
-public class SwerveModule implements LoggableInputs {
+public abstract class SwerveModule implements LoggableInputs {
     private Rotation2d angleSetpoint = null;
     private Rotation2d turnRelativeOffset = null;
     private Double speedSetpoint = null;
@@ -75,7 +75,6 @@ public class SwerveModule implements LoggableInputs {
 
     private RelativeEncoder driveEncoder;
     private RelativeEncoder turnEncoder;
-    private Supplier<Rotation2d> absSupplier;
 
     private final String name;
 
@@ -93,7 +92,6 @@ public class SwerveModule implements LoggableInputs {
         this.turnController  = PIDConstantsAK.generateController(CHASSIS_MODE.getTurnPID());
         this.driveMotor      = new FRCSparkMax(settings.getDriveID(), kBrushless, MotorModel.NEO);
         this.turnMotor       = new FRCSparkMax(settings.getTurnID(),  kBrushless, MotorModel.NEO);
-        this.absSupplier     = () -> Rotation2d.fromRotations(0);
         this.absOffset       = settings.getOffset();
 
         this.driveFF         = new SimpleMotorFeedforward(0.1, 0.13, 0);
@@ -112,37 +110,6 @@ public class SwerveModule implements LoggableInputs {
 
         driveEncoder.setPosition(0.0);
         turnEncoder.setPosition(0.0);
-
-        // Create the absolute encoder instance based upon the CHASSIS_MODE.
-        if (CHASSIS_MODE.usingMagEncoders()) {
-            try (DutyCycleEncoder encoder = new DutyCycleEncoder(settings.getEncoderID())) {
-                absSupplier = () -> Rotation2d.fromRotations(encoder.getAbsolutePosition());
-            } catch (Exception ex) {
-                IOManager.getAlert("Module " + name + ": Failed to create ABS encoder!", AlertType.ERROR)
-                        .setPersistent(true)
-                        .setEnabled(true);
-            }
-        } else {
-            CANcoderConfigurator config;
-            StatusSignal<Double> signal;
-            try (CANcoder encoder = new CANcoder(settings.getEncoderID())) {
-                signal = encoder.getAbsolutePosition();
-                config = encoder.getConfigurator();
-
-                config.apply(new CANcoderConfiguration());
-                MagnetSensorConfigs magnetConfig = new MagnetSensorConfigs();
-                config.refresh(magnetConfig);
-                config.apply(magnetConfig
-                        .withAbsoluteSensorRange(AbsoluteSensorRangeValue.Unsigned_0To1)
-                        .withSensorDirection(SensorDirectionValue.CounterClockwise_Positive));
-
-                absSupplier = () -> Rotation2d.fromRotations(signal.refresh().getValueAsDouble());
-            } catch (Exception ex) {
-                IOManager.getAlert("Module " + name + ": Failed to create ABS encoder!", AlertType.ERROR)
-                        .setPersistent(true)
-                        .setEnabled(true);
-            }
-        }
 
         if (SWERVE_TUNING_ENABLED) {
             // PID tuning is enabled.
@@ -164,6 +131,8 @@ public class SwerveModule implements LoggableInputs {
         }
     }
 
+    public abstract Rotation2d getRawAbsolutePosition();
+
     public void update() {
         driveEncoder = driveMotor.getEncoder();
         turnEncoder = turnMotor.getEncoder();
@@ -182,7 +151,7 @@ public class SwerveModule implements LoggableInputs {
         driveAppliedVolts = driveMotor.getAppliedVoltage();
         driveCurrentAmps = driveMotor.getOutputCurrent();
 
-        turnAbsolutePosition = absSupplier.get().minus(absOffset);
+        turnAbsolutePosition = getRawAbsolutePosition().minus(absOffset);
         turnPosition = CHASSIS_MODE
                 .getTurnRatio()
                 .getFollowerAngle(Rotation2d.fromRotations(turnEncoder.getPosition()));
@@ -197,7 +166,7 @@ public class SwerveModule implements LoggableInputs {
         //////////////////////////////////////////////////////////////////////////////////////
 
         Logger.processInputs("Drive/Module" + name, this);
-        Logger.recordOutput("Drive/Module" + name + "/RawTurnPos", absSupplier.get());
+        Logger.recordOutput("Drive/Module" + name + "/RawTurnPos", getRawAbsolutePosition());
 
         if (turnRelativeOffset == null && turnAbsolutePosition.getRadians() != 0.0) {
             turnRelativeOffset = turnAbsolutePosition.minus(turnPosition);

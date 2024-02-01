@@ -15,8 +15,8 @@ public class Mk4Chassis implements ChassisSettings {
     @Override
     public ModuleSettings getFLModule() {
         return new ModuleSettings(
-                1,
                 2,
+                1,
                 0,
                 Rotation2d.fromRotations(0)
         );
@@ -28,8 +28,8 @@ public class Mk4Chassis implements ChassisSettings {
     @Override
     public ModuleSettings getFRModule() {
         return new ModuleSettings(
-                3,
                 4,
+                3,
                 1,
                 Rotation2d.fromRotations(0)
         );
@@ -41,8 +41,8 @@ public class Mk4Chassis implements ChassisSettings {
     @Override
     public ModuleSettings getBLModule() {
         return new ModuleSettings(
-                5,
                 6,
+                5,
                 2,
                 Rotation2d.fromRotations(0)
         );
@@ -54,8 +54,8 @@ public class Mk4Chassis implements ChassisSettings {
     @Override
     public ModuleSettings getBRModule() {
         return new ModuleSettings(
-                7,
                 8,
+                7,
                 3,
                 Rotation2d.fromRotations(0)
         );

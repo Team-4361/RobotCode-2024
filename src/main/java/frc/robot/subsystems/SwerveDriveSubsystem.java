@@ -25,6 +25,8 @@ import frc.robot.util.auto.LocalADStarAK;
 import frc.robot.util.io.AlertType;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveHIDBase;
+import frc.robot.util.swerve.CANSwerveModule;
+import frc.robot.util.swerve.MAGSwerveModule;
 import frc.robot.util.swerve.SwerveModule;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.LogTable;
@@ -93,12 +95,22 @@ public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInput
      * Constructs a new {@link SwerveDriveSubsystem} with the specified modules.
      */
     public SwerveDriveSubsystem() {
-        this.modules = new SwerveModule[]{
-                new SwerveModule("FL", CHASSIS_MODE.getFLModule()),
-                new SwerveModule("FR", CHASSIS_MODE.getFRModule()),
-                new SwerveModule("BL", CHASSIS_MODE.getBLModule()),
-                new SwerveModule("BR", CHASSIS_MODE.getBRModule()),
-        };
+        if (CHASSIS_MODE.usingMagEncoders()) {
+            this.modules = new SwerveModule[]{
+                    new MAGSwerveModule("FL", CHASSIS_MODE.getFLModule()),
+                    new MAGSwerveModule("FR", CHASSIS_MODE.getFRModule()),
+                    new MAGSwerveModule("BL", CHASSIS_MODE.getBLModule()),
+                    new MAGSwerveModule("BR", CHASSIS_MODE.getBRModule()),
+            };
+        } else {
+            this.modules = new SwerveModule[]{
+                    new CANSwerveModule("FL", CHASSIS_MODE.getFLModule()),
+                    new CANSwerveModule("FR", CHASSIS_MODE.getFRModule()),
+                    new CANSwerveModule("BL", CHASSIS_MODE.getBLModule()),
+                    new CANSwerveModule("BR", CHASSIS_MODE.getBRModule()),
+            };
+        }
+
 
         this.gyro = new AHRS(SPI.Port.kMXP);
         gyro.reset();
