@@ -6,6 +6,8 @@ import frc.robot.Constants;
 import frc.robot.Constants.OperationMode;
 import frc.robot.Robot;
 
+import java.util.function.Consumer;
+
 import static frc.robot.Constants.Control.OP_MODE;
 
 /**
@@ -27,6 +29,12 @@ public class PIDConstantsAK {
         return new PIDController(constants.kP, constants.kI, constants.kD);
     }
 
+    public void initController(Consumer<Double> p, Consumer<Double> i, Consumer<Double> d) {
+        p.accept(kP);
+        i.accept(kI);
+        d.accept(kD);
+    }
+
     /**
      * Constructs a new {@link PIDConstantsAK} with the following parameters.
      *
@@ -37,15 +45,10 @@ public class PIDConstantsAK {
      * @param simKP  The P value for <code>SIM</code> mode.
      * @param simKI  The I value for <code>SIM</code> mode.
      * @param simKD  The D value for <code>SIM</code> mode.
-     *
-     * @param replayKP The P value for <code>REPLAY</code> mode.
-     * @param replayKI The I value for <code>REPLAY</code> mode.
-     * @param replayKD The D value for <code>REPLAY</code> mode.
      */
     public PIDConstantsAK(
             double realKP,   double realKI,   double realKD,
-            double simKP,    double simKI,    double simKD,
-            double replayKP, double replayKI, double replayKD
+            double simKP,    double simKI,    double simKD
     ) {
         switch (OP_MODE) {
             case REAL: {
@@ -58,12 +61,6 @@ public class PIDConstantsAK {
                 kP = simKP;
                 kI = simKI;
                 kD = simKD;
-                break;
-            }
-            case REPLAY: {
-                kP = replayKP;
-                kI = replayKI;
-                kD = replayKD;
                 break;
             }
             default: {
@@ -80,13 +77,11 @@ public class PIDConstantsAK {
      *
      * @param realConstants   The {@link PIDConstants} instance used for <code>REAL</code> mode.
      * @param simConstants    The {@link PIDConstants} instance used for <code>SIM</code> mode.
-     * @param replayConstants The {@link PIDConstants} instance used for <code>REPLAY</code> mode.
      */
-    public PIDConstantsAK(PIDConstants realConstants, PIDConstants simConstants, PIDConstants replayConstants) {
+    public PIDConstantsAK(PIDConstants realConstants, PIDConstants simConstants) {
         this(
                 realConstants.kP, realConstants.kI, realConstants.kD,
-                simConstants.kP, simConstants.kI, simConstants.kD,
-                replayConstants.kP, replayConstants.kI, replayConstants.kD
+                simConstants.kP, simConstants.kI, simConstants.kD
         );
     }
 
@@ -104,6 +99,8 @@ public class PIDConstantsAK {
 
     /** @return The applicable {@link PIDConstants} based on the {@link OperationMode}. */
     public PIDConstants get() {
+        if (Constants.isReplay())
+            return new PIDConstants(0, 0, 0);
         return new PIDConstants(kP, kI, kD);
     }
 }
