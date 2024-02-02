@@ -7,11 +7,12 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.SPI;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.IDriveMode;
+import frc.robot.util.math.GearRatio;
 import frc.robot.util.pid.DashTunableNumber;
+import frc.robot.util.pid.PIDConstantsAK;
 import frc.robot.util.swerve.config.ChassisSettings;
 import frc.robot.util.swerve.config.Mk4Chassis;
 
@@ -34,8 +35,33 @@ public class Constants {
     public enum OperationMode { REAL, REPLAY, SIM}
 
     /** If the {@link Robot} is operating under a REPLAY mode. */
-    public static boolean isReplay() {
-        return Control.OP_MODE == OperationMode.REPLAY;
+    public static boolean isReplay() { return Control.OP_MODE == OperationMode.REPLAY; }
+
+    /** This {@link Shooter} class represents all values regarding the {@link Robot}'s shooting mechanism. */
+    public static class Shooter {
+        public static final int LEFT_SHOOTER_MOTOR_ID = 10;
+        public static final int RIGHT_SHOOTER_MOTOR_ID = 11;
+        public static final double SHOOT_RPM = 5600;
+        public static final double SHOOT_FEED_FWD = 1.7e-4 * (12.5/12);
+        public static final PIDConstantsAK SHOOT_PID = new PIDConstantsAK(0.05, 0, 0);
+
+        public static final double INTAKE_SPEED = 0.25;
+        public static final int INTAKE_MOTOR_ID = 12;
+        public static final int INDEX_MOTOR_1_ID = 13;
+        public static final int INDEX_MOTOR_2_ID = 14;
+        public static final I2C.Port INDEX_SENSOR_PORT = I2C.Port.kMXP;
+        public static final double RED_MINIMUM_TOLERANCE = 0;
+        public static final double RED_MAXIMUM_TOLERANCE = 100;
+        public static final double BLUE_MINIMUM_TOLERANCE = 0;
+        public static final double BLUE_MAXIMUM_TOLERANCE = 100;
+        public static final double GREEN_MINIMUM_TOLERANCE = 0;
+        public static final double GREEN_MAXIMUM_TOLERANCE = 100;
+        public static final double INDEX_SPEED = 0.5;
+    }
+
+    /** This {@link Intake} class represents all values regarding the {@link Robot}'s in-taking mechanism. */
+    public static class Intake {
+
     }
 
     public static class Control {
@@ -149,21 +175,4 @@ public class Constants {
         );
        // public static final double MAX_ANGULAR_MPS = CHASSIS_MODE.getMaxSpeed() / CHASSIS_BASE_RADIUS;
     }
-
-    public static final int SHOOTER_MOTOR_1_ID = 10;
-    public static final int SHOOTER_MOTOR_2_ID = 11;
-    public static final double SLOW_SPEED = 0.5;
-    public static final double FAST_SPEED = 1;
-    public static final double INTAKE_SPEED = 0.25;
-    public static final int INTAKE_MOTOR_ID = 12;
-    public static final int INDEX_MOTOR_1_ID = 13;
-    public static final int INDEX_MOTOR_2_ID = 14;
-    public static final I2C.Port INDEX_SENSOR_PORT = I2C.Port.kMXP;
-    public static final double RED_MINIMUM_TOLERANCE = 0;
-    public static final double RED_MAXIMUM_TOLERANCE = 100;
-    public static final double BLUE_MINIMUM_TOLERANCE = 0;
-    public static final double BLUE_MAXIMUM_TOLERANCE = 100;
-    public static final double GREEN_MINIMUM_TOLERANCE = 0;
-    public static final double GREEN_MAXIMUM_TOLERANCE = 100;
-    public static final double INDEX_SPEED = 0.5;
 }
