@@ -33,7 +33,7 @@ public class DrivePS4Controller extends DriveHIDBase {
 
     /**
      * Constructs a {@link DrivePS4Controller} with all Inversion set to <b>false</b> and deadband set to
-     * {@link Constants.Control#DEADBAND}.
+     * {@link Constants.Control#DEAD_ZONE}.
      *
      * @param port The USB port ID the HID is connected to.
      * @param primaryMode   The {@link IDriveMode}s to use by default.

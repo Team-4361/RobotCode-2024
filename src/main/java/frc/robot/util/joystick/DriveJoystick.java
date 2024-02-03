@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 
-import static frc.robot.Constants.Control.DEADBAND;
+import static frc.robot.Constants.Control.DEAD_ZONE;
 
 public class DriveJoystick extends DriveHIDBase {
     private final Joystick hid;
@@ -35,14 +35,14 @@ public class DriveJoystick extends DriveHIDBase {
 
     /**
      * Constructs a {@link DriveJoystick} with all Inversion set to <b>false</b> and deadband set to
-     * {@link Constants.Control#DEADBAND}.
+     * {@link Constants.Control#DEAD_ZONE}.
      *
      * @param port          The USB port ID the HID is connected to.
      * @param primaryMode   The {@link IDriveMode}s to use by default.
      * @param extraModes    Optional additional {@link IDriveMode}s to recognize and switch to.
      */
     public DriveJoystick(int port, IDriveMode primaryMode, IDriveMode... extraModes) {
-        this(port, false, false, false, DEADBAND, primaryMode, extraModes);
+        this(port, false, false, false, DEAD_ZONE, primaryMode, extraModes);
     }
 
     /** @return The <b>raw</b> Robot X value (+ forward, - back) without inversion. */

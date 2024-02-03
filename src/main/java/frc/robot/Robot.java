@@ -11,30 +11,28 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
-import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.DriveToAprilTagCommand;
-import frc.robot.commands.IndexAutoMoverCommand;
-import frc.robot.commands.IntakeCommand;
 import frc.robot.commands.ShootCommand;
 import frc.robot.subsystems.IndexSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SwerveDriveSubsystem;
 import frc.robot.util.auto.PhotonCameraModule;
-import frc.robot.util.io.*;
+import frc.robot.util.io.AlertType;
+import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveJoystick;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.DriveXboxController;
 import frc.robot.util.preset.PresetGroup;
 import frc.robot.util.preset.PresetMode;
-import frc.robot.util.swerve.config.GyroIO;
-import frc.robot.util.swerve.config.SwerveModuleIO;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
@@ -43,11 +41,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
-import static frc.robot.Constants.*;
-import static frc.robot.Constants.Chassis.*;
-//import static frc.robot.Constants.ClimberPresets.*;
 import static frc.robot.Constants.Control.*;
-import static frc.robot.Constants.LooperConfig.*;
+import static frc.robot.Constants.Shooter.SHOOT_RPM;
 
 
 /**
@@ -66,7 +61,8 @@ public class Robot extends LoggedRobot {
     public static PhotonCameraModule camera;
     public static ShooterSubsystem shooter;
     public static IntakeSubsystem intake;
-    public static IndexSubsystem indexer;
+    public static IndexSubsystem index;
+
     // add a "public static" variable for your Subsystem type and name.
     // look above for examples.
 
@@ -110,25 +106,25 @@ public class Robot extends LoggedRobot {
         }
 
         // TODO: setup replay/sim mode!
-        Logger.addDataReceiver(new NT4Publisher());
+        if (!DriverStation.isFMSAttached())
+            Logger.addDataReceiver(new NT4Publisher());
+
         Logger.start(); // start logging!
         // endregion
 
-        //boolean useNormalSticks = !RobotBase.isSimulation() ||
-        //        (DriverStation.isJoystickConnected(0) && DriverStation.isJoystickConnected(1));
         boolean useNormalSticks = true;
-
         // Use a PresetGroup to keep the presets synchronized. We don't want one joystick sensitive
         // and the other one non-sensitive.
         drivePresets = new PresetGroup("Drive Presets", PresetMode.PARALLEL);
 
+        //noinspection ConstantValue
         if (useNormalSticks) {
             leftStick = new DriveJoystick(
                     LEFT_STICK_ID,  // Left stick ID
                     false,           // Drive X inverted?
                     false,           // Drive Y inverted?
                     false,           // Twist Axis Inverted?
-                    DEADBAND,       // Deadband
+                    DEAD_ZONE,       // Deadband
                     DRIVE_MODES[0], // Primary Drive Mode
                     DRIVE_MODES     // Secondary Drive Modes
             );
@@ -138,7 +134,7 @@ public class Robot extends LoggedRobot {
                     false,            // Drive X inverted?
                     false,            // Drive Y inverted?
                     false,            // Twist Axis Inverted?
-                    DEADBAND,        // Deadband
+                    DEAD_ZONE,        // Deadband
                     DRIVE_MODES[0],  // Primary Drive Mode
                     DRIVE_MODES      // Secondary Drive Modes
             );
@@ -151,7 +147,7 @@ public class Robot extends LoggedRobot {
                 true,
                 true,
                 true,
-                DEADBAND,
+                DEAD_ZONE,
                 DriveMode.LINEAR_MAP
         );
 
@@ -161,39 +157,9 @@ public class Robot extends LoggedRobot {
         pdh = new PowerDistribution();
         intake = new IntakeSubsystem();
         shooter = new ShooterSubsystem();
-        indexer = new IndexSubsystem();
+        index = new IndexSubsystem();
 
-        switch (OP_MODE) {
-            case REAL: {
-                swerve = new SwerveDriveSubsystem(
-                        FL_MODULE_IO,
-                        FR_MODULE_IO,
-                        BL_MODULE_IO,
-                        BR_MODULE_IO,
-                        GYRO_MODULE
-                );
-                break;
-            }
-            case SIM: {
-                swerve = new SwerveDriveSubsystem(
-                        FL_MODULE_IO,
-                        FR_MODULE_IO,
-                        BL_MODULE_IO,
-                        BR_MODULE_IO,
-                        new GyroIO() {}
-                );
-                break;
-            }
-            case REPLAY: {
-                swerve = new SwerveDriveSubsystem(
-                        new SwerveModuleIO() {},
-                        new SwerveModuleIO() {},
-                        new SwerveModuleIO() {},
-                        new SwerveModuleIO() {},
-                        new GyroIO() {}
-                );
-            }
-        }
+        swerve = new SwerveDriveSubsystem();
         camera = new PhotonCameraModule("FrontCamera", Units.inchesToMeters(27), 0);
 
         BiConsumer<Command, Boolean> logCommandFunction = getCommandActivity();
@@ -241,7 +207,6 @@ public class Robot extends LoggedRobot {
      * joysticks}.
      */
     private void configureBindings(boolean xboxOnly) {
-
         if (xboxOnly) {
             IOManager.debug(this, "Xbox-only/Simulation mode detected.");
             Robot.swerve.setDefaultCommand(Robot.swerve.runEnd(
@@ -256,31 +221,9 @@ public class Robot extends LoggedRobot {
             );
         }
 
-        xbox.a().whileTrue(new SequentialCommandGroup(
-                new ShootCommand(FAST_SPEED),
-                new IndexAutoMoverCommand()
-        ));
-        xbox.b().whileTrue(new SequentialCommandGroup(
-                new ShootCommand(SLOW_SPEED),
-                new IndexAutoMoverCommand()
-        ));
-
-        //xbox.a().onTrue(Commands.runOnce(() -> ROTATION_PRESETS.setPreset(0)));
-        //xbox.b().onTrue(Commands.runOnce(() -> ROTATION_PRESETS.setPreset(1)));
-
-//        xbox.a().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(ZERO_POSITION_NAME)));
-//        xbox.b().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(FLOOR_CUBE_NAME)));
-//        xbox.y().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(HUMAN_STATION_NAME)));
-//        xbox.x().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(MID_CONE_NAME)));
-//
-//        xbox.povDown().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(FLOOR_CONE_NAME)));
-//        xbox.povLeft().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(MANUAL_STATION_NAME)));
-//        xbox.rightBumper().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(HIGH_CONE_NAME)));
-
         if (!xboxOnly) {
-            xbox.a().onTrue(new IntakeCommand(INTAKE_SPEED));
+           // xbox.a().onTrue(new IntakeCommand(INTAKE_SPEED));
             leftStick.button(10).onTrue(Commands.runOnce(() -> drivePresets.nextPreset(true)));
-            leftStick.button(12).onTrue(swerve.toggleClosedLoopCommand());
             leftStick.button(11).onTrue(swerve.resetCommand());
             leftStick.trigger().whileTrue(Commands.runEnd(
                     () -> drivePresets.setPreset(2),
@@ -294,6 +237,16 @@ public class Robot extends LoggedRobot {
                     ), 27, 7, false
             ));
         }
+
+        xbox.a().whileTrue(Commands.runEnd(
+                () -> Robot.shooter.start(),
+                () -> Robot.shooter.stop()
+        ));
+
+        xbox.b().whileTrue(Commands.runEnd(
+                () -> Robot.index.start(),
+                () -> Robot.index.stop()
+        ));
     }
 
     private static BiConsumer<Command, Boolean> getCommandActivity() {

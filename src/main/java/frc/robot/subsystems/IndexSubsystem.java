@@ -1,45 +1,124 @@
 package frc.robot.subsystems;
 
-import com.revrobotics.CANSparkLowLevel;
 import com.revrobotics.ColorSensorV3;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.util.motor.FRCSparkMax;
+import frc.robot.util.math.ExtendedMath;
 import frc.robot.util.motor.MotorModel;
+import frc.robot.util.pid.DashTunableNumber;
+import frc.robot.util.pid.PIDWheelModule;
+import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.inputs.LoggableInputs;
 
-import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
-import static frc.robot.Constants.*;
+import static frc.robot.Constants.Indexer.*;
 
-public class IndexSubsystem extends SubsystemBase {
-    private final FRCSparkMax motor1, motor2;
+public class IndexSubsystem extends SubsystemBase implements LoggableInputs {
+    private final PIDWheelModule leftWheel;
+    private final PIDWheelModule rightWheel;
     private final ColorSensorV3 sensor;
+    private final DashTunableNumber indexTune;
+    private double targetRPM = INDEX_RPM;
+    private boolean stopped = true;
 
-    public IndexSubsystem(){
-        motor1 = new FRCSparkMax(INDEX_MOTOR_1_ID, kBrushless, MotorModel.NEO);
-        motor2 = new FRCSparkMax(INDEX_MOTOR_2_ID, kBrushless, MotorModel.NEO);
+    private double redValue = 0.0;
+    private double greenValue = 0.0;
+    private double blueValue = 0.0;
+
+    public IndexSubsystem() {
+        String tuneName = INDEX_TUNING_ENABLED ? "Index: PID" : "";
+        leftWheel = new PIDWheelModule(
+                INDEX_LEFT_MOTOR_ID,
+                INDEX_PID,
+                INDEX_KS,
+                INDEX_KV,
+                INDEX_KA,
+                MotorModel.NEO_550,
+                "LeftIndexer",
+                tuneName
+        );
+
+        rightWheel = new PIDWheelModule(
+                INDEX_RIGHT_MOTOR_ID,
+                INDEX_PID,
+                INDEX_KS,
+                INDEX_KV,
+                INDEX_KA,
+                MotorModel.NEO_550,
+                "RightIndexer",
+                tuneName
+        );
+
         sensor = new ColorSensorV3(INDEX_SENSOR_PORT);
+
+        if (INDEX_TUNING_ENABLED) {
+            indexTune = new DashTunableNumber("Index: Speed", INDEX_RPM);
+            indexTune.addConsumer(this::setTargetRPM);
+        } else {
+            indexTune = null;
+        }
     }
 
-    //methods using motor.set()
-    public void moveIndexer(double speed){
-        motor1.set(speed);
-        motor2.set(speed);
-    }
-    public void stopIndexer(){
-        motor1.set(0);
-        motor2.set(0);
-    }
-    public boolean hasNote(){
-        return sensor.getRed() > RED_MINIMUM_TOLERANCE && sensor.getRed() < RED_MAXIMUM_TOLERANCE
-                && sensor.getBlue() > BLUE_MINIMUM_TOLERANCE && sensor.getBlue() < BLUE_MAXIMUM_TOLERANCE
-                && sensor.getGreen() > GREEN_MINIMUM_TOLERANCE && sensor.getGreen() < GREEN_MAXIMUM_TOLERANCE;
-    }
-    //SmartDashboard
+    public void setTargetRPM(double rpm) { this.targetRPM = rpm; }
+
+    /** @return If the {@link IndexSubsystem} is at target. */
+    public boolean atTarget() { return leftWheel.atTarget() && rightWheel.atTarget(); }
+
     @Override
     public void periodic() {
-        SmartDashboard.putString("Indexer 1 Speed: ", ""+motor1.get());
-        SmartDashboard.putString("Indexer 2 Speed: ", ""+motor2.get());
+        leftWheel.update();
+        rightWheel.update();
+        if (indexTune != null && !stopped)
+            indexTune.update();
 
+        if (!RobotBase.isSimulation()) {
+            redValue = sensor.getRed();
+            greenValue = sensor.getGreen();
+            blueValue = sensor.getBlue();
+        }
+
+        Logger.processInputs("Index", this);
+    }
+
+    /**
+     * Sets the target of the {@link IndexSubsystem}.
+     */
+    public void start() {
+        leftWheel.setTarget(targetRPM);
+        rightWheel.setTarget(targetRPM);
+        stopped = targetRPM == 0;
+    }
+
+    /** Stops the {@link IndexSubsystem} from spinning. */
+    public void stop() { leftWheel.stop(); rightWheel.stop(); stopped = true; }
+
+    public boolean hasNote() {
+        return ExtendedMath.inRange(redValue, RED_MINIMUM_TOLERANCE, RED_MAXIMUM_TOLERANCE) &&
+                ExtendedMath.inRange(greenValue, GREEN_MINIMUM_TOLERANCE, GREEN_MAXIMUM_TOLERANCE) &&
+                ExtendedMath.inRange(blueValue, BLUE_MINIMUM_TOLERANCE, BLUE_MAXIMUM_TOLERANCE);
+    }
+
+    /**
+     * Updates a LogTable with the data to log.
+     *
+     * @param table The {@link LogTable} which is provided.
+     */
+    @Override
+    public void toLog(LogTable table) {
+        table.put("Red", redValue);
+        table.put("Green", greenValue);
+        table.put("Blue", blueValue);
+    }
+
+    /**
+     * Updates data based on a LogTable.
+     *
+     * @param table The {@link LogTable} which is provided.
+     */
+    @Override
+    public void fromLog(LogTable table) {
+        this.redValue = table.get("Red", redValue);
+        this.greenValue = table.get("Green", greenValue);
+        this.blueValue = table.get("Blue", blueValue);
     }
 }

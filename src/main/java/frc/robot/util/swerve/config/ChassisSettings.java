@@ -1,70 +1,30 @@
 package frc.robot.util.swerve.config;
 
-import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.util.PIDConstants;
-import frc.robot.Robot;
 import frc.robot.util.math.GearRatio;
 import frc.robot.util.pid.PIDConstantsAK;
-import org.photonvision.PhotonCamera;
+import frc.robot.util.swerve.SwerveModuleBase;
 
-/**
- * This {@link ChassisSettings} interface is designed to store values regarding Driving the robot. This includes any offsets
- * for Absolute Driving, dead-zones, and ports regarding the motors. Note that these motors usually <b>do not</b>
- * need to be flipped due to the Field Oriented driving system.
- */
 public interface ChassisSettings {
-    /** @return The front-left offset. */
-    double getFLOffsetRad();
+    /** @return The {@link ModuleSettings} associated with the front-left {@link SwerveModuleBase}. */
+    ModuleSettings getFLModule();
 
-    /** @return The front-right offset. */
-    double getFROffset();
+    /** @return The {@link ModuleSettings} associated with the front-right {@link SwerveModuleBase}. */
+    ModuleSettings getFRModule();
 
-    /** @return The back-left offset. */
-    double getBLOffset();
+    /** @return The {@link ModuleSettings} associated with the back-left {@link SwerveModuleBase}. */
+    ModuleSettings getBLModule();
 
-    /** @return The back-right offset. */
-    double getBROffset();
+    /** @return The {@link ModuleSettings} associated with the front-right {@link SwerveModuleBase}. */
+    ModuleSettings getBRModule();
 
-    /** @return The {@link Robot} side length in <b>meters.</b> */
+    /** @return The Robot side length in meters. */
     double getSideLength();
 
-    /** @return The front-left drive ID. */
-    int getFLDriveID();
+    /** @return The maximum attainable speed of the Robot in m/s. */
 
-    /** @return The front-right drive ID. */
-    int getFRDriveID();
+    double getMaxSpeed();
 
-    /** @return The back-left drive ID. */
-    int getBLDriveID();
-
-    /** @return The back-right drive ID. */
-    int getBRDriveID();
-
-    /** @return The front-left turn ID. */
-    int getFLTurnID();
-
-    /** @return The front-right turn ID. */
-    int getFRTurnID();
-
-    /** @return The back-left turn ID. */
-    int getBLTurnID();
-
-    /** @return The back-right turn ID. */
-    int getBRTurnID();
-
-    /** @return The encoder ID of the front-left module. */
-    int getFLEncoderID();
-
-    /** @return The encoder ID of the front-right module. */
-    int getFREncoderID();
-
-    /** @return The encoder ID of the back-left module. */
-    int getBLEncoderID();
-
-    /** @return The encoder ID of the back-right module. */
-    int getBREncoderID();
-
-    /** @return The {@link Robot} wheel radius in <b>meters.</b> */
+    /** @return The Robot wheel radius in meters. */
     double getWheelRadius();
 
     /** @return The {@link GearRatio} used for driving. */
@@ -73,28 +33,24 @@ public interface ChassisSettings {
     /** @return The {@link GearRatio} used for turning. */
     GearRatio getTurnRatio();
 
-    /** @return The maximum attainable speed of the {@link Robot} in m/s. */
-    double getMaxSpeed();
-
-    /** @return The {@link PIDConstants} used for closed-loop control. */
+    /** @return The PIDConstants used for closed-loop control. */
     PIDConstantsAK getDrivePID();
 
-    /** @return The {@link PIDConstants} used for turning. */
+    /** @return The PIDConstants used for turning. */
     PIDConstantsAK getTurnPID();
 
-    /** @return The {@link PIDConstants} used for {@link PathPlannerAuto} closed-loop control. */
+    /** @return The PIDConstants used for PathPlannerAuto closed-loop control. */
     PIDConstantsAK getAutoDrivePID();
 
-    /** @return The {@link PIDConstants} used for {@link PathPlannerAuto} turning. */
+    /** @return The PIDConstants used for PathPlannerAuto turning. */
     PIDConstantsAK getAutoTurnPID();
 
-    /** @return The {@link PIDConstants} used for {@link PhotonCamera} closed-loop control. */
+    /** @return The PIDConstants used for PhotonCamera closed-loop control. */
     PIDConstantsAK getPhotonDrivePID();
 
-    /** @return The {@link PIDConstants} used for {@link PhotonCamera} turning. */
+    /** @return The PIDConstants used for PhotonCamera turning. */
     PIDConstantsAK getPhotonTurnPID();
 
     /** @return If the legacy CTRE magnetic encoders are being used. */
     boolean usingMagEncoders();
 }
-

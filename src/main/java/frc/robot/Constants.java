@@ -7,19 +7,14 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.SPI;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.IDriveMode;
 import frc.robot.util.pid.DashTunableNumber;
-import frc.robot.util.swerve.GyroIONavX1;
-import frc.robot.util.swerve.SwerveModule;
-import frc.robot.util.swerve.SwerveModuleIOCAN;
-import frc.robot.util.swerve.SwerveModuleIOMAG;
+import frc.robot.util.pid.PIDConstantsAK;
 import frc.robot.util.swerve.config.ChassisSettings;
 import frc.robot.util.swerve.config.Mk3Chassis;
 import frc.robot.util.swerve.config.Mk4Chassis;
-import frc.robot.util.swerve.config.SwerveModuleIO;
 
 import java.util.function.Supplier;
 
@@ -39,6 +34,55 @@ public class Constants {
 
     public enum OperationMode { REAL, REPLAY, SIM}
 
+    /** If the {@link Robot} is operating under a REPLAY mode. */
+    public static boolean isReplay() { return Control.OP_MODE == OperationMode.REPLAY; }
+
+    /** This {@link Shooter} class represents all values regarding the {@link Robot}'s shooting mechanism. */
+    public static class Shooter {
+        public static final int LEFT_SHOOTER_MOTOR_ID = 10;
+        public static final int RIGHT_SHOOTER_MOTOR_ID = 11;
+        public static final double SHOOT_RPM = 5600;
+        public static final double SHOOT_KS = 0.1;
+        public static final double SHOOT_KV = 0.03;
+        public static final double SHOOT_KA = 0;
+        public static final PIDConstantsAK SHOOT_PID = new PIDConstantsAK(0.05, 0, 0);
+    }
+
+    /** This {@link Indexer} class represents all values regarding the {@link Robot}'s index mechanism. */
+    public static class Indexer {
+        public static final int INDEX_LEFT_MOTOR_ID = 12;
+        public static final int INDEX_RIGHT_MOTOR_ID = 13;
+
+        public static final double INDEX_KS = 0;
+        public static final double INDEX_KV = 0;
+        public static final double INDEX_KA = 0;
+
+        public static final I2C.Port INDEX_SENSOR_PORT = I2C.Port.kMXP;
+        public static final PIDConstantsAK INDEX_PID = new PIDConstantsAK(0.05, 0, 0);
+
+        public static final double RED_MINIMUM_TOLERANCE = 0;
+        public static final double RED_MAXIMUM_TOLERANCE = 100;
+        public static final double BLUE_MINIMUM_TOLERANCE = 0;
+        public static final double BLUE_MAXIMUM_TOLERANCE = 100;
+        public static final double GREEN_MINIMUM_TOLERANCE = 0;
+        public static final double GREEN_MAXIMUM_TOLERANCE = 100;
+        public static final double INDEX_RPM = 5000;
+
+        public static final boolean INDEX_TUNING_ENABLED = true;
+    }
+
+    /** This {@link Intake} class represents all values regarding the {@link Robot}'s in-taking mechanism. */
+    public static class Intake {
+        public static final double INTAKE_RPM = 2000;
+        public static final double INTAKE_KS = 0.1;
+        public static final double INTAKE_KV = 0.03;
+        public static final double INTAKE_KA = 0;
+        public static final int INTAKE_MOTOR_ID = 14;
+        public static final boolean INTAKE_TUNING_ENABLED = true;
+        public static final boolean INTAKE_INVERTED = false;
+        public static final PIDConstantsAK INTAKE_PID = new PIDConstantsAK(0.05, 0, 0);
+    }
+
     public static class Control {
         /** The Left Joystick ID (typically 0) */
         public static final int LEFT_STICK_ID = 0;
@@ -49,8 +93,8 @@ public class Constants {
 
         public static final OperationMode OP_MODE = (RobotBase.isSimulation()) ? OperationMode.SIM : OperationMode.REAL;
 
-        /** The default deadband value to use on Controllers. */
-        public static final double DEADBAND = 0.05;
+        /** The default dead-zone value to use on Controllers. */
+        public static final double DEAD_ZONE = 0.05;
 
         /** The default Drive Modes to use on the Primary Joysticks (left/right). */
         public static final IDriveMode[] DRIVE_MODES = new IDriveMode[]{
@@ -59,9 +103,9 @@ public class Constants {
                 DriveMode.SLOW_MODE
         };
 
-        public static final boolean SWERVE_TUNING_ENABLED = true;
+        public static final boolean SWERVE_TUNING_ENABLED = false;
         public static final boolean PHOTON_TUNING_ENABLED = false;
-        public static final boolean MOTOR_BURN_FLASH = false;
+        public static final boolean SHOOTER_TUNING_ENABLED = true;
 
         public static final DashTunableNumber PHOTON_TURN_MAX_SPEED = new DashTunableNumber("Photon Turn Speed", 0.2, false);
         public static final DashTunableNumber PHOTON_DISTANCE = new DashTunableNumber("Photon Distance", 1, false);
@@ -148,86 +192,6 @@ public class Constants {
                 CHASSIS_MODE.getSideLength() / 2.0,
                 CHASSIS_MODE.getSideLength() / 2.0
         );
-        public static final double MAX_ANGULAR_MPS = CHASSIS_MODE.getMaxSpeed() / CHASSIS_BASE_RADIUS;
-
-        public static final GyroIONavX1 GYRO_MODULE = new GyroIONavX1(SPI.Port.kMXP);
-
-        public static SwerveModuleIO FL_MODULE_IO;
-        public static SwerveModuleIO FR_MODULE_IO;
-        public static SwerveModuleIO BL_MODULE_IO;
-        public static SwerveModuleIO BR_MODULE_IO;
-
-        static {
-            if (CHASSIS_MODE.usingMagEncoders()) {
-                FL_MODULE_IO = new SwerveModuleIOMAG(
-                        CHASSIS_MODE.getFLDriveID(),
-                        CHASSIS_MODE.getFLTurnID(),
-                        CHASSIS_MODE.getFLEncoderID(),
-                        CHASSIS_MODE.getFLOffsetRad()
-                );
-                FR_MODULE_IO = new SwerveModuleIOMAG(
-                        CHASSIS_MODE.getFRDriveID(),
-                        CHASSIS_MODE.getFRTurnID(),
-                        CHASSIS_MODE.getFREncoderID(),
-                        CHASSIS_MODE.getFROffset()
-                );
-                BL_MODULE_IO = new SwerveModuleIOMAG(
-                        CHASSIS_MODE.getBLDriveID(),
-                        CHASSIS_MODE.getBLTurnID(),
-                        CHASSIS_MODE.getBLEncoderID(),
-                        CHASSIS_MODE.getBLOffset()
-                );
-                BR_MODULE_IO = new SwerveModuleIOMAG(
-                        CHASSIS_MODE.getBRDriveID(),
-                        CHASSIS_MODE.getBRTurnID(),
-                        CHASSIS_MODE.getBREncoderID(),
-                        CHASSIS_MODE.getBROffset()
-                );
-            } else {
-
-                FL_MODULE_IO = new SwerveModuleIOCAN(
-                        CHASSIS_MODE.getFLDriveID(),
-                        CHASSIS_MODE.getFLTurnID(),
-                        CHASSIS_MODE.getFLEncoderID(),
-                        CHASSIS_MODE.getFLOffsetRad()
-                );
-                FR_MODULE_IO = new SwerveModuleIOCAN(
-                        CHASSIS_MODE.getFRDriveID(),
-                        CHASSIS_MODE.getFRTurnID(),
-                        CHASSIS_MODE.getFREncoderID(),
-                        CHASSIS_MODE.getFROffset()
-                );
-                BL_MODULE_IO = new SwerveModuleIOCAN(
-                        CHASSIS_MODE.getBLDriveID(),
-                        CHASSIS_MODE.getBLTurnID(),
-                        CHASSIS_MODE.getBLEncoderID(),
-                        CHASSIS_MODE.getBLOffset()
-                );
-                BR_MODULE_IO = new SwerveModuleIOCAN(
-                        CHASSIS_MODE.getBRDriveID(),
-                        CHASSIS_MODE.getBRTurnID(),
-                        CHASSIS_MODE.getBREncoderID(),
-                        CHASSIS_MODE.getBROffset()
-                );
-
-            }
-        }
+       // public static final double MAX_ANGULAR_MPS = CHASSIS_MODE.getMaxSpeed() / CHASSIS_BASE_RADIUS;
     }
-
-    public static final int SHOOTER_MOTOR_1_ID = 10;
-    public static final int SHOOTER_MOTOR_2_ID = 11;
-    public static final double SLOW_SPEED = 0.5;
-    public static final double FAST_SPEED = 1;
-    public static final double INTAKE_SPEED = 0.25;
-    public static final int INTAKE_MOTOR_ID = 12;
-    public static final int INDEX_MOTOR_1_ID = 13;
-    public static final int INDEX_MOTOR_2_ID = 14;
-    public static final I2C.Port INDEX_SENSOR_PORT = I2C.Port.kMXP;
-    public static final double RED_MINIMUM_TOLERANCE = 0;
-    public static final double RED_MAXIMUM_TOLERANCE = 100;
-    public static final double BLUE_MINIMUM_TOLERANCE = 0;
-    public static final double BLUE_MAXIMUM_TOLERANCE = 100;
-    public static final double GREEN_MINIMUM_TOLERANCE = 0;
-    public static final double GREEN_MAXIMUM_TOLERANCE = 100;
-    public static final double INDEX_SPEED = 0.5;
 }

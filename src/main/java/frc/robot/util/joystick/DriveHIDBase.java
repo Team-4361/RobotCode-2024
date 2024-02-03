@@ -8,7 +8,7 @@ import frc.robot.util.preset.IPresetContainer;
 
 import java.util.ArrayList;
 
-import static frc.robot.Constants.Control.DEADBAND;
+import static frc.robot.Constants.Control.DEAD_ZONE;
 
 /**
  * This {@link DriveHIDBase} class is designed to be a foundation for Drive Controllers. Unlike
@@ -73,14 +73,14 @@ public abstract class DriveHIDBase extends CommandGenericHID implements IPresetC
 
     /**
      * Constructs a {@link DriveHIDBase} with all Inversion set to <b>false</b> and deadband set to
-     * {@link Constants.Control#DEADBAND}.
+     * {@link Constants.Control#DEAD_ZONE}.
      *
      * @param port          The USB port ID the HID is connected to.
      * @param primaryMode   The {@link IDriveMode}s to use by default.
      * @param extraModes    Optional additional {@link IDriveMode}s to recognize and switch to.
      */
     public DriveHIDBase(int port, IDriveMode primaryMode, IDriveMode... extraModes) {
-        this(port, false, false, false, DEADBAND, primaryMode, extraModes);
+        this(port, false, false, false, DEAD_ZONE, primaryMode, extraModes);
     }
 
     /**
