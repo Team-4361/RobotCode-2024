@@ -13,6 +13,7 @@ import frc.robot.util.joystick.IDriveMode;
 import frc.robot.util.pid.DashTunableNumber;
 import frc.robot.util.pid.PIDConstantsAK;
 import frc.robot.util.swerve.config.ChassisSettings;
+import frc.robot.util.swerve.config.Mk3Chassis;
 import frc.robot.util.swerve.config.Mk4Chassis;
 
 import java.util.function.Supplier;
@@ -171,7 +172,7 @@ public class Constants {
 
 
     public static class Chassis {
-        public static final ChassisSettings CHASSIS_MODE = new Mk4Chassis();
+        public static final ChassisSettings CHASSIS_MODE = new Mk3Chassis();
         public static final double CHASSIS_BASE_RADIUS = Math.hypot(
                 CHASSIS_MODE.getSideLength() / 2.0,
                 CHASSIS_MODE.getSideLength() / 2.0

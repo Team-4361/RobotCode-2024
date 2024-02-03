@@ -1,21 +1,20 @@
 package frc.robot.util.swerve.config;
 
-import com.pathplanner.lib.util.PIDConstants;
 import frc.robot.util.math.GearRatio;
 import frc.robot.util.pid.PIDConstantsAK;
-import frc.robot.util.swerve.SwerveModule;
+import frc.robot.util.swerve.SwerveModuleBase;
 
 public interface ChassisSettings {
-    /** @return The {@link ModuleSettings} associated with the front-left {@link SwerveModule}. */
+    /** @return The {@link ModuleSettings} associated with the front-left {@link SwerveModuleBase}. */
     ModuleSettings getFLModule();
 
-    /** @return The {@link ModuleSettings} associated with the front-right {@link SwerveModule}. */
+    /** @return The {@link ModuleSettings} associated with the front-right {@link SwerveModuleBase}. */
     ModuleSettings getFRModule();
 
-    /** @return The {@link ModuleSettings} associated with the back-left {@link SwerveModule}. */
+    /** @return The {@link ModuleSettings} associated with the back-left {@link SwerveModuleBase}. */
     ModuleSettings getBLModule();
 
-    /** @return The {@link ModuleSettings} associated with the front-right {@link SwerveModule}. */
+    /** @return The {@link ModuleSettings} associated with the front-right {@link SwerveModuleBase}. */
     ModuleSettings getBRModule();
 
     /** @return The Robot side length in meters. */

@@ -11,23 +11,21 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
-import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.DriveToAprilTagCommand;
-import frc.robot.commands.IndexAutoMoverCommand;
-import frc.robot.commands.IntakeCommand;
-import frc.robot.commands.ShootCommand;
-import frc.robot.subsystems.IndexSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SwerveDriveSubsystem;
 import frc.robot.util.auto.PhotonCameraModule;
-import frc.robot.util.io.*;
+import frc.robot.util.io.AlertType;
+import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveJoystick;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.DriveXboxController;
@@ -41,7 +39,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
-//import static frc.robot.Constants.ClimberPresets.*;
 import static frc.robot.Constants.Control.*;
 
 
@@ -61,7 +58,6 @@ public class Robot extends LoggedRobot {
     public static PhotonCameraModule camera;
     public static ShooterSubsystem shooter;
     public static IntakeSubsystem intake;
-    public static IndexSubsystem indexer;
     // add a "public static" variable for your Subsystem type and name.
     // look above for examples.
 
@@ -155,7 +151,6 @@ public class Robot extends LoggedRobot {
         pdh = new PowerDistribution();
         intake = new IntakeSubsystem();
         shooter = new ShooterSubsystem();
-        indexer = new IndexSubsystem();
 
         swerve = new SwerveDriveSubsystem();
         camera = new PhotonCameraModule("FrontCamera", Units.inchesToMeters(27), 0);
@@ -219,7 +214,7 @@ public class Robot extends LoggedRobot {
                     () -> Robot.swerve.lock())
             );
         }
-
+        /*
         xbox.a().whileTrue(new SequentialCommandGroup(
                 new ShootCommand(FAST_SPEED),
                 new IndexAutoMoverCommand()
@@ -228,6 +223,8 @@ public class Robot extends LoggedRobot {
                 new ShootCommand(SLOW_SPEED),
                 new IndexAutoMoverCommand()
         ));
+
+         */
 
         //xbox.a().onTrue(Commands.runOnce(() -> ROTATION_PRESETS.setPreset(0)));
         //xbox.b().onTrue(Commands.runOnce(() -> ROTATION_PRESETS.setPreset(1)));
@@ -242,7 +239,7 @@ public class Robot extends LoggedRobot {
 //        xbox.rightBumper().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(HIGH_CONE_NAME)));
 
         if (!xboxOnly) {
-            xbox.a().onTrue(new IntakeCommand(INTAKE_SPEED));
+           // xbox.a().onTrue(new IntakeCommand(INTAKE_SPEED));
             leftStick.button(10).onTrue(Commands.runOnce(() -> drivePresets.nextPreset(true)));
             leftStick.button(11).onTrue(swerve.resetCommand());
             leftStick.trigger().whileTrue(Commands.runEnd(
