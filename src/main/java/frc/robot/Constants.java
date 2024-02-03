@@ -41,14 +41,14 @@ public class Constants {
         public static final int LEFT_SHOOTER_MOTOR_ID = 10;
         public static final int RIGHT_SHOOTER_MOTOR_ID = 11;
         public static final double SHOOT_RPM = 5600;
-        public static final double SHOOT_FEED_FWD = 1.7e-4 * (12.5/12);
+        public static final double SHOOT_KS = 0.1;
+        public static final double SHOOT_KV = 0.13;
+        public static final double SHOOT_KA = 0;
         public static final PIDConstantsAK SHOOT_PID = new PIDConstantsAK(0.05, 0, 0);
+    }
 
-        public static final double INTAKE_SPEED = 0.25;
-        public static final int INTAKE_MOTOR_ID = 12;
-        public static final int INDEX_MOTOR_1_ID = 13;
-        public static final int INDEX_MOTOR_2_ID = 14;
-        public static final I2C.Port INDEX_SENSOR_PORT = I2C.Port.kMXP;
+    /** This {@link Indexer} class represents all values regarding the {@link Robot}'s index mechanism. */
+    public static class Indexer {
         public static final double RED_MINIMUM_TOLERANCE = 0;
         public static final double RED_MAXIMUM_TOLERANCE = 100;
         public static final double BLUE_MINIMUM_TOLERANCE = 0;
@@ -60,7 +60,11 @@ public class Constants {
 
     /** This {@link Intake} class represents all values regarding the {@link Robot}'s in-taking mechanism. */
     public static class Intake {
-
+        public static final double INTAKE_SPEED = 0.25;
+        public static final int INTAKE_MOTOR_ID = 12;
+        public static final int INDEX_MOTOR_1_ID = 13;
+        public static final int INDEX_MOTOR_2_ID = 14;
+        public static final I2C.Port INDEX_SENSOR_PORT = I2C.Port.kMXP;
     }
 
     public static class Control {

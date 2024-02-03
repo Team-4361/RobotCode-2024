@@ -1,16 +1,14 @@
-package frc.robot.util.shooter;
+package frc.robot.util.pid;
 
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Constants;
-import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.math.ExtendedMath;
 import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.motor.MotorModel;
-import frc.robot.util.pid.PIDConstantsAK;
 import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.inputs.LoggableInputs;
@@ -36,17 +34,28 @@ public class PIDWheelModule implements LoggableInputs {
      * Constructs a new {@link PIDWheelModule}.
      * @param motorId    The motor ID
      * @param constants  The {@link PIDConstantsAK} to use.
+     * @param kS         The {@link SimpleMotorFeedforward} kS constant.
+     * @param kV         The {@link SimpleMotorFeedforward} kV constant.
+     * @parma kA         The {@link SimpleMotorFeedforward} kA constant.
      * @param moduleName The {@link String} module name
      * @param tuneName   The <b>optional</b> {@link String} tuning name.
      */
-    public PIDWheelModule(int motorId, PIDConstantsAK constants, String moduleName, String tuneName) {
-        this.motor = new FRCSparkMax(motorId, kBrushless, MotorModel.NEO);
-        this.encoder = motor.getEncoder();
-        this.controller = PIDConstantsAK.generateController(constants);
-        this.moduleName = moduleName;
-        this.feedFwd = new SimpleMotorFeedforward(0.1, 0.13, 0);
+    public PIDWheelModule(int motorId,
+                          PIDConstantsAK constants,
+                          double kS,
+                          double kV,
+                          double kA,
+                          String moduleName,
+                          String tuneName) {
 
-        if (!tuneName.isBlank())
+        this.motor = new FRCSparkMax(motorId, kBrushless, MotorModel.NEO);
+        this.feedFwd = new SimpleMotorFeedforward(kS, kV, kA);
+        this.controller = PIDConstantsAK.generateController(constants);
+
+        this.encoder = motor.getEncoder();
+        this.moduleName = moduleName;
+
+        if (tuneName != null && !tuneName.isBlank())
             IOManager.initPIDTune(tuneName, controller);
     }
 
@@ -72,7 +81,7 @@ public class PIDWheelModule implements LoggableInputs {
             );
         }
 
-        Logger.recordOutput("Shooter/TargetReached", atTarget());
+        Logger.recordOutput(moduleName + "/TargetReached", atTarget());
     }
 
     /**
