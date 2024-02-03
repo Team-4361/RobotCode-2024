@@ -5,6 +5,7 @@ import com.revrobotics.SparkPIDController;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
+import frc.robot.util.io.IOManager;
 import frc.robot.util.math.ExtendedMath;
 import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.motor.MotorModel;
@@ -14,6 +15,7 @@ import org.littletonrobotics.junction.inputs.LoggableInputs;
 
 import static com.revrobotics.CANSparkBase.ControlType.kVelocity;
 import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
+import static frc.robot.Constants.Control.SHOOTER_TUNING_ENABLED;
 import static frc.robot.Constants.SHOOTER_MOTOR_1_ID;
 import static frc.robot.Constants.SHOOTER_MOTOR_2_ID;
 import static frc.robot.Constants.Shooter.*;
@@ -50,14 +52,16 @@ public class ShooterSubsystem extends SubsystemBase implements LoggableInputs {
         SparkPIDController leftPID = leftMotor.getPIDController();
         SparkPIDController rightPID = rightMotor.getPIDController();
 
-        SHOOT_PID.initController(leftPID::setP, leftPID::setI, leftPID::setD);
-        SHOOT_PID.initController(rightPID::setP, rightPID::setI, rightPID::setD);
+        // Pre-fills a PID controller with the constant values.
+        SHOOT_PID.initController(leftPID, rightPID);
 
         leftPID.setFF(SHOOT_FEED_FWD);
         rightPID.setFF(SHOOT_FEED_FWD);
 
-        leftMotor.enableVoltageCompensation(12);
-        rightMotor.enableVoltageCompensation(12);
+        if (SHOOTER_TUNING_ENABLED) {
+            IOManager.initPIDTune("Shooter: PID", leftPID);
+
+        }
     }
 
     public boolean atTarget() {

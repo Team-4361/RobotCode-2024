@@ -10,7 +10,6 @@ import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.IDriveMode;
-import frc.robot.util.math.GearRatio;
 import frc.robot.util.pid.DashTunableNumber;
 import frc.robot.util.pid.PIDConstantsAK;
 import frc.robot.util.swerve.config.ChassisSettings;
@@ -74,8 +73,8 @@ public class Constants {
 
         public static final OperationMode OP_MODE = (RobotBase.isSimulation()) ? OperationMode.SIM : OperationMode.REAL;
 
-        /** The default deadband value to use on Controllers. */
-        public static final double DEADBAND = 0.05;
+        /** The default dead-zone value to use on Controllers. */
+        public static final double DEAD_ZONE = 0.05;
 
         /** The default Drive Modes to use on the Primary Joysticks (left/right). */
         public static final IDriveMode[] DRIVE_MODES = new IDriveMode[]{
@@ -84,9 +83,9 @@ public class Constants {
                 DriveMode.SLOW_MODE
         };
 
-        public static final boolean SWERVE_TUNING_ENABLED = true;
+        public static final boolean SWERVE_TUNING_ENABLED = false;
         public static final boolean PHOTON_TUNING_ENABLED = false;
-        public static final boolean MOTOR_BURN_FLASH = false;
+        public static final boolean SHOOTER_TUNING_ENABLED = true;
 
         public static final DashTunableNumber PHOTON_TURN_MAX_SPEED = new DashTunableNumber("Photon Turn Speed", 0.2, false);
         public static final DashTunableNumber PHOTON_DISTANCE = new DashTunableNumber("Photon Distance", 1, false);

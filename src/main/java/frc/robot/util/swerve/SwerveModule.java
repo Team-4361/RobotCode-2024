@@ -55,9 +55,6 @@ public class SwerveModule implements LoggableInputs {
     private final PIDController driveController;
     private final PIDController turnController;
 
-    private static DashTunablePID driveTune = null;
-    private static DashTunablePID turnTune = null;
-
     private double drivePositionRad = 0.0;
     private double driveVelocityRadPerSec = 0.0;
     private double driveAppliedVolts = 0.0;
@@ -145,22 +142,8 @@ public class SwerveModule implements LoggableInputs {
         }
 
         if (SWERVE_TUNING_ENABLED) {
-            // PID tuning is enabled.
-            if (driveTune == null || turnTune == null) {
-                driveTune = new DashTunablePID("Swerve: Drive PID", CHASSIS_MODE.getDrivePID());
-                turnTune = new DashTunablePID("Swerve: Turn PID", CHASSIS_MODE.getTurnPID());
-
-                IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, () -> {
-                    driveTune.update();
-                    turnTune.update();
-                });
-            }
-
-            driveTune.addConsumer(driveController::setP, driveController::setI, driveController::setD);
-            turnTune.addConsumer(turnController::setP, turnController::setI, turnController::setD);
-        } else {
-            driveTune = null;
-            turnTune = null;
+            IOManager.initPIDTune("Swerve: Drive PID", driveController);
+            IOManager.initPIDTune("Swerve: Turn PID", turnController);
         }
     }
 
@@ -324,12 +307,6 @@ public class SwerveModule implements LoggableInputs {
                     Units.radiansToDegrees(getTurnAngle()) + " deg";
 
             SmartDashboard.putString(name + " Module", output);
-        }
-
-        // 1-20-24: The "DashTuneablePID" automatically enforces a delay between updates.
-        if (SWERVE_TUNING_ENABLED && driveTune != null && turnTune != null) {
-            driveTune.update();
-            turnTune.update();
         }
     }
      */

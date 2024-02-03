@@ -41,8 +41,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
-import static frc.robot.Constants.*;
-import static frc.robot.Constants.Chassis.*;
 //import static frc.robot.Constants.ClimberPresets.*;
 import static frc.robot.Constants.Control.*;
 
@@ -124,7 +122,7 @@ public class Robot extends LoggedRobot {
                     false,           // Drive X inverted?
                     false,           // Drive Y inverted?
                     false,           // Twist Axis Inverted?
-                    DEADBAND,       // Deadband
+                    DEAD_ZONE,       // Deadband
                     DRIVE_MODES[0], // Primary Drive Mode
                     DRIVE_MODES     // Secondary Drive Modes
             );
@@ -134,7 +132,7 @@ public class Robot extends LoggedRobot {
                     false,            // Drive X inverted?
                     false,            // Drive Y inverted?
                     false,            // Twist Axis Inverted?
-                    DEADBAND,        // Deadband
+                    DEAD_ZONE,        // Deadband
                     DRIVE_MODES[0],  // Primary Drive Mode
                     DRIVE_MODES      // Secondary Drive Modes
             );
@@ -147,7 +145,7 @@ public class Robot extends LoggedRobot {
                 true,
                 true,
                 true,
-                DEADBAND,
+                DEAD_ZONE,
                 DriveMode.LINEAR_MAP
         );
 

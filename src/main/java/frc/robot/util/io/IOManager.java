@@ -1,6 +1,9 @@
 package frc.robot.util.io;
 
+import com.pathplanner.lib.util.PIDConstants;
 import com.revrobotics.REVLibError;
+import com.revrobotics.SparkPIDController;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
@@ -9,15 +12,18 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.util.pid.DashTunablePID;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static frc.robot.Constants.AlertConfig.ALERT_PERIODIC_MS;
 import static frc.robot.Constants.AlertConfig.STRING_HIGH_PERIODIC_MS;
 import static frc.robot.Constants.Control.DEBUG_ENABLED;
+import static frc.robot.Constants.LooperConfig.*;
 
 /**
  * This {@link IOManager} class is designed to control ALL {@link Looper} and {@link Alert} instances. Since
@@ -29,6 +35,7 @@ import static frc.robot.Constants.Control.DEBUG_ENABLED;
 public class IOManager {
     private static final List<Looper> LOOPS = new ArrayList<>();
     private static final List<Alert> ALERTS = new ArrayList<>();
+    private static final List<DashTunablePID> PID_TUNES = new ArrayList<>();
     private static final RuntimeMXBean MX_BEAN = ManagementFactory.getRuntimeMXBean();
 
     private static long lastLoopUpdate = 0;
@@ -42,6 +49,8 @@ public class IOManager {
     /** @return A {@link List} of all registered {@link Alert} instances. */
     public static List<Alert> getAlerts() { return ALERTS; }
 
+    /** @return A {@link List} of all registered {@link DashTunablePID} instances. */
+    public static List<DashTunablePID> getPIDTunes() { return PID_TUNES; }
 
     static {
         getAlert(STRING_HIGH_PERIODIC_MS, AlertType.WARNING)
@@ -70,6 +79,69 @@ public class IOManager {
 
     /** @return If the {@link Looper} exists. <b>Highly recommended to call this before {@link #getLoop(String)}</b> */
     public static boolean loopExists(String loopName) { return (getLoop(loopName).isPresent()); }
+
+    /** @return If the {@link DashTunablePID} exists. <b>Highly recommended to call this before a method.</b> */
+    public static boolean tuneExists(String loopName) { return (getDashTune(loopName).isPresent()); }
+
+    /**
+     * Automatically registers a {@link DashTunablePID} instance based on the {@link PIDController} supplied
+     * values. This {@link IOManager} also takes care of updating the PID instance.
+     *
+     * @param name The {@link String} name of the {@link DashTunablePID}.
+     * @param controller The {@link PIDController} to pull the values from.
+     * @return True if the {@link DashTunablePID} did not exist; false otherwise.
+     */
+    @SuppressWarnings("UnusedReturnValue")
+    public static boolean initPIDTune(String name, PIDController controller) {
+        if (tuneExists(name))
+            return false;
+        DashTunablePID pid = new DashTunablePID(name, new PIDConstants(
+                controller.getP(),
+                controller.getI(),
+                controller.getD()
+        ));
+        pid.addConsumer(controller::setP, controller::setI, controller::setD); // will auto-update the controller.
+        PID_TUNES.add(pid);
+
+        // Attempt to add the update method to the loop.
+        if (!loopExists(STRING_DASHBOARD_NAME))
+            initLoop(STRING_DASHBOARD_NAME, DASHBOARD_INTERVAL);
+
+        return addPeriodicIfExists(STRING_ODOMETRY_NAME, pid::update);
+    }
+
+    /**
+     * Automatically registers a {@link DashTunablePID} instance based on the {@link SparkPIDController} supplied
+     * values. This {@link IOManager} also takes care of updating the PID instance.
+     * <p></p>
+     * <b>If the tune already exists, it will simply be appended!</b>
+     *
+     * @param name The {@link String} name of the {@link DashTunablePID}.
+     * @param controller The {@link SparkPIDController} to pull the values from.
+     */
+    public static void initPIDTune(String name, SparkPIDController controller) {
+        Optional<DashTunablePID> tune = getDashTune(name);
+
+        if (tune.isPresent()) {
+            // Simply add the consumer to the tune. It already exists.
+            tune.get().addConsumer(controller::setP, controller::setI, controller::setD);
+            return;
+        }
+
+        DashTunablePID pid = new DashTunablePID(name, new PIDConstants(
+                controller.getP(),
+                controller.getI(),
+                controller.getD()
+        ));
+        pid.addConsumer(controller::setP, controller::setI, controller::setD); // will auto-update the controller.
+        PID_TUNES.add(pid);
+
+        // Attempt to add the update method to the loop.
+        if (!loopExists(STRING_DASHBOARD_NAME))
+            initLoop(STRING_DASHBOARD_NAME, DASHBOARD_INTERVAL);
+
+        addPeriodicIfExists(STRING_ODOMETRY_NAME, pid::update);
+    }
 
     /**
      * Adds a <code>periodic</code> {@link Runnable} to the {@link Looper} only if currently initialized.
@@ -120,11 +192,22 @@ public class IOManager {
     /**
      * Attempts to find a {@link Looper} based on the {@link String} name.
      * @param loopName The {@link String} name of the {@link Looper} (case-insensitive)
-     * @return An {@link Optional} containg the {@link Looper} or empty if non-existant.
+     * @return An {@link Optional} containing the {@link Looper} or empty if non-existent.
      */
     public static Optional<Looper> getLoop(String loopName) {
         return LOOPS.stream()
                 .filter(o -> o.getName().equalsIgnoreCase(loopName))
+                .findFirst();
+    }
+
+    /**
+     * Attempts to find a {@link DashTunablePID} based on the {@link String} name.
+     * @param pidName The {@link String} name of the {@link DashTunablePID} (case-insensitive)
+     * @return An {@link Optional} containing the {@link DashTunablePID} or empty if non-existent.
+     */
+    public static Optional<DashTunablePID> getDashTune(String pidName) {
+        return PID_TUNES.stream()
+                .filter(o -> o.getName().equalsIgnoreCase(pidName))
                 .findFirst();
     }
 
