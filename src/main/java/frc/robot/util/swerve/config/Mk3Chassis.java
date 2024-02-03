@@ -1,14 +1,13 @@
 package frc.robot.util.swerve.config;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.util.math.GearRatio;
 import frc.robot.util.pid.PIDConstantsAK;
-import frc.robot.util.swerve.SwerveModule;
+import frc.robot.util.swerve.SwerveModuleBase;
 
 public class Mk3Chassis implements ChassisSettings {
     /**
-     * @return The {@link ModuleSettings} associated with the front-left {@link SwerveModule}.
+     * @return The {@link ModuleSettings} associated with the front-left {@link SwerveModuleBase}.
      */
     @Override
     public ModuleSettings getFLModule() {
@@ -16,12 +15,12 @@ public class Mk3Chassis implements ChassisSettings {
                 2,
                 1,
                 0,
-                Rotation2d.fromRotations(6.254)
+                Rotation2d.fromRotations(0)
         );
     }
 
     /**
-     * @return The {@link ModuleSettings} associated with the front-right {@link SwerveModule}.
+     * @return The {@link ModuleSettings} associated with the front-right {@link SwerveModuleBase}.
      */
     @Override
     public ModuleSettings getFRModule() {
@@ -29,12 +28,12 @@ public class Mk3Chassis implements ChassisSettings {
                 4,
                 3,
                 1,
-                Rotation2d.fromRotations(3.854)
+                Rotation2d.fromRotations(3.6)
         );
     }
 
     /**
-     * @return The {@link ModuleSettings} associated with the back-left {@link SwerveModule}.
+     * @return The {@link ModuleSettings} associated with the back-left {@link SwerveModuleBase}.
      */
     @Override
     public ModuleSettings getBLModule() {
@@ -42,12 +41,12 @@ public class Mk3Chassis implements ChassisSettings {
                 6,
                 5,
                 2,
-                Rotation2d.fromRotations(2.867)
+                Rotation2d.fromRotations(0)
         );
     }
 
     /**
-     * @return The {@link ModuleSettings} associated with the front-right {@link SwerveModule}.
+     * @return The {@link ModuleSettings} associated with the front-right {@link SwerveModuleBase}.
      */
     @Override
     public ModuleSettings getBRModule() {
@@ -55,7 +54,7 @@ public class Mk3Chassis implements ChassisSettings {
                 8,
                 7,
                 3,
-                Rotation2d.fromRotations(3.342)
+                Rotation2d.fromRotations(2.2)
         );
     }
 
@@ -79,8 +78,7 @@ public class Mk3Chassis implements ChassisSettings {
     public PIDConstantsAK getDrivePID() {
         return new PIDConstantsAK(
                 2e-4, 0, 0,
-                0.1, 0, 0,
-                0, 0, 0
+                0.1, 0, 0
         );
     }
 
@@ -89,8 +87,7 @@ public class Mk3Chassis implements ChassisSettings {
     public PIDConstantsAK getTurnPID() {
         return new PIDConstantsAK(
                 2, 0, 0,
-                10, 0, 0,
-                0, 0, 0
+                10, 0, 0
         );
     }
 

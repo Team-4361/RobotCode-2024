@@ -25,6 +25,13 @@ public class ModuleSettings {
     public int getTurnID() { return turnID; }
     public int getEncoderID() { return encoderID; }
 
+    /**
+     * Constructs a new {@link ModuleSettings} instance.
+     * @param driveID The drive ID 
+     * @param turnID The turn ID
+     * @param encoderID The encoder ID
+     * @param offset The {@link Rotation2d} offset. <b>NOTE: IT MUST BE THE ADJUSTED "TURNPOSITION" OFFSET FROM ZERO.</b>
+     */
     public ModuleSettings(int driveID, int turnID, int encoderID, Rotation2d offset) {
         this.driveID = driveID;
         this.turnID = turnID;

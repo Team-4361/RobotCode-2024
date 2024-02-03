@@ -34,6 +34,14 @@ public class ExtendedMath {
         return Math.abs(expected - actual) <= tolerance;
     }
 
+    public static boolean inToleranceNotZero(double expected, double actual, double tolerance) {
+        return !inTolerance(0, actual, tolerance) && inTolerance(expected, actual, tolerance);
+    }
+
+    public static boolean inRange(double value, double min, double max) {
+        return value >= min && value <= max;
+    }
+
     /**
      * Checks if the actual value is within a specified tolerance of the expected value
      * @param expected The value to be expected.

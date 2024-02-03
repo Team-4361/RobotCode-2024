@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModule;
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.pathfinding.Pathfinding;
@@ -25,9 +26,9 @@ import frc.robot.util.auto.LocalADStarAK;
 import frc.robot.util.io.AlertType;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveHIDBase;
-import frc.robot.util.swerve.CANSwerveModule;
-import frc.robot.util.swerve.MAGSwerveModule;
-import frc.robot.util.swerve.SwerveModule;
+import frc.robot.util.swerve.SwerveModuleBase;
+import frc.robot.util.swerve.SwerveModuleCAN;
+import frc.robot.util.swerve.SwerveModuleMAG;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.Logger;
@@ -39,7 +40,7 @@ import static frc.robot.Constants.AlertConfig.STRING_GYRO_CALIBRATING;
 import static frc.robot.Constants.Chassis.*;
 
 /**
- * This {@link SwerveDriveSubsystem} is designed to be used for controlling the {@link SwerveModule}s, and utilizing
+ * This {@link SwerveDriveSubsystem} is designed to be used for controlling the {@link SwerveModuleBase}s, and utilizing
  * an {@link AHRS} gyroscope to provide the field-relating driving a robot needs. This is also useful for debugging
  * purposes (or for simple autonomous) as it allows driving in a specific direction.
  *
@@ -48,7 +49,7 @@ import static frc.robot.Constants.Chassis.*;
  */
 public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInputs {
     private final SwerveDriveKinematics kinematics;
-    private final SwerveModule[] modules;
+    private final SwerveModuleBase[] modules;
     private final AHRS gyro;
     private final SwerveModulePosition[] lastModulePositions = new SwerveModulePosition[] {
             new SwerveModulePosition(),
@@ -96,21 +97,20 @@ public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInput
      */
     public SwerveDriveSubsystem() {
         if (CHASSIS_MODE.usingMagEncoders()) {
-            this.modules = new SwerveModule[]{
-                    new MAGSwerveModule("FL", CHASSIS_MODE.getFLModule()),
-                    new MAGSwerveModule("FR", CHASSIS_MODE.getFRModule()),
-                    new MAGSwerveModule("BL", CHASSIS_MODE.getBLModule()),
-                    new MAGSwerveModule("BR", CHASSIS_MODE.getBRModule()),
+            this.modules = new SwerveModuleBase[]{
+                    new SwerveModuleMAG("FL", CHASSIS_MODE.getFLModule()),
+                    new SwerveModuleMAG("FR", CHASSIS_MODE.getFRModule()),
+                    new SwerveModuleMAG("BL", CHASSIS_MODE.getBLModule()),
+                    new SwerveModuleMAG("BR", CHASSIS_MODE.getBRModule()),
             };
         } else {
-            this.modules = new SwerveModule[]{
-                    new CANSwerveModule("FL", CHASSIS_MODE.getFLModule()),
-                    new CANSwerveModule("FR", CHASSIS_MODE.getFRModule()),
-                    new CANSwerveModule("BL", CHASSIS_MODE.getBLModule()),
-                    new CANSwerveModule("BR", CHASSIS_MODE.getBRModule()),
+            this.modules = new SwerveModuleBase[]{
+                    new SwerveModuleCAN("FL", CHASSIS_MODE.getFLModule()),
+                    new SwerveModuleCAN("FR", CHASSIS_MODE.getFRModule()),
+                    new SwerveModuleCAN("BL", CHASSIS_MODE.getBLModule()),
+                    new SwerveModuleCAN("BR", CHASSIS_MODE.getBRModule()),
             };
         }
-
 
         this.gyro = new AHRS(SPI.Port.kMXP);
         gyro.reset();
@@ -193,7 +193,7 @@ public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInput
 
         Logger.processInputs("Drive/Gyro", this);
 
-        for (SwerveModule module : modules)
+        for (SwerveModuleBase module : modules)
             module.update();
 
         if (DriverStation.isDisabled()) {
@@ -336,7 +336,7 @@ public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInput
 
     public void reset() { reset(new Pose2d()); }
 
-    public SwerveModule[] getModules() { return this.modules; }
+    public SwerveModuleBase[] getModules() { return this.modules; }
     public SwerveDriveKinematics getKinematics() { return kinematics; }
 
     public SwerveModulePosition[] getPositions() {

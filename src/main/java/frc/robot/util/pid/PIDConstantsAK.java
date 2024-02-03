@@ -1,6 +1,7 @@
 package frc.robot.util.pid;
 
 import com.pathplanner.lib.util.PIDConstants;
+import com.revrobotics.SparkPIDController;
 import edu.wpi.first.math.controller.PIDController;
 import frc.robot.Constants;
 import frc.robot.Constants.OperationMode;
@@ -33,6 +34,18 @@ public class PIDConstantsAK {
         p.accept(kP);
         i.accept(kI);
         d.accept(kD);
+    }
+
+    public void initController(PIDController... controllers) {
+        for (PIDController controller : controllers) {
+            initController(controller::setP, controller::setI, controller::setD);
+        }
+    }
+
+    public void initController(SparkPIDController... controllers) {
+        for (SparkPIDController controller : controllers) {
+            initController(controller::setP, controller::setI, controller::setD);
+        }
     }
 
     /**
