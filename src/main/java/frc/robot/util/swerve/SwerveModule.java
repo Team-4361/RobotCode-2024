@@ -93,6 +93,8 @@ public class SwerveModule implements LoggableInputs {
         this.absSupplier     = () -> Rotation2d.fromRotations(0);
         this.absOffset       = settings.getOffset();
 
+        // TODO: make it a triple value like PIDConstantsAK if required.
+        // TODO: make the values a constant
         this.driveFF         = new SimpleMotorFeedforward(0.1, 0.13, 0);
 
         this.driveEncoder    = driveMotor.getEncoder();

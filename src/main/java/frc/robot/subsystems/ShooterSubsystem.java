@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
@@ -9,6 +10,7 @@ import frc.robot.util.io.IOManager;
 import frc.robot.util.math.ExtendedMath;
 import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.motor.MotorModel;
+import frc.robot.util.pid.PIDConstantsAK;
 import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.inputs.LoggableInputs;
@@ -16,8 +18,6 @@ import org.littletonrobotics.junction.inputs.LoggableInputs;
 import static com.revrobotics.CANSparkBase.ControlType.kVelocity;
 import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 import static frc.robot.Constants.Control.SHOOTER_TUNING_ENABLED;
-import static frc.robot.Constants.SHOOTER_MOTOR_1_ID;
-import static frc.robot.Constants.SHOOTER_MOTOR_2_ID;
 import static frc.robot.Constants.Shooter.*;
 
 /**
@@ -40,6 +40,11 @@ public class ShooterSubsystem extends SubsystemBase implements LoggableInputs {
     private RelativeEncoder leftEncoder;
     private RelativeEncoder rightEncoder;
 
+    private final PIDController leftController;
+    private final PIDController rightController;
+
+
+
     /**
      * Constructs a new {@link ShooterSubsystem} using all <code>CONSTANTS</code> values.
      */
@@ -49,27 +54,19 @@ public class ShooterSubsystem extends SubsystemBase implements LoggableInputs {
         this.leftEncoder = leftMotor.getEncoder();
         this.rightEncoder = rightMotor.getEncoder();
 
-        SparkPIDController leftPID = leftMotor.getPIDController();
-        SparkPIDController rightPID = rightMotor.getPIDController();
-
-        // Pre-fills a PID controller with the constant values.
-        SHOOT_PID.initController(leftPID, rightPID);
-
-        leftPID.setFF(SHOOT_FEED_FWD);
-        rightPID.setFF(SHOOT_FEED_FWD);
+        this.leftController = PIDConstantsAK.generateController(SHOOT_PID);
+        this.rightController = PIDConstantsAK.generateController(SHOOT_PID);
 
         if (SHOOTER_TUNING_ENABLED) {
             IOManager.initPIDTune("Shooter: PID", leftPID);
-
         }
     }
 
+    /** @return If the {@link ShooterSubsystem} is at target. */
     public boolean atTarget() {
         // The first two conditions ensures the shooter must spin up!
-        return !ExtendedMath.inTolerance(0, leftVelocityRPM, 50) &&
-                !ExtendedMath.inTolerance(0, rightVelocityRPM, 50) &&
-                ExtendedMath.inTolerance(desiredRPM, leftVelocityRPM, 100) &&
-                ExtendedMath.inTolerance(-desiredRPM, rightVelocityRPM, 100);
+        return ExtendedMath.inToleranceNotZero(desiredRPM, leftVelocityRPM, 100) &&
+                ExtendedMath.inToleranceNotZero(-desiredRPM, rightVelocityRPM, 100);
     }
 
     @Override
@@ -97,7 +94,14 @@ public class ShooterSubsystem extends SubsystemBase implements LoggableInputs {
         Logger.recordOutput("Shooter/TargetReached", atTarget());
     }
 
+    /**
+     * Sets the target of the {@link ShooterSubsystem}.
+     * @param rpm The desired RPM.
+     */
     public void setTarget(double rpm) { this.desiredRPM = rpm; }
+
+    /** Stops the {@link ShooterSubsystem} from spinning. */
+    public void stop() { setTarget(0); }
 
     /**
      * Updates a LogTable with the data to log.
@@ -106,12 +110,12 @@ public class ShooterSubsystem extends SubsystemBase implements LoggableInputs {
      */
     @Override
     public void toLog(LogTable table) {
-        this.leftVelocityRPM = table.get("LeftVelocityRadPerSec", this.leftVelocityRPM);
-        this.rightVelocityRPM = table.get("RightVelocityRadPerSec", this.rightVelocityRPM);
-        this.leftAppliedVolts       = table.get("LeftAppliedVolts", this.leftAppliedVolts);
-        this.rightAppliedVolts      = table.get("RightAppliedVolts", this.rightAppliedVolts);
-        this.leftCurrentAmps        = table.get("LeftCurrentAmps", this.leftCurrentAmps);
-        this.rightCurrentAmps       = table.get("RightCurrentAmps", this.rightCurrentAmps);
+        this.leftVelocityRPM   = table.get("LeftVelocityRadPerSec", this.leftVelocityRPM);
+        this.rightVelocityRPM  = table.get("RightVelocityRadPerSec", this.rightVelocityRPM);
+        this.leftAppliedVolts  = table.get("LeftAppliedVolts", this.leftAppliedVolts);
+        this.rightAppliedVolts = table.get("RightAppliedVolts", this.rightAppliedVolts);
+        this.leftCurrentAmps   = table.get("LeftCurrentAmps", this.leftCurrentAmps);
+        this.rightCurrentAmps  = table.get("RightCurrentAmps", this.rightCurrentAmps);
     }
 
     /**
