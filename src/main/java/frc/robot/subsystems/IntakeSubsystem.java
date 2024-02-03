@@ -20,6 +20,7 @@ public class IntakeSubsystem extends SubsystemBase {
                 INTAKE_KS,
                 INTAKE_KV,
                 INTAKE_KA,
+                MotorModel.NEO,
                 "Intake",
                 tuneName
         );

@@ -43,7 +43,7 @@ public class Constants {
         public static final int RIGHT_SHOOTER_MOTOR_ID = 11;
         public static final double SHOOT_RPM = 5600;
         public static final double SHOOT_KS = 0.1;
-        public static final double SHOOT_KV = 0.13;
+        public static final double SHOOT_KV = 0.03;
         public static final double SHOOT_KA = 0;
         public static final PIDConstantsAK SHOOT_PID = new PIDConstantsAK(0.05, 0, 0);
     }
@@ -53,8 +53,8 @@ public class Constants {
         public static final int INDEX_LEFT_MOTOR_ID = 12;
         public static final int INDEX_RIGHT_MOTOR_ID = 13;
 
-        public static final double INDEX_KS = 0.1;
-        public static final double INDEX_KV = 0.13;
+        public static final double INDEX_KS = 0;
+        public static final double INDEX_KV = 0;
         public static final double INDEX_KA = 0;
 
         public static final I2C.Port INDEX_SENSOR_PORT = I2C.Port.kMXP;
@@ -75,9 +75,9 @@ public class Constants {
     public static class Intake {
         public static final double INTAKE_RPM = 2000;
         public static final double INTAKE_KS = 0.1;
-        public static final double INTAKE_KV = 0.13;
+        public static final double INTAKE_KV = 0.03;
         public static final double INTAKE_KA = 0;
-        public static final int INTAKE_MOTOR_ID = 12;
+        public static final int INTAKE_MOTOR_ID = 14;
         public static final boolean INTAKE_TUNING_ENABLED = true;
         public static final boolean INTAKE_INVERTED = false;
         public static final PIDConstantsAK INTAKE_PID = new PIDConstantsAK(0.05, 0, 0);

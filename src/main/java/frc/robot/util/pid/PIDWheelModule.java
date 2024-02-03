@@ -8,6 +8,7 @@ import frc.robot.Constants;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.math.ExtendedMath;
 import frc.robot.util.motor.FRCSparkMax;
+import frc.robot.util.motor.IMotorModel;
 import frc.robot.util.motor.MotorModel;
 import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.Logger;
@@ -22,8 +23,7 @@ public class PIDWheelModule implements LoggableInputs {
     private final PIDController controller;
     private final String moduleName;
 
-    private double desiredRPM;
-
+    private double targetRPM = 0.0;
     private double velocityRPM = 0.0;
     private double appliedVolts = 0.0;
     private double currentAmps = 0.0;
@@ -36,7 +36,8 @@ public class PIDWheelModule implements LoggableInputs {
      * @param constants  The {@link PIDConstantsAK} to use.
      * @param kS         The {@link SimpleMotorFeedforward} kS constant.
      * @param kV         The {@link SimpleMotorFeedforward} kV constant.
-     * @parma kA         The {@link SimpleMotorFeedforward} kA constant.
+     * @param kA         The {@link SimpleMotorFeedforward} kA constant.
+     * @param model      The {@link IMotorModel} of the {@link FRCSparkMax} motor.
      * @param moduleName The {@link String} module name
      * @param tuneName   The <b>optional</b> {@link String} tuning name.
      */
@@ -45,10 +46,11 @@ public class PIDWheelModule implements LoggableInputs {
                           double kS,
                           double kV,
                           double kA,
+                          IMotorModel model,
                           String moduleName,
                           String tuneName) {
 
-        this.motor = new FRCSparkMax(motorId, kBrushless, MotorModel.NEO);
+        this.motor = new FRCSparkMax(motorId, kBrushless, model);
         this.feedFwd = new SimpleMotorFeedforward(kS, kV, kA);
         this.controller = PIDConstantsAK.generateController(constants);
 
@@ -61,7 +63,7 @@ public class PIDWheelModule implements LoggableInputs {
 
     /** @return If the {@link PIDWheelModule} is at target. */
     public boolean atTarget() {
-        return ExtendedMath.inToleranceNotZero(desiredRPM, encoder.getVelocity(), 100);
+        return ExtendedMath.inToleranceNotZero(targetRPM, encoder.getVelocity(), 100);
     }
 
     public void update() {
@@ -75,10 +77,14 @@ public class PIDWheelModule implements LoggableInputs {
 
         double velocityRadPerSec = Units.rotationsPerMinuteToRadiansPerSecond(velocityRPM);
         if (!Constants.isReplay()) {
-            motor.setVoltage(
-                    feedFwd.calculate(velocityRadPerSec)
-                        + controller.calculate(velocityRadPerSec, Units.rotationsPerMinuteToRadiansPerSecond(desiredRPM))
-            );
+            if (targetRPM == 0) {
+                motor.setVoltage(0);
+            } else {
+                motor.setVoltage(
+                        feedFwd.calculate(velocityRadPerSec)
+                                + controller.calculate(velocityRadPerSec, Units.rotationsPerMinuteToRadiansPerSecond(targetRPM))
+                );
+            }
         }
 
         Logger.recordOutput(moduleName + "/TargetReached", atTarget());
@@ -92,6 +98,7 @@ public class PIDWheelModule implements LoggableInputs {
     @Override
     public void toLog(LogTable table) {
         table.put("VelocityRPM", this.velocityRPM);
+        table.put("TargetRPM", this.targetRPM);
         table.put("AppliedVolts", this.appliedVolts);
         table.put("CurrentAmps", this.currentAmps);
     }
@@ -106,13 +113,14 @@ public class PIDWheelModule implements LoggableInputs {
         this.velocityRPM =  table.get("VelocityRPM", this.velocityRPM);
         this.appliedVolts = table.get("AppliedVolts", this.appliedVolts);
         this.currentAmps =  table.get("CurrentAmps", this.currentAmps);
+        this.targetRPM   = table.get("TargetRPM", this.targetRPM);
     }
 
     /**
      * Sets the target of the {@link PIDWheelModule}.
      * @param rpm The desired RPM.
      */
-    public void setTarget(double rpm) { this.desiredRPM = rpm; }
+    public void setTarget(double rpm) { this.targetRPM = rpm; }
 
     /** Stops the {@link PIDWheelModule} from spinning. */
     public void stop() { setTarget(0); }

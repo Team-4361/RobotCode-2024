@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.DriveToAprilTagCommand;
+import frc.robot.commands.ShootCommand;
 import frc.robot.subsystems.IndexSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
@@ -41,6 +42,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 import static frc.robot.Constants.Control.*;
+import static frc.robot.Constants.Shooter.SHOOT_RPM;
 
 
 /**
@@ -205,7 +207,6 @@ public class Robot extends LoggedRobot {
      * joysticks}.
      */
     private void configureBindings(boolean xboxOnly) {
-
         if (xboxOnly) {
             IOManager.debug(this, "Xbox-only/Simulation mode detected.");
             Robot.swerve.setDefaultCommand(Robot.swerve.runEnd(
@@ -219,11 +220,6 @@ public class Robot extends LoggedRobot {
                     () -> Robot.swerve.lock())
             );
         }
-
-        xbox.b().whileTrue(Commands.runEnd(
-                () -> Robot.shooter.setTarget(5000),
-                () -> Robot.shooter.stop())
-        );
 
         if (!xboxOnly) {
            // xbox.a().onTrue(new IntakeCommand(INTAKE_SPEED));
@@ -241,6 +237,16 @@ public class Robot extends LoggedRobot {
                     ), 27, 7, false
             ));
         }
+
+        xbox.a().whileTrue(Commands.runEnd(
+                () -> Robot.shooter.start(),
+                () -> Robot.shooter.stop()
+        ));
+
+        xbox.b().whileTrue(Commands.runEnd(
+                () -> Robot.index.start(),
+                () -> Robot.index.stop()
+        ));
     }
 
     private static BiConsumer<Command, Boolean> getCommandActivity() {

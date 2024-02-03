@@ -2,6 +2,8 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
+import frc.robot.util.motor.MotorModel;
+import frc.robot.util.pid.DashTunableNumber;
 import frc.robot.util.pid.PIDWheelModule;
 import org.littletonrobotics.junction.Logger;
 
@@ -15,6 +17,9 @@ import static frc.robot.Constants.Shooter.*;
 public class ShooterSubsystem extends SubsystemBase {
     private final PIDWheelModule leftWheel;
     private final PIDWheelModule rightWheel;
+    private final DashTunableNumber shootTune;
+    private double targetRPM = SHOOT_RPM;
+    private boolean stopped = true;
 
     /**Constructs a new {@link ShooterSubsystem} using all <code>CONSTANTS</code> values. */
     public ShooterSubsystem() {
@@ -25,6 +30,7 @@ public class ShooterSubsystem extends SubsystemBase {
                 SHOOT_KS,
                 SHOOT_KV,
                 SHOOT_KA,
+                MotorModel.NEO,
                 "LeftShooter",
                 tuneName
         );
@@ -34,10 +40,20 @@ public class ShooterSubsystem extends SubsystemBase {
                 SHOOT_KS,
                 SHOOT_KV,
                 SHOOT_KA,
+                MotorModel.NEO,
                 "RightShooter",
                 tuneName
         );
+
+        if (SHOOTER_TUNING_ENABLED) {
+            shootTune = new DashTunableNumber("Shooter: Speed", SHOOT_RPM);
+            shootTune.addConsumer(this::setTargetRPM);
+        } else {
+            shootTune = null;
+        }
     }
+
+    public void setTargetRPM(double rpm) { this.targetRPM = rpm; }
 
     /** @return If the {@link ShooterSubsystem} is at target. */
     public boolean atTarget() { return leftWheel.atTarget() && rightWheel.atTarget(); }
@@ -46,17 +62,19 @@ public class ShooterSubsystem extends SubsystemBase {
     public void periodic() {
         leftWheel.update();
         rightWheel.update();
+        if (shootTune != null && !stopped)
+            shootTune.update();
     }
 
     /**
-     * Sets the target of the {@link ShooterSubsystem}.
-     * @param rpm The desired RPM.
+     * Sets the target of the {@link ShooterSubsystem} to the Shoot RPM.
      */
-    public void setTarget(double rpm) {
-        leftWheel.setTarget(rpm);
-        rightWheel.setTarget(-rpm);
+    public void start() {
+        leftWheel.setTarget(targetRPM);
+        rightWheel.setTarget(-targetRPM);
+        stopped = targetRPM == 0;
     }
 
     /** Stops the {@link ShooterSubsystem} from spinning. */
-    public void stop() { setTarget(0); }
+    public void stop() { leftWheel.stop(); rightWheel.stop(); stopped = true; }
 }
