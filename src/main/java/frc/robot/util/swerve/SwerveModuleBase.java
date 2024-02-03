@@ -69,22 +69,22 @@ public abstract class SwerveModuleBase implements LoggableInputs {
      * Creates a new {@link SwerveModuleBase} instance using the specified parameters. The {@link CANSparkMax}
      * motor instance will be <b>created and reserved.</b>
      *
-     * @param name            The {@link String} name of the {@link SwerveModuleBase}.
-     * @param settings        The {@link ModuleSettings} of the {@link SwerveModuleBase}.
+     * @param name     The {@link String} name of the {@link SwerveModuleBase}.
+     * @param settings The {@link ModuleSettings} of the {@link SwerveModuleBase}.
      */
     public SwerveModuleBase(String name, ModuleSettings settings) {
         this.driveController = PIDConstantsAK.generateController(CHASSIS_MODE.getDrivePID());
-        this.turnController  = PIDConstantsAK.generateController(CHASSIS_MODE.getTurnPID());
-        this.driveMotor      = new FRCSparkMax(settings.getDriveID(), kBrushless, MotorModel.NEO);
-        this.turnMotor       = new FRCSparkMax(settings.getTurnID(),  kBrushless, MotorModel.NEO);
-        this.absOffset       = settings.getOffset();
+        this.turnController = PIDConstantsAK.generateController(CHASSIS_MODE.getTurnPID());
+        this.driveMotor = new FRCSparkMax(settings.getDriveID(), kBrushless, MotorModel.NEO);
+        this.turnMotor = new FRCSparkMax(settings.getTurnID(), kBrushless, MotorModel.NEO);
+        this.absOffset = settings.getOffset();
 
         // TODO: make it a triple value like PIDConstantsAK if required.
         // TODO: make the values a constant
-        this.driveFF         = new SimpleMotorFeedforward(0.1, 0.13, 0);
+        this.driveFF = new SimpleMotorFeedforward(0.1, 0.13, 0);
 
-        this.driveEncoder    = driveMotor.getEncoder();
-        this.turnEncoder     = turnMotor.getEncoder();
+        this.driveEncoder = driveMotor.getEncoder();
+        this.turnEncoder = turnMotor.getEncoder();
         this.name = name;
 
         // Shorten the travel as much as possible for efficiency reasons.
@@ -173,11 +173,19 @@ public abstract class SwerveModuleBase implements LoggableInputs {
         }
     }
 
-    /** Returns the current drive velocity of the module in meters per second. */
-    public double getVelocityMetersPerSec() { return driveVelocityRadPerSec * CHASSIS_MODE.getWheelRadius(); }
+    /**
+     * Returns the current drive velocity of the module in meters per second.
+     */
+    public double getVelocityMetersPerSec() {
+        return driveVelocityRadPerSec * CHASSIS_MODE.getWheelRadius();
+    }
 
-    /** Returns the drive velocity in radians/sec. */
-    public double getCharacterizationVelocity() { return driveVelocityRadPerSec; }
+    /**
+     * Returns the drive velocity in radians/sec.
+     */
+    public double getCharacterizationVelocity() {
+        return driveVelocityRadPerSec;
+    }
 
     /**
      * Sets the state of the {@link SwerveModuleBase}.
@@ -250,40 +258,46 @@ public abstract class SwerveModuleBase implements LoggableInputs {
         return drivePositionRad * CHASSIS_MODE.getWheelRadius();
     }
 
-    /** Resets the relative drive encoder reading on the {@link SwerveModuleBase}. */
-    public void reset() { driveEncoder.setPosition(0); }
+    /**
+     * Resets the relative drive encoder reading on the {@link SwerveModuleBase}.
+     */
+    public void reset() {
+        driveEncoder.setPosition(0);
+    }
 
     /**
      * Updates a LogTable with the data to log.
+     *
      * @param table The {@link LogTable} which is provided.
      */
     @Override
     public void toLog(LogTable table) {
-        table.put("DrivePositionRad",       this.drivePositionRad);
+        table.put("DrivePositionRad", this.drivePositionRad);
         table.put("DriveVelocityRadPerSec", this.driveVelocityRadPerSec);
-        table.put("DriveAppliedVolts",      this.driveAppliedVolts);
-        table.put("DriveCurrentAmps",       this.driveCurrentAmps);
-        table.put("TurnAbsolutePosition",   this.turnAbsolutePosition);
-        table.put("TurnPosition",           this.turnPosition);
-        table.put("TurnVelocityRadPerSec",  this.turnVelocityRadPerSec);
-        table.put("TurnCurrentAmps",        this.turnCurrentAmps);
-        table.put("TurnAppliedVolts",       this.turnAppliedVolts);
+        table.put("DriveAppliedVolts", this.driveAppliedVolts);
+        table.put("DriveCurrentAmps", this.driveCurrentAmps);
+        table.put("TurnAbsolutePosition", this.turnAbsolutePosition);
+        table.put("TurnPosition", this.turnPosition);
+        table.put("TurnVelocityRadPerSec", this.turnVelocityRadPerSec);
+        table.put("TurnCurrentAmps", this.turnCurrentAmps);
+        table.put("TurnAppliedVolts", this.turnAppliedVolts);
     }
 
     /**
      * Updates data based on a LogTable.
+     *
      * @param table The {@link LogTable} which is provided.
      */
     @Override
     public void fromLog(LogTable table) {
-        this.drivePositionRad       = table.get("DrivePositionRad", this.drivePositionRad);
+        this.drivePositionRad = table.get("DrivePositionRad", this.drivePositionRad);
         this.driveVelocityRadPerSec = table.get("DriveVelocityRadPerSec", this.driveVelocityRadPerSec);
-        this.driveAppliedVolts      = table.get("DriveAppliedVolts", this.driveAppliedVolts);
-        this.driveCurrentAmps       = table.get("DriveCurrentAmps", this.driveCurrentAmps);
-        this.turnAbsolutePosition   = table.get("TurnAbsolutePosition", this.turnAbsolutePosition);
-        this.turnPosition           = table.get("TurnPosition", this.turnPosition);
-        this.turnVelocityRadPerSec  = table.get("TurnVelocityRadPerSec", this.turnVelocityRadPerSec);
-        this.turnCurrentAmps        = table.get("TurnCurrentAmps", this.turnCurrentAmps);
-        this.turnAppliedVolts       = table.get("TurnAppliedVolts", this.turnAppliedVolts);
+        this.driveAppliedVolts = table.get("DriveAppliedVolts", this.driveAppliedVolts);
+        this.driveCurrentAmps = table.get("DriveCurrentAmps", this.driveCurrentAmps);
+        this.turnAbsolutePosition = table.get("TurnAbsolutePosition", this.turnAbsolutePosition);
+        this.turnPosition = table.get("TurnPosition", this.turnPosition);
+        this.turnVelocityRadPerSec = table.get("TurnVelocityRadPerSec", this.turnVelocityRadPerSec);
+        this.turnCurrentAmps = table.get("TurnCurrentAmps", this.turnCurrentAmps);
+        this.turnAppliedVolts = table.get("TurnAppliedVolts", this.turnAppliedVolts);
     }
 }
