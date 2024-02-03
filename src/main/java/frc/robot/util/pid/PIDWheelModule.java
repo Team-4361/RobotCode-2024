@@ -69,9 +69,11 @@ public class PIDWheelModule implements LoggableInputs {
     public void update() {
         encoder = motor.getEncoder();
 
-        velocityRPM = encoder.getVelocity();
-        appliedVolts = motor.getAppliedVoltage();
-        currentAmps = motor.getOutputCurrent();
+        if (!Constants.isReplay()) {
+            velocityRPM = encoder.getVelocity();
+            appliedVolts = motor.getAppliedVoltage();
+            currentAmps = motor.getOutputCurrent();
+        }
 
         Logger.processInputs(moduleName, this);
 
