@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.DriveToAprilTagCommand;
+import frc.robot.subsystems.IndexSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SwerveDriveSubsystem;
@@ -58,6 +59,8 @@ public class Robot extends LoggedRobot {
     public static PhotonCameraModule camera;
     public static ShooterSubsystem shooter;
     public static IntakeSubsystem intake;
+    public static IndexSubsystem index;
+
     // add a "public static" variable for your Subsystem type and name.
     // look above for examples.
 
@@ -101,17 +104,18 @@ public class Robot extends LoggedRobot {
         }
 
         // TODO: setup replay/sim mode!
-        Logger.addDataReceiver(new NT4Publisher());
+        if (!DriverStation.isFMSAttached())
+            Logger.addDataReceiver(new NT4Publisher());
+
         Logger.start(); // start logging!
         // endregion
 
-        boolean useNormalSticks = !RobotBase.isSimulation() ||
-                (DriverStation.isJoystickConnected(0) && DriverStation.isJoystickConnected(1));
-
+        boolean useNormalSticks = true;
         // Use a PresetGroup to keep the presets synchronized. We don't want one joystick sensitive
         // and the other one non-sensitive.
         drivePresets = new PresetGroup("Drive Presets", PresetMode.PARALLEL);
 
+        //noinspection ConstantValue
         if (useNormalSticks) {
             leftStick = new DriveJoystick(
                     LEFT_STICK_ID,  // Left stick ID
@@ -151,6 +155,7 @@ public class Robot extends LoggedRobot {
         pdh = new PowerDistribution();
         intake = new IntakeSubsystem();
         shooter = new ShooterSubsystem();
+        index = new IndexSubsystem();
 
         swerve = new SwerveDriveSubsystem();
         camera = new PhotonCameraModule("FrontCamera", Units.inchesToMeters(27), 0);
@@ -214,29 +219,11 @@ public class Robot extends LoggedRobot {
                     () -> Robot.swerve.lock())
             );
         }
-        /*
-        xbox.a().whileTrue(new SequentialCommandGroup(
-                new ShootCommand(FAST_SPEED),
-                new IndexAutoMoverCommand()
-        ));
-        xbox.b().whileTrue(new SequentialCommandGroup(
-                new ShootCommand(SLOW_SPEED),
-                new IndexAutoMoverCommand()
-        ));
 
-         */
-
-        //xbox.a().onTrue(Commands.runOnce(() -> ROTATION_PRESETS.setPreset(0)));
-        //xbox.b().onTrue(Commands.runOnce(() -> ROTATION_PRESETS.setPreset(1)));
-
-//        xbox.a().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(ZERO_POSITION_NAME)));
-//        xbox.b().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(FLOOR_CUBE_NAME)));
-//        xbox.y().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(HUMAN_STATION_NAME)));
-//        xbox.x().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(MID_CONE_NAME)));
-//
-//        xbox.povDown().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(FLOOR_CONE_NAME)));
-//        xbox.povLeft().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(MANUAL_STATION_NAME)));
-//        xbox.rightBumper().onTrue(Commands.runOnce(() -> CLIMBER_PRESET_GROUP.setPreset(HIGH_CONE_NAME)));
+        xbox.b().whileTrue(Commands.runEnd(
+                () -> Robot.shooter.setTarget(5000),
+                () -> Robot.shooter.stop())
+        );
 
         if (!xboxOnly) {
            // xbox.a().onTrue(new IntakeCommand(INTAKE_SPEED));

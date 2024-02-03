@@ -50,22 +50,37 @@ public class Constants {
 
     /** This {@link Indexer} class represents all values regarding the {@link Robot}'s index mechanism. */
     public static class Indexer {
+        public static final int INDEX_LEFT_MOTOR_ID = 12;
+        public static final int INDEX_RIGHT_MOTOR_ID = 13;
+
+        public static final double INDEX_KS = 0.1;
+        public static final double INDEX_KV = 0.13;
+        public static final double INDEX_KA = 0;
+
+        public static final I2C.Port INDEX_SENSOR_PORT = I2C.Port.kMXP;
+        public static final PIDConstantsAK INDEX_PID = new PIDConstantsAK(0.05, 0, 0);
+
         public static final double RED_MINIMUM_TOLERANCE = 0;
         public static final double RED_MAXIMUM_TOLERANCE = 100;
         public static final double BLUE_MINIMUM_TOLERANCE = 0;
         public static final double BLUE_MAXIMUM_TOLERANCE = 100;
         public static final double GREEN_MINIMUM_TOLERANCE = 0;
         public static final double GREEN_MAXIMUM_TOLERANCE = 100;
-        public static final double INDEX_SPEED = 0.5;
+        public static final double INDEX_RPM = 5000;
+
+        public static final boolean INDEX_TUNING_ENABLED = true;
     }
 
     /** This {@link Intake} class represents all values regarding the {@link Robot}'s in-taking mechanism. */
     public static class Intake {
-        public static final double INTAKE_SPEED = 0.25;
+        public static final double INTAKE_RPM = 2000;
+        public static final double INTAKE_KS = 0.1;
+        public static final double INTAKE_KV = 0.13;
+        public static final double INTAKE_KA = 0;
         public static final int INTAKE_MOTOR_ID = 12;
-        public static final int INDEX_MOTOR_1_ID = 13;
-        public static final int INDEX_MOTOR_2_ID = 14;
-        public static final I2C.Port INDEX_SENSOR_PORT = I2C.Port.kMXP;
+        public static final boolean INTAKE_TUNING_ENABLED = true;
+        public static final boolean INTAKE_INVERTED = false;
+        public static final PIDConstantsAK INTAKE_PID = new PIDConstantsAK(0.05, 0, 0);
     }
 
     public static class Control {
@@ -172,7 +187,7 @@ public class Constants {
 
 
     public static class Chassis {
-        public static final ChassisSettings CHASSIS_MODE = new Mk3Chassis();
+        public static final ChassisSettings CHASSIS_MODE = new Mk4Chassis();
         public static final double CHASSIS_BASE_RADIUS = Math.hypot(
                 CHASSIS_MODE.getSideLength() / 2.0,
                 CHASSIS_MODE.getSideLength() / 2.0
