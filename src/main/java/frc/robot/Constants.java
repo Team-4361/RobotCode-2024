@@ -34,7 +34,11 @@ public class Constants {
 
     public enum OperationMode { REAL, REPLAY, SIM}
 
-    /** If the {@link Robot} is operating under a REPLAY mode. */
+    public static void runIfNotReplay(Runnable runnable) {
+        if (Control.OP_MODE != OperationMode.REPLAY)
+            runnable.run();
+    }
+
     public static boolean isReplay() { return Control.OP_MODE == OperationMode.REPLAY; }
 
     /** This {@link Shooter} class represents all values regarding the {@link Robot}'s shooting mechanism. */

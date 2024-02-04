@@ -1,24 +1,23 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.util.motor.FRCSparkMax;
+import frc.robot.util.math.GearRatio;
 import frc.robot.util.motor.MotorModel;
+import frc.robot.util.pid.PIDMechanismBase;
+import frc.robot.util.pid.PIDRotationalMechanism;
+import frc.robot.util.pid.PIDRotationalMechanism.RotationUnit;
 import frc.robot.util.pid.DashTunableNumber;
-import frc.robot.util.pid.PIDWheelModule;
-
-import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 import static frc.robot.Constants.Intake.*;
 
 public class IntakeSubsystem extends SubsystemBase {
-    private final PIDWheelModule intakeWheel;
+    private final PIDMechanismBase intakeWheel;
     private final DashTunableNumber intakeTune;
     private double targetRPM = INTAKE_RPM;
     private boolean stopped = true;
 
     public IntakeSubsystem() {
         String tuneName = INTAKE_TUNING_ENABLED ? "Intake: PID" : "";
-        intakeWheel = new PIDWheelModule(
+        intakeWheel = new PIDRotationalMechanism(
                 INTAKE_MOTOR_ID,
                 INTAKE_PID,
                 INTAKE_KS,
@@ -26,7 +25,9 @@ public class IntakeSubsystem extends SubsystemBase {
                 INTAKE_KA,
                 MotorModel.NEO,
                 "Intake",
-                tuneName
+                tuneName,
+                GearRatio.DIRECT_DRIVE,
+                RotationUnit.ROTATIONS
         );
         if (INTAKE_TUNING_ENABLED) {
             intakeTune = new DashTunableNumber("Intake: Speed", INTAKE_RPM);
@@ -51,6 +52,8 @@ public class IntakeSubsystem extends SubsystemBase {
     /**
      * Sets the target of the {@link IndexSubsystem}.
      */
+    public void setTarget(double rpm) { intakeWheel.setTarget(INTAKE_INVERTED ? -rpm: rpm, true); }
+
     public void start() {
         intakeWheel.setTarget(targetRPM);
         stopped = targetRPM == 0;

@@ -329,8 +329,7 @@ public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInput
     public void reset(Pose2d pose) {
         rollOffset = rollPosition;
         pitchOffset = pitchPosition;
-        if (!Constants.isReplay())
-            gyro.reset();
+        Constants.runIfNotReplay(gyro::reset);
         poseEstimator.resetPosition(yawPosition, getPositions(), pose);
     }
 

@@ -145,22 +145,16 @@ public abstract class SwerveModuleBase implements LoggableInputs {
 
         // Run closed loop turn control
         if (angleSetpoint != null) {
-            if (!Constants.isReplay()) {
-                turnMotor.setVoltage(
-                        turnController.calculate(getAngle().getRadians(), angleSetpoint.getRadians()));
-            }
+            turnMotor.setVoltage(turnController.calculate(getAngle().getRadians(), angleSetpoint.getRadians()));
 
             if (speedSetpoint != null) {
                 double velocityRadPerSec = (speedSetpoint * Math.cos(turnController.getPositionError()))
                         / CHASSIS_MODE.getWheelRadius();
 
-                // *** IMPORTANT: Do not actually set the motor values during replay! ***
-                if (!Constants.isReplay()) {
-                    driveMotor.setVoltage(
-                            driveFF.calculate(velocityRadPerSec)
-                                    + driveController.calculate(driveVelocityRadPerSec, velocityRadPerSec)
-                    );
-                }
+                driveMotor.setVoltage(
+                        driveFF.calculate(velocityRadPerSec)
+                                + driveController.calculate(driveVelocityRadPerSec, velocityRadPerSec)
+                );
             }
         }
     }
