@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.Constants;
 import frc.robot.util.io.Alert;
 import frc.robot.util.io.AlertType;
 import frc.robot.util.io.IOManager;
@@ -301,12 +302,14 @@ public class FRCSparkMax extends CANSparkMax implements IMotorModel {
      */
     @Override
     public void setVoltage(double outputVolts) {
-        if (RobotBase.isSimulation() && motorSim != null) {
-            simVolts = MathUtil.clamp(outputVolts, -12, 12);
-            motorSim.setInputVoltage(simVolts);
-        } else {
-            super.setVoltage(outputVolts);
-        }
+        Constants.runIfNotReplay(() -> {
+            if (RobotBase.isSimulation() && motorSim != null) {
+                simVolts = MathUtil.clamp(outputVolts, -12, 12);
+                motorSim.setInputVoltage(simVolts);
+            } else {
+                super.setVoltage(outputVolts);
+            }
+        });
     }
 
     public double getAppliedVoltage() {

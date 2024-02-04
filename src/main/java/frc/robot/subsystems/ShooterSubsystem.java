@@ -2,10 +2,12 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
+import frc.robot.util.math.GearRatio;
 import frc.robot.util.motor.MotorModel;
 import frc.robot.util.pid.DashTunableNumber;
-import frc.robot.util.pid.PIDWheelModule;
-import org.littletonrobotics.junction.Logger;
+import frc.robot.util.pid.PIDMechanismBase;
+import frc.robot.util.pid.PIDRotationalMechanism;
+import frc.robot.util.pid.PIDRotationalMechanism.RotationUnit;
 
 import static frc.robot.Constants.Control.SHOOTER_TUNING_ENABLED;
 import static frc.robot.Constants.Shooter.*;
@@ -15,8 +17,8 @@ import static frc.robot.Constants.Shooter.*;
  * mechanism contains two motors which need to be driven opposite to each other.
  */
 public class ShooterSubsystem extends SubsystemBase {
-    private final PIDWheelModule leftWheel;
-    private final PIDWheelModule rightWheel;
+    private final PIDMechanismBase leftWheel;
+    private final PIDMechanismBase rightWheel;
     private final DashTunableNumber shootTune;
     private double targetRPM = SHOOT_RPM;
     private boolean stopped = true;
@@ -24,7 +26,7 @@ public class ShooterSubsystem extends SubsystemBase {
     /**Constructs a new {@link ShooterSubsystem} using all <code>CONSTANTS</code> values. */
     public ShooterSubsystem() {
         String tuneName = SHOOTER_TUNING_ENABLED ? "Shooter: PID" : "";
-        this.leftWheel = new PIDWheelModule(
+        this.leftWheel = new PIDRotationalMechanism(
                 LEFT_SHOOTER_MOTOR_ID,
                 SHOOT_PID,
                 SHOOT_KS,
@@ -32,9 +34,11 @@ public class ShooterSubsystem extends SubsystemBase {
                 SHOOT_KA,
                 MotorModel.NEO,
                 "LeftShooter",
-                tuneName
+                tuneName,
+                GearRatio.DIRECT_DRIVE,
+                RotationUnit.ROTATIONS
         );
-        this.rightWheel = new PIDWheelModule(
+        this.rightWheel = new PIDRotationalMechanism(
                 RIGHT_SHOOTER_MOTOR_ID,
                 SHOOT_PID,
                 SHOOT_KS,
@@ -42,7 +46,9 @@ public class ShooterSubsystem extends SubsystemBase {
                 SHOOT_KA,
                 MotorModel.NEO,
                 "RightShooter",
-                tuneName
+                tuneName,
+                GearRatio.DIRECT_DRIVE,
+                RotationUnit.ROTATIONS
         );
 
         if (SHOOTER_TUNING_ENABLED) {
@@ -70,8 +76,8 @@ public class ShooterSubsystem extends SubsystemBase {
      * Sets the target of the {@link ShooterSubsystem} to the Shoot RPM.
      */
     public void start() {
-        leftWheel.setTarget(targetRPM);
-        rightWheel.setTarget(-targetRPM);
+        leftWheel.setTarget(targetRPM, true);
+        rightWheel.setTarget(-targetRPM, true);
         stopped = targetRPM == 0;
     }
 

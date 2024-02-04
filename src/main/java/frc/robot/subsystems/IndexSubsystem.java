@@ -4,9 +4,12 @@ import com.revrobotics.ColorSensorV3;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.math.ExtendedMath;
+import frc.robot.util.math.GearRatio;
 import frc.robot.util.motor.MotorModel;
 import frc.robot.util.pid.DashTunableNumber;
-import frc.robot.util.pid.PIDWheelModule;
+import frc.robot.util.pid.PIDMechanismBase;
+import frc.robot.util.pid.PIDRotationalMechanism;
+import frc.robot.util.pid.PIDRotationalMechanism.RotationUnit;
 import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.inputs.LoggableInputs;
@@ -14,8 +17,8 @@ import org.littletonrobotics.junction.inputs.LoggableInputs;
 import static frc.robot.Constants.Indexer.*;
 
 public class IndexSubsystem extends SubsystemBase implements LoggableInputs {
-    private final PIDWheelModule leftWheel;
-    private final PIDWheelModule rightWheel;
+    private final PIDMechanismBase leftWheel;
+    private final PIDMechanismBase rightWheel;
     private final ColorSensorV3 sensor;
     private final DashTunableNumber indexTune;
     private double targetRPM = INDEX_RPM;
@@ -27,7 +30,7 @@ public class IndexSubsystem extends SubsystemBase implements LoggableInputs {
 
     public IndexSubsystem() {
         String tuneName = INDEX_TUNING_ENABLED ? "Index: PID" : "";
-        leftWheel = new PIDWheelModule(
+        leftWheel = new PIDRotationalMechanism(
                 INDEX_LEFT_MOTOR_ID,
                 INDEX_PID,
                 INDEX_KS,
@@ -35,10 +38,12 @@ public class IndexSubsystem extends SubsystemBase implements LoggableInputs {
                 INDEX_KA,
                 MotorModel.NEO_550,
                 "LeftIndexer",
-                tuneName
+                tuneName,
+                GearRatio.DIRECT_DRIVE,
+                RotationUnit.ROTATIONS
         );
 
-        rightWheel = new PIDWheelModule(
+        rightWheel = new PIDRotationalMechanism(
                 INDEX_RIGHT_MOTOR_ID,
                 INDEX_PID,
                 INDEX_KS,
@@ -46,7 +51,9 @@ public class IndexSubsystem extends SubsystemBase implements LoggableInputs {
                 INDEX_KA,
                 MotorModel.NEO_550,
                 "RightIndexer",
-                tuneName
+                tuneName,
+                GearRatio.DIRECT_DRIVE,
+                RotationUnit.ROTATIONS
         );
 
         sensor = new ColorSensorV3(INDEX_SENSOR_PORT);
@@ -84,8 +91,8 @@ public class IndexSubsystem extends SubsystemBase implements LoggableInputs {
      * Sets the target of the {@link IndexSubsystem}.
      */
     public void start() {
-        leftWheel.setTarget(targetRPM);
-        rightWheel.setTarget(targetRPM);
+        leftWheel.setTarget(targetRPM, true);
+        rightWheel.setTarget(targetRPM, true);
         stopped = targetRPM == 0;
     }
 
