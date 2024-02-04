@@ -87,6 +87,11 @@ public class Constants {
         public static final PIDConstantsAK INTAKE_PID = new PIDConstantsAK(0.05, 0, 0);
     }
 
+    public static class Wrist {
+        public static final double WRIST_MOTOR_ID = 15;
+        public static final double WRIST_SERVO_ID =
+    }
+
     public static class Control {
         /** The Left Joystick ID (typically 0) */
         public static final int LEFT_STICK_ID = 0;
