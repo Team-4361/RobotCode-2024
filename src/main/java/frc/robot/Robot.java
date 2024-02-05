@@ -13,18 +13,13 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.DriveToAprilTagCommand;
-import frc.robot.commands.ShootCommand;
-import frc.robot.subsystems.IndexSubsystem;
-import frc.robot.subsystems.IntakeSubsystem;
-import frc.robot.subsystems.ShooterSubsystem;
-import frc.robot.subsystems.SwerveDriveSubsystem;
+import frc.robot.subsystems.*;
 import frc.robot.util.auto.PhotonCameraModule;
 import frc.robot.util.io.AlertType;
 import frc.robot.util.io.IOManager;
@@ -42,7 +37,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 import static frc.robot.Constants.Control.*;
-import static frc.robot.Constants.Shooter.SHOOT_RPM;
 
 
 /**
@@ -58,13 +52,12 @@ public class Robot extends LoggedRobot {
     public static DriveJoystick rightStick;
     public static SwerveDriveSubsystem swerve;
     public static PresetGroup drivePresets;
-    public static PhotonCameraModule camera;
+    public static PhotonCameraModule frontCamera;
     public static ShooterSubsystem shooter;
     public static IntakeSubsystem intake;
     public static IndexSubsystem index;
+    public static WristSubsystem wrist;
 
-    // add a "public static" variable for your Subsystem type and name.
-    // look above for examples.
 
     /**
      * This method is run when the robot is first started up and should be used for any
@@ -72,7 +65,72 @@ public class Robot extends LoggedRobot {
      */
     @Override
     public void robotInit() {
-        // region Initialize AdvantageKit logging. (DO NOT TOUCH)
+        initLogger(); // DO NOT TOUCH!
+
+        boolean useNormalSticks = true;
+        // Use a PresetGroup to keep the presets synchronized. We don't want one joystick sensitive
+        // and the other one non-sensitive.
+        drivePresets = new PresetGroup("Drive Presets", PresetMode.PARALLEL);
+
+        //noinspection ConstantValue
+        if (useNormalSticks) {
+            leftStick = new DriveJoystick(
+                    LEFT_STICK_ID,  // Left stick ID
+                    false,          // Drive X inverted?
+                    false,          // Drive Y inverted?
+                    false,          // Twist Axis Inverted?
+                    DEAD_ZONE,      // Dead-band
+                    DRIVE_MODES[0], // Primary Drive Mode
+                    DRIVE_MODES     // Secondary Drive Modes
+            );
+
+            rightStick = new DriveJoystick(
+                    RIGHT_STICK_ID, // Right stick ID
+                    false,          // Drive X inverted?
+                    false,          // Drive Y inverted?
+                    false,          // Twist Axis Inverted?
+                    DEAD_ZONE,      // Dead-band
+                    DRIVE_MODES[0], // Primary Drive Mode
+                    DRIVE_MODES     // Secondary Drive Modes
+            );
+
+            drivePresets.add(leftStick);
+            drivePresets.add(rightStick);
+        }
+
+        xbox = new DriveXboxController(XBOX_CONTROLLER_ID,
+                true,
+                true,
+                true,
+                DEAD_ZONE,
+                DriveMode.LINEAR_MAP
+        );
+
+        if (!useNormalSticks)
+            drivePresets.add(xbox); // only add the Xbox Controller if used for driving.
+
+        pdh = new PowerDistribution();
+        intake = new IntakeSubsystem();
+        shooter = new ShooterSubsystem();
+        index = new IndexSubsystem();
+        wrist = new WristSubsystem();
+
+        swerve = new SwerveDriveSubsystem();
+        frontCamera = new PhotonCameraModule("FrontCamera", Units.inchesToMeters(27), 0);
+
+        BiConsumer<Command, Boolean> logCommandFunction = getCommandActivity();
+        CommandScheduler.getInstance().onCommandInitialize(c -> logCommandFunction.accept(c, true));
+        CommandScheduler.getInstance().onCommandFinish(c -> logCommandFunction.accept(c, false));
+        CommandScheduler.getInstance().onCommandInterrupt(c -> logCommandFunction.accept(c, false));
+
+        // *** IMPORTANT: Call this method at the VERY END of robotInit!!! *** //
+        registerAlerts(!useNormalSticks);
+        configureBindings(!useNormalSticks);
+        // ******************************************************************* //
+    }
+
+    /** NOTE: This method <b>MUST</b> be called at the very beginning! */
+    private void initLogger() {
         boolean isLogSupported = false;
         try (StringSubscriber sc = NetworkTableInstance.getDefault()
                 .getTable("Robot")
@@ -110,67 +168,6 @@ public class Robot extends LoggedRobot {
             Logger.addDataReceiver(new NT4Publisher());
 
         Logger.start(); // start logging!
-        // endregion
-
-        boolean useNormalSticks = true;
-        // Use a PresetGroup to keep the presets synchronized. We don't want one joystick sensitive
-        // and the other one non-sensitive.
-        drivePresets = new PresetGroup("Drive Presets", PresetMode.PARALLEL);
-
-        //noinspection ConstantValue
-        if (useNormalSticks) {
-            leftStick = new DriveJoystick(
-                    LEFT_STICK_ID,  // Left stick ID
-                    false,           // Drive X inverted?
-                    false,           // Drive Y inverted?
-                    false,           // Twist Axis Inverted?
-                    DEAD_ZONE,       // Deadband
-                    DRIVE_MODES[0], // Primary Drive Mode
-                    DRIVE_MODES     // Secondary Drive Modes
-            );
-
-            rightStick = new DriveJoystick(
-                    RIGHT_STICK_ID,  // Left stick ID
-                    false,            // Drive X inverted?
-                    false,            // Drive Y inverted?
-                    false,            // Twist Axis Inverted?
-                    DEAD_ZONE,        // Deadband
-                    DRIVE_MODES[0],  // Primary Drive Mode
-                    DRIVE_MODES      // Secondary Drive Modes
-            );
-
-            drivePresets.add(leftStick);
-            drivePresets.add(rightStick);
-        }
-
-        xbox = new DriveXboxController(XBOX_CONTROLLER_ID,
-                true,
-                true,
-                true,
-                DEAD_ZONE,
-                DriveMode.LINEAR_MAP
-        );
-
-        if (!useNormalSticks)
-            drivePresets.add(xbox); // only add the Xbox Controller if used for driving.
-
-        pdh = new PowerDistribution();
-        intake = new IntakeSubsystem();
-        shooter = new ShooterSubsystem();
-        index = new IndexSubsystem();
-
-        swerve = new SwerveDriveSubsystem();
-        camera = new PhotonCameraModule("FrontCamera", Units.inchesToMeters(27), 0);
-
-        BiConsumer<Command, Boolean> logCommandFunction = getCommandActivity();
-        CommandScheduler.getInstance().onCommandInitialize(c -> logCommandFunction.accept(c, true));
-        CommandScheduler.getInstance().onCommandFinish(c -> logCommandFunction.accept(c, false));
-        CommandScheduler.getInstance().onCommandInterrupt(c -> logCommandFunction.accept(c, false));
-
-        // *** IMPORTANT: Call this method at the VERY END of robotInit!!! *** //
-        registerAlerts(!useNormalSticks);
-        configureBindings(!useNormalSticks);
-        // ******************************************************************* //
     }
 
     private void registerAlerts(boolean xboxOnly) {
@@ -283,21 +280,5 @@ public class Robot extends LoggedRobot {
 
     @Override public void disabledInit() { CommandScheduler.getInstance().cancelAll(); }
     @Override public void testInit() { CommandScheduler.getInstance().cancelAll(); }
-    @Override public void teleopInit() {
-        CommandScheduler.getInstance().cancelAll();
-    }
-
-    /**
-     * This method is called periodically during operator control.
-     */
-    @Override
-    public void teleopPeriodic() {
-        //Robot.mechanism.translateMotor(Robot.xbox.getRobotX());
-    }
-
-    @Override
-    public void autonomousInit() {
-        //new PathPlannerAuto("New Auto").schedule();
-
-    }
+    @Override public void teleopInit() { CommandScheduler.getInstance().cancelAll(); }
 }

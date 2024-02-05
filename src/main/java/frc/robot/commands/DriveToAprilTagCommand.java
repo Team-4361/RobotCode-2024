@@ -42,7 +42,7 @@ public class DriveToAprilTagCommand extends Command {
 
     @Override
     public void initialize() {
-        Robot.camera.setTargetHeight(targetHeightMeters);
+        Robot.frontCamera.setTargetHeight(targetHeightMeters);
 
         initTimeout = System.currentTimeMillis() + 5000;
         noTarget = false;
@@ -54,8 +54,8 @@ public class DriveToAprilTagCommand extends Command {
      */
     @Override
     public void execute() {
-        Optional<Pose2d> storedPose = Robot.camera.getTrackedPose();
-        if (storedPose.isEmpty() || (id > 0 && Robot.camera.getAprilTagID() != id)) {
+        Optional<Pose2d> storedPose = Robot.frontCamera.getTrackedPose();
+        if (storedPose.isEmpty() || (id > 0 && Robot.frontCamera.getAprilTagID() != id)) {
             Robot.swerve.stop();
             if (!firstTarget && System.currentTimeMillis() > initTimeout) {
                 noTarget = true;
@@ -72,8 +72,8 @@ public class DriveToAprilTagCommand extends Command {
     }
 
     private ChassisSpeeds calculateSpeeds() {
-        PIDController driveController = Robot.camera.getDriveController();
-        PIDController turnController = Robot.camera.getTurnController();
+        PIDController driveController = Robot.frontCamera.getDriveController();
+        PIDController turnController = Robot.frontCamera.getTurnController();
 
         double mX = PHOTON_DRIVE_MAX_SPEED.getValue();
         double jX = MathUtil.clamp(driveController.calculate(currentPose.getX(), desiredPose.getX()), -mX, mX);

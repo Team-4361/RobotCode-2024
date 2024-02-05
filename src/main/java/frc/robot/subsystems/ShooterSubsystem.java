@@ -51,6 +51,9 @@ public class ShooterSubsystem extends SubsystemBase {
                 RotationUnit.ROTATIONS
         );
 
+        leftWheel.setTolerance(SHOOT_RPM_TOLERANCE);
+        rightWheel.setTolerance(SHOOT_RPM_TOLERANCE);
+
         if (SHOOTER_TUNING_ENABLED) {
             shootTune = new DashTunableNumber("Shooter: Speed", SHOOT_RPM);
             shootTune.addConsumer(this::setTargetRPM);

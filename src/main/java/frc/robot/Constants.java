@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.IDriveMode;
+import frc.robot.util.math.GearRatio;
 import frc.robot.util.pid.DashTunableNumber;
 import frc.robot.util.pid.PIDConstantsAK;
 import frc.robot.util.swerve.config.ChassisSettings;
@@ -49,6 +50,7 @@ public class Constants {
         public static final double SHOOT_KS = 0.1;
         public static final double SHOOT_KV = 0.03;
         public static final double SHOOT_KA = 0;
+        public static final double SHOOT_RPM_TOLERANCE = 100;
         public static final PIDConstantsAK SHOOT_PID = new PIDConstantsAK(0.05, 0, 0);
     }
 
@@ -88,8 +90,16 @@ public class Constants {
     }
 
     public static class Wrist {
-        public static final double WRIST_MOTOR_ID = 15;
-        public static final double WRIST_SERVO_ID =
+        public static final int WRIST_MOTOR_ID = 15;
+        public static final int WRIST_SERVO_ID = 0;
+        public static final double WRIST_KS = 0;
+        public static final double WRIST_KV = 0;
+        public static final double WRIST_KA = 0;
+        public static final boolean WRIST_TUNING_ENABLED = true;
+        public static final boolean WRIST_INVERTED = false;
+        public static final double WRIST_SERVO_MAX_MM = 50;
+        public static final GearRatio WRIST_TURN_RATIO = GearRatio.from(63, 1);
+        public static final PIDConstantsAK WRIST_PID = new PIDConstantsAK(0.05, 0, 0);
     }
 
     public static class Control {
