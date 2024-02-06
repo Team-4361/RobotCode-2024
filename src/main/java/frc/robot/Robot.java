@@ -26,6 +26,7 @@ import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveJoystick;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.DriveXboxController;
+import frc.robot.util.math.ExtendedMath;
 import frc.robot.util.preset.PresetGroup;
 import frc.robot.util.preset.PresetMode;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -114,6 +115,9 @@ public class Robot extends LoggedRobot {
         shooter = new ShooterSubsystem();
         index = new IndexSubsystem();
         wrist = new WristSubsystem();
+
+        wrist.put("One", 10.0);
+        wrist.put("Two", 40.0);
 
         swerve = new SwerveDriveSubsystem();
         frontCamera = new PhotonCameraModule("FrontCamera", Units.inchesToMeters(27), 0);
@@ -240,11 +244,10 @@ public class Robot extends LoggedRobot {
                 () -> Robot.shooter.stop()
         ));
 
-        xbox.b().whileTrue(Commands.runEnd(
-                () -> Robot.index.start(),
-                () -> Robot.index.stop()
-        ));
+        xbox.x().onTrue(Commands.runOnce(() -> Robot.wrist.setPreset(0)));
+        xbox.y().onTrue(Commands.runOnce(() -> Robot.wrist.setPreset(1)));
     }
+
 
     private static BiConsumer<Command, Boolean> getCommandActivity() {
         Map<String, Integer> commandCounts = new HashMap<>();
@@ -280,5 +283,12 @@ public class Robot extends LoggedRobot {
 
     @Override public void disabledInit() { CommandScheduler.getInstance().cancelAll(); }
     @Override public void testInit() { CommandScheduler.getInstance().cancelAll(); }
-    @Override public void teleopInit() { CommandScheduler.getInstance().cancelAll(); }
+    @Override public void teleopInit() {
+        CommandScheduler.getInstance().cancelAll();
+    }
+
+    @Override
+    public void teleopPeriodic() {
+        Robot.wrist.translateMotor(ExtendedMath.deadband(xbox.getLeftY()));
+    }
 }

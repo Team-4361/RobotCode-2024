@@ -99,7 +99,7 @@ public class Constants {
         public static final boolean WRIST_INVERTED = false;
         public static final double WRIST_SERVO_MAX_MM = 50;
         public static final GearRatio WRIST_TURN_RATIO = GearRatio.from(63, 1);
-        public static final PIDConstantsAK WRIST_PID = new PIDConstantsAK(0.05, 0, 0);
+        public static final PIDConstantsAK WRIST_PID = new PIDConstantsAK(0.02, 0, 0);
     }
 
     public static class Control {

@@ -43,12 +43,12 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
     private boolean pidEnabled = true;
     private boolean limitBypassEnabled = false;
     private double tolerance = 0.0;
-    private boolean teleopMode = true;
+    private boolean teleopMode = false;
     private double forwardLimit = Double.MAX_VALUE;
     private double reverseLimit = Double.MIN_VALUE;
 
-    private Supplier<Boolean> pidEnabledSupplier;
-    private Supplier<Boolean> limitBypassSupplier;
+    private Supplier<Boolean> pidEnabledSupplier = () -> true;
+    private Supplier<Boolean> limitBypassSupplier = () -> true;
 
     private RelativeEncoder encoder;
 
@@ -89,10 +89,23 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
         this.encoder = motor.getEncoder();
         this.moduleName = moduleName;
 
+        encoder.setPosition(0);
+
         if (tuneName != null && !tuneName.isBlank())
             IOManager.initPIDTune(tuneName, controller);
+    }
 
-        addListener((name, value) -> setTarget(value));
+    /**
+     * Attempts to set the Preset to the specific Index.
+     *
+     * @param idx The Index to change the Preset to.
+     * @return True if the operation was successful; false otherwise.
+     */
+    @Override
+    public boolean setPreset(int idx) {
+        boolean val = super.setPreset(idx);
+        targetValue = super.getSelectedValue();
+        return val;
     }
 
     /** @return If the {@link PIDMechanismBase} is at target. */
