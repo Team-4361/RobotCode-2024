@@ -14,7 +14,6 @@ import frc.robot.util.math.GearRatio;
 import frc.robot.util.pid.DashTunableNumber;
 import frc.robot.util.pid.PIDConstantsAK;
 import frc.robot.util.swerve.config.ChassisSettings;
-import frc.robot.util.swerve.config.Mk3Chassis;
 import frc.robot.util.swerve.config.Mk4Chassis;
 
 import java.util.function.Supplier;
@@ -90,6 +89,21 @@ public class Constants {
     }
 
     public static class Wrist {
+        public static final int WRIST_MAX_POSITION = 1000; //percent servo travel to max hood position
+        public static final int WRIST_MIN_POSITION = 0; //percent servo travel to min hood position
+
+        //SERVO Parameters from https://s3.amazonaws.com/actuonix/Actuonix+L16+Datasheet.pdf
+        public static final int MAX_SERVO_PWM = 2000; //ms
+        public static final int MIN_SERVO_PWM = 1000; //ms
+        public static final int SERVO_RANGE = MAX_SERVO_PWM - MIN_SERVO_PWM;
+        public static final int CENTER_SERVO_PWM = 1000; //ms
+        public static final int SERVO_DEADBAND = 0; //ms - no deadband
+
+        // pwm values in ms for the max and min angles of the shooter hood
+        public static final int WRIST_MAX_PWM = MIN_SERVO_PWM + (SERVO_RANGE * WRIST_MAX_POSITION);
+        public static final int WRIST_MIN_PWM = MIN_SERVO_PWM + (SERVO_RANGE * WRIST_MIN_POSITION);
+
+
         public static final int WRIST_MOTOR_ID = 15;
         public static final int WRIST_SERVO_ID = 0;
         public static final double WRIST_KS = 0;

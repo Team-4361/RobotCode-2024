@@ -36,7 +36,10 @@ public class WristSubsystem extends PIDRotationalMechanism implements LoggableIn
                 WRIST_TURN_RATIO,
                 RotationUnit.DEGREES
         );
+
         this.linearServo = new Servo(WRIST_SERVO_ID);
+        linearServo.setBoundsMicroseconds(2000, 1500, 1500, 1500, 1000);
+
         CommandScheduler.getInstance().registerSubsystem(this);
     }
 
@@ -44,6 +47,8 @@ public class WristSubsystem extends PIDRotationalMechanism implements LoggableIn
     public void periodic() {
         Constants.runIfNotReplay(() -> extensionPosition = linearServo.getPosition() * WRIST_SERVO_MAX_MM);
         super.update();
+
+        linearServo.setPosition(Math.max(0, extensionTarget / WRIST_SERVO_MAX_MM));
     }
 
     /**
@@ -64,7 +69,6 @@ public class WristSubsystem extends PIDRotationalMechanism implements LoggableIn
     public void setExtensionTarget(double mm) {
         Constants.runIfNotReplay(() -> {
             this.extensionTarget = mm;
-            linearServo.set(Math.max(0, mm / WRIST_SERVO_MAX_MM));
         });
     }
 

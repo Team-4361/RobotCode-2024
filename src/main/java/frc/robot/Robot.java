@@ -246,6 +246,9 @@ public class Robot extends LoggedRobot {
 
         xbox.x().onTrue(Commands.runOnce(() -> Robot.wrist.setPreset(0)));
         xbox.y().onTrue(Commands.runOnce(() -> Robot.wrist.setPreset(1)));
+
+        xbox.rightBumper().onTrue(Commands.runOnce(() -> Robot.wrist.setExtensionTarget(50)));
+        xbox.leftBumper().onTrue(Commands.runOnce(() -> Robot.wrist.setExtensionTarget(0)));
     }
 
 
