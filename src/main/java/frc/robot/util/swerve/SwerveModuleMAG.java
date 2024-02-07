@@ -5,6 +5,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import frc.robot.util.swerve.config.ModuleSettings;
 
+import static java.lang.Math.PI;
+
 public class SwerveModuleMAG extends SwerveModuleBase {
     private final DutyCycleEncoder encoder;
 
@@ -21,7 +23,7 @@ public class SwerveModuleMAG extends SwerveModuleBase {
     }
 
     @Override
-    public Rotation2d getAbsolutePosition() {
-        return Rotation2d.fromRotations(encoder.getAbsolutePosition());
+    public double getAbsolutePositionRad() {
+        return 2 * PI * encoder.getAbsolutePosition();
     }
 }

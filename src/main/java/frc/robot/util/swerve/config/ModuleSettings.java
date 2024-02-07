@@ -15,12 +15,12 @@ import org.photonvision.PhotonCamera;
  * need to be flipped due to the Field Oriented driving system.
  */
 public class ModuleSettings {
-    private final Rotation2d absOffset;
+    private final double absOffset;
     private final int driveID;
     private final int turnID;
     private final int encoderID;
 
-    public Rotation2d getOffset() { return absOffset; }
+    public double getOffset() { return absOffset; }
     public int getDriveID() { return driveID; }
     public int getTurnID() { return turnID; }
     public int getEncoderID() { return encoderID; }
@@ -30,13 +30,13 @@ public class ModuleSettings {
      * @param driveID The drive ID 
      * @param turnID The turn ID
      * @param encoderID The encoder ID
-     * @param offset The {@link Rotation2d} offset. <b>NOTE: IT MUST BE THE ADJUSTED "TURNPOSITION" OFFSET FROM ZERO.</b>
+     * @param offsetRad The offset in radians.
      */
-    public ModuleSettings(int driveID, int turnID, int encoderID, Rotation2d offset) {
+    public ModuleSettings(int driveID, int turnID, int encoderID, double offsetRad) {
         this.driveID = driveID;
         this.turnID = turnID;
         this.encoderID = encoderID;
-        this.absOffset = offset;
+        this.absOffset = offsetRad;
     }
 }
 

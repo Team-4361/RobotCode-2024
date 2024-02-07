@@ -32,6 +32,7 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
     private final SimpleMotorFeedforward feedFwd;
     private final PIDController controller;
     private final String moduleName;
+    private final boolean tuneEnabled;
 
     // All INPUT values are logged here!
     private double targetValue = 0.0;
@@ -91,9 +92,15 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
 
         encoder.setPosition(0);
 
-        if (tuneName != null && !tuneName.isBlank())
+        if (tuneName != null && !tuneName.isBlank()) {
             IOManager.initPIDTune(tuneName, controller);
+            tuneEnabled = true;
+        } else {
+            tuneEnabled = false;
+        }
     }
+
+    public boolean isTuneEnabled() { return tuneEnabled; }
 
     /**
      * Attempts to set the Preset to the specific Index.

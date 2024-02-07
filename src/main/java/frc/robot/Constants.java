@@ -14,6 +14,7 @@ import frc.robot.util.math.GearRatio;
 import frc.robot.util.pid.DashTunableNumber;
 import frc.robot.util.pid.PIDConstantsAK;
 import frc.robot.util.swerve.config.ChassisSettings;
+import frc.robot.util.swerve.config.Mk3Chassis;
 import frc.robot.util.swerve.config.Mk4Chassis;
 
 import java.util.function.Supplier;
@@ -83,7 +84,7 @@ public class Constants {
         public static final double INTAKE_KV = 0.03;
         public static final double INTAKE_KA = 0;
         public static final int INTAKE_MOTOR_ID = 14;
-        public static final boolean INTAKE_TUNING_ENABLED = true;
+        public static final boolean INTAKE_TUNING_ENABLED = false;
         public static final boolean INTAKE_INVERTED = false;
         public static final PIDConstantsAK INTAKE_PID = new PIDConstantsAK(0.05, 0, 0);
     }
@@ -109,7 +110,7 @@ public class Constants {
         public static final double WRIST_KS = 0;
         public static final double WRIST_KV = 0;
         public static final double WRIST_KA = 0;
-        public static final boolean WRIST_TUNING_ENABLED = true;
+        public static final boolean WRIST_TUNING_ENABLED = false;
         public static final boolean WRIST_INVERTED = false;
         public static final double WRIST_SERVO_MAX_MM = 50;
         public static final GearRatio WRIST_TURN_RATIO = GearRatio.from(63, 1);
@@ -138,7 +139,7 @@ public class Constants {
 
         public static final boolean SWERVE_TUNING_ENABLED = false;
         public static final boolean PHOTON_TUNING_ENABLED = false;
-        public static final boolean SHOOTER_TUNING_ENABLED = true;
+        public static final boolean SHOOTER_TUNING_ENABLED = false;
 
         public static final DashTunableNumber PHOTON_TURN_MAX_SPEED = new DashTunableNumber("Photon Turn Speed", 0.2, false);
         public static final DashTunableNumber PHOTON_DISTANCE = new DashTunableNumber("Photon Distance", 1, false);
@@ -220,7 +221,7 @@ public class Constants {
 
 
     public static class Chassis {
-        public static final ChassisSettings CHASSIS_MODE = new Mk4Chassis();
+        public static final ChassisSettings CHASSIS_MODE = new Mk3Chassis();
         public static final double CHASSIS_BASE_RADIUS = Math.hypot(
                 CHASSIS_MODE.getSideLength() / 2.0,
                 CHASSIS_MODE.getSideLength() / 2.0

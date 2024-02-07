@@ -11,6 +11,8 @@ import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.util.swerve.config.ModuleSettings;
 
+import static java.lang.Math.PI;
+
 public class SwerveModuleCAN extends SwerveModuleBase {
     private final StatusSignal<Double> signal;
 
@@ -37,7 +39,7 @@ public class SwerveModuleCAN extends SwerveModuleBase {
     }
 
     @Override
-    public Rotation2d getAbsolutePosition() {
-        return Rotation2d.fromRotations(signal.refresh().getValueAsDouble());
+    public double getAbsolutePositionRad() {
+        return 2 * PI * signal.refresh().getValueAsDouble();
     }
 }

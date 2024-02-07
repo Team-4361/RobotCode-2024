@@ -197,6 +197,11 @@ public class PresetMap<T> extends LinkedHashMap<String, T> implements IPresetCon
         return false;
     }
 
+    public void setPresets(LinkedHashMap<String, T> map) {
+        clear();
+        putAll(map);
+    }
+
     /** @return The name of the currently selected Preset */
     public String getSelectedName() { return getSelectedName(index); }
 

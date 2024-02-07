@@ -18,7 +18,7 @@ public class Mk4Chassis implements ChassisSettings {
                 2,
                 1,
                 0,
-                Rotation2d.fromRotations(0)
+                0
         );
     }
 
@@ -31,7 +31,7 @@ public class Mk4Chassis implements ChassisSettings {
                 4,
                 3,
                 1,
-                Rotation2d.fromRotations(0)
+                0
         );
     }
 
@@ -44,7 +44,7 @@ public class Mk4Chassis implements ChassisSettings {
                 6,
                 5,
                 2,
-                Rotation2d.fromRotations(0)
+                0
         );
     }
 
@@ -57,7 +57,7 @@ public class Mk4Chassis implements ChassisSettings {
                 8,
                 7,
                 3,
-                Rotation2d.fromRotations(0)
+                0
         );
     }
 

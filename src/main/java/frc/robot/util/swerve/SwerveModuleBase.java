@@ -2,6 +2,7 @@ package frc.robot.util.swerve;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -12,13 +13,12 @@ import frc.robot.Constants;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.motor.MotorModel;
+import frc.robot.util.pid.DashTunableNumber;
 import frc.robot.util.pid.PIDConstantsAK;
 import frc.robot.util.swerve.config.ModuleSettings;
 import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.inputs.LoggableInputs;
-
-import java.util.function.Supplier;
 
 import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 import static frc.robot.Constants.Chassis.*;
@@ -36,19 +36,18 @@ import static frc.robot.Constants.Control.*;
  */
 public abstract class SwerveModuleBase implements LoggableInputs {
     private Rotation2d angleSetpoint = null;
-    private Rotation2d turnRelativeOffset = null;
     private Double speedSetpoint = null;
 
     private final SimpleMotorFeedforward driveFF;
     private final PIDController driveController;
     private final PIDController turnController;
+    private final DashTunableNumber offsetTune;
 
     private double drivePositionRad = 0.0;
     private double driveVelocityRadPerSec = 0.0;
     private double driveAppliedVolts = 0.0;
     private double driveCurrentAmps = 0.0;
-    private Rotation2d turnPosition = new Rotation2d();
-    private Rotation2d turnAbsolutePosition = new Rotation2d();
+    private double turnAbsolutePositionRad = 0.0;
     private double turnVelocityRadPerSec = 0.0;
     private double turnCurrentAmps = 0.0;
     private double turnAppliedVolts = 0.0;
@@ -56,14 +55,14 @@ public abstract class SwerveModuleBase implements LoggableInputs {
     private final FRCSparkMax driveMotor;
     private final FRCSparkMax turnMotor;
 
-    private final Rotation2d absOffset;
+    private double absOffsetRad;
 
     private RelativeEncoder driveEncoder;
     private RelativeEncoder turnEncoder;
 
     private final String name;
 
-    public abstract Rotation2d getAbsolutePosition();
+    public abstract double getAbsolutePositionRad();
 
     /**
      * Creates a new {@link SwerveModuleBase} instance using the specified parameters. The {@link CANSparkMax}
@@ -77,7 +76,8 @@ public abstract class SwerveModuleBase implements LoggableInputs {
         this.turnController = PIDConstantsAK.generateController(CHASSIS_MODE.getTurnPID());
         this.driveMotor = new FRCSparkMax(settings.getDriveID(), kBrushless, MotorModel.NEO);
         this.turnMotor = new FRCSparkMax(settings.getTurnID(), kBrushless, MotorModel.NEO);
-        this.absOffset = settings.getOffset();
+        this.absOffsetRad = settings.getOffset();
+        this.offsetTune = new DashTunableNumber(name + " Offset", 0);
 
         // TODO: make it a triple value like PIDConstantsAK if required.
         // TODO: make the values a constant
@@ -107,6 +107,8 @@ public abstract class SwerveModuleBase implements LoggableInputs {
     public void update() {
         driveEncoder = driveMotor.getEncoder();
         turnEncoder = turnMotor.getEncoder();
+        offsetTune.update();
+        absOffsetRad = offsetTune.getValue();
 
         ////////////////////////////////////////////// Update all the inputs inside this method.
         drivePositionRad = CHASSIS_MODE
@@ -122,10 +124,7 @@ public abstract class SwerveModuleBase implements LoggableInputs {
         driveAppliedVolts = driveMotor.getAppliedVoltage();
         driveCurrentAmps = driveMotor.getOutputCurrent();
 
-        turnAbsolutePosition = getAbsolutePosition().minus(absOffset);
-        turnPosition = CHASSIS_MODE
-                .getTurnRatio()
-                .getFollowerAngle(Rotation2d.fromRotations(turnEncoder.getPosition()));
+        turnAbsolutePositionRad = getAbsolutePositionRad() - absOffsetRad;
 
         turnVelocityRadPerSec = CHASSIS_MODE
                 .getTurnRatio()
@@ -137,11 +136,7 @@ public abstract class SwerveModuleBase implements LoggableInputs {
         //////////////////////////////////////////////////////////////////////////////////////
 
         Logger.processInputs("Drive/Module" + name, this);
-        Logger.recordOutput("Drive/Module" + name + "/RawTurnPos", getAbsolutePosition());
-
-        if (turnRelativeOffset == null && turnAbsolutePosition.getRadians() != 0.0) {
-            turnRelativeOffset = turnAbsolutePosition.minus(turnPosition);
-        }
+        Logger.recordOutput("Drive/Module" + name + "/RawTurnPos", getAbsolutePositionRad());
 
         // Run closed loop turn control
         if (angleSetpoint != null) {
@@ -160,11 +155,7 @@ public abstract class SwerveModuleBase implements LoggableInputs {
     }
 
     public Rotation2d getAngle() {
-        if (turnRelativeOffset == null) {
-            return new Rotation2d();
-        } else {
-            return turnPosition.plus(turnRelativeOffset);
-        }
+        return new Rotation2d(MathUtil.angleModulus(turnAbsolutePositionRad));
     }
 
     /**
@@ -270,8 +261,7 @@ public abstract class SwerveModuleBase implements LoggableInputs {
         table.put("DriveVelocityRadPerSec", this.driveVelocityRadPerSec);
         table.put("DriveAppliedVolts", this.driveAppliedVolts);
         table.put("DriveCurrentAmps", this.driveCurrentAmps);
-        table.put("TurnAbsolutePosition", this.turnAbsolutePosition);
-        table.put("TurnPosition", this.turnPosition);
+        table.put("TurnPosition", this.turnAbsolutePositionRad);
         table.put("TurnVelocityRadPerSec", this.turnVelocityRadPerSec);
         table.put("TurnCurrentAmps", this.turnCurrentAmps);
         table.put("TurnAppliedVolts", this.turnAppliedVolts);
@@ -288,8 +278,7 @@ public abstract class SwerveModuleBase implements LoggableInputs {
         this.driveVelocityRadPerSec = table.get("DriveVelocityRadPerSec", this.driveVelocityRadPerSec);
         this.driveAppliedVolts = table.get("DriveAppliedVolts", this.driveAppliedVolts);
         this.driveCurrentAmps = table.get("DriveCurrentAmps", this.driveCurrentAmps);
-        this.turnAbsolutePosition = table.get("TurnAbsolutePosition", this.turnAbsolutePosition);
-        this.turnPosition = table.get("TurnPosition", this.turnPosition);
+        this.turnAbsolutePositionRad = table.get("TurnPosition", this.turnAbsolutePositionRad);
         this.turnVelocityRadPerSec = table.get("TurnVelocityRadPerSec", this.turnVelocityRadPerSec);
         this.turnCurrentAmps = table.get("TurnCurrentAmps", this.turnCurrentAmps);
         this.turnAppliedVolts = table.get("TurnAppliedVolts", this.turnAppliedVolts);

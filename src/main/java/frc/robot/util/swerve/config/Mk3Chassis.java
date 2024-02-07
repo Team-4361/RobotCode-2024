@@ -15,7 +15,7 @@ public class Mk3Chassis implements ChassisSettings {
                 2,
                 1,
                 0,
-                Rotation2d.fromRotations(0)
+                3.09
         );
     }
 
@@ -28,7 +28,7 @@ public class Mk3Chassis implements ChassisSettings {
                 4,
                 3,
                 1,
-                Rotation2d.fromRotations(3.6)
+                3.9
         );
     }
 
@@ -41,7 +41,7 @@ public class Mk3Chassis implements ChassisSettings {
                 6,
                 5,
                 2,
-                Rotation2d.fromRotations(0)
+                -0.1
         );
     }
 
@@ -54,7 +54,7 @@ public class Mk3Chassis implements ChassisSettings {
                 8,
                 7,
                 3,
-                Rotation2d.fromRotations(2.2)
+                3.28
         );
     }
 

@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -115,9 +116,6 @@ public class Robot extends LoggedRobot {
         shooter = new ShooterSubsystem();
         index = new IndexSubsystem();
         wrist = new WristSubsystem();
-
-        wrist.put("One", 10.0);
-        wrist.put("Two", 40.0);
 
         swerve = new SwerveDriveSubsystem();
         frontCamera = new PhotonCameraModule("FrontCamera", Units.inchesToMeters(27), 0);
