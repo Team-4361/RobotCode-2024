@@ -11,7 +11,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
-import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -39,6 +38,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 import static frc.robot.Constants.Control.*;
+import static frc.robot.Constants.Debug.DEBUG_LOGGING_ENABLED;
 
 
 /**
@@ -184,7 +184,7 @@ public class Robot extends LoggedRobot {
                                 || !DriverStation.isJoystickConnected(2));
 
         IOManager.getAlert("Debug mode enabled", AlertType.INFO)
-                .setCondition(() -> DEBUG_ENABLED)
+                .setCondition(() -> DEBUG_LOGGING_ENABLED)
                 .setPersistent(true);
 
         if (!xboxOnly) {

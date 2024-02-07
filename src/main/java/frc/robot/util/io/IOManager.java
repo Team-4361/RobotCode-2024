@@ -17,12 +17,11 @@ import frc.robot.util.pid.DashTunablePID;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static frc.robot.Constants.AlertConfig.ALERT_PERIODIC_MS;
 import static frc.robot.Constants.AlertConfig.STRING_HIGH_PERIODIC_MS;
-import static frc.robot.Constants.Control.DEBUG_ENABLED;
+import static frc.robot.Constants.Debug.DEBUG_LOGGING_ENABLED;
 import static frc.robot.Constants.LooperConfig.*;
 
 /**
@@ -273,7 +272,7 @@ public class IOManager {
      * @param text   The {@link String} to broadcast.
      */
     public static void debug(Object sender, String text) {
-        if (DEBUG_ENABLED)
+        if (DEBUG_LOGGING_ENABLED)
             return;
         System.out.println(getLogHeader(sender, "DEBUG") + text);
     }

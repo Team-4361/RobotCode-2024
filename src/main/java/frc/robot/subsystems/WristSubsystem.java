@@ -10,6 +10,7 @@ import frc.robot.util.pid.PIDRotationalMechanism;
 import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.inputs.LoggableInputs;
 
+import static frc.robot.Constants.Debug.WRIST_TUNING_ENABLED;
 import static frc.robot.Constants.Wrist.*;
 
 /**
@@ -36,9 +37,14 @@ public class WristSubsystem extends PIDRotationalMechanism implements LoggableIn
                 WRIST_TURN_RATIO,
                 RotationUnit.DEGREES
         );
-
         this.linearServo = new Servo(WRIST_SERVO_ID);
-        linearServo.setBoundsMicroseconds(2000, 1500, 1500, 1500, 1000);
+        linearServo.setBoundsMicroseconds(
+                WRIST_MAX_US,
+                WRIST_DEAD_BAND_MAX_US,
+                WRIST_CENTER_US,
+                WRIST_DEAD_BAND_MIN_US,
+                WRIST_MIN_US
+        );
 
         CommandScheduler.getInstance().registerSubsystem(this);
     }

@@ -3,10 +3,12 @@ package frc.robot.subsystems;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.math.GearRatio;
 import frc.robot.util.motor.MotorModel;
+import frc.robot.util.pid.DashTunableNumber;
 import frc.robot.util.pid.PIDMechanismBase;
 import frc.robot.util.pid.PIDRotationalMechanism;
 import frc.robot.util.pid.PIDRotationalMechanism.RotationUnit;
-import frc.robot.util.pid.DashTunableNumber;
+
+import static frc.robot.Constants.Debug.INTAKE_TUNING_ENABLED;
 import static frc.robot.Constants.Intake.*;
 
 public class IntakeSubsystem extends SubsystemBase {

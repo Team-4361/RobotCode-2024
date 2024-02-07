@@ -7,6 +7,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.Servo;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.IDriveMode;
@@ -15,7 +16,6 @@ import frc.robot.util.pid.DashTunableNumber;
 import frc.robot.util.pid.PIDConstantsAK;
 import frc.robot.util.swerve.config.ChassisSettings;
 import frc.robot.util.swerve.config.Mk3Chassis;
-import frc.robot.util.swerve.config.Mk4Chassis;
 
 import java.util.function.Supplier;
 
@@ -32,8 +32,7 @@ import static frc.robot.Constants.LooperConfig.STRING_DASHBOARD_NAME;
  * @since 0.0.0
  */
 public class Constants {
-
-    public enum OperationMode { REAL, REPLAY, SIM}
+    public enum OperationMode { REAL, REPLAY, SIM }
 
     public static void runIfNotReplay(Runnable runnable) {
         if (Control.OP_MODE != OperationMode.REPLAY)
@@ -41,6 +40,19 @@ public class Constants {
     }
 
     public static boolean isReplay() { return Control.OP_MODE == OperationMode.REPLAY; }
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+    public static class Debug {
+        public static final boolean SWERVE_TUNING_ENABLED = false;
+        public static final boolean PHOTON_TUNING_ENABLED = false;
+        public static final boolean SHOOTER_TUNING_ENABLED = false;
+        public static final boolean DEBUG_LOGGING_ENABLED = false;
+        public static final boolean INDEX_TUNING_ENABLED = true;
+        public static final boolean INTAKE_TUNING_ENABLED = false;
+        public static final boolean WRIST_TUNING_ENABLED = false;
+    }
+
 
     /** This {@link Shooter} class represents all values regarding the {@link Robot}'s shooting mechanism. */
     public static class Shooter {
@@ -62,19 +74,11 @@ public class Constants {
         public static final double INDEX_KS = 0;
         public static final double INDEX_KV = 0;
         public static final double INDEX_KA = 0;
+        public static final int INDEX_SENSOR_PORT = 0;
+        public static final int INDEX_RPM = 5000;
 
-        public static final I2C.Port INDEX_SENSOR_PORT = I2C.Port.kMXP;
         public static final PIDConstantsAK INDEX_PID = new PIDConstantsAK(0.05, 0, 0);
 
-        public static final double RED_MINIMUM_TOLERANCE = 0;
-        public static final double RED_MAXIMUM_TOLERANCE = 100;
-        public static final double BLUE_MINIMUM_TOLERANCE = 0;
-        public static final double BLUE_MAXIMUM_TOLERANCE = 100;
-        public static final double GREEN_MINIMUM_TOLERANCE = 0;
-        public static final double GREEN_MAXIMUM_TOLERANCE = 100;
-        public static final double INDEX_RPM = 5000;
-
-        public static final boolean INDEX_TUNING_ENABLED = true;
     }
 
     /** This {@link Intake} class represents all values regarding the {@link Robot}'s in-taking mechanism. */
@@ -84,35 +88,26 @@ public class Constants {
         public static final double INTAKE_KV = 0.03;
         public static final double INTAKE_KA = 0;
         public static final int INTAKE_MOTOR_ID = 14;
-        public static final boolean INTAKE_TUNING_ENABLED = false;
         public static final boolean INTAKE_INVERTED = false;
         public static final PIDConstantsAK INTAKE_PID = new PIDConstantsAK(0.05, 0, 0);
     }
 
     public static class Wrist {
-        public static final int WRIST_MAX_POSITION = 1000; //percent servo travel to max hood position
-        public static final int WRIST_MIN_POSITION = 0; //percent servo travel to min hood position
-
-        //SERVO Parameters from https://s3.amazonaws.com/actuonix/Actuonix+L16+Datasheet.pdf
-        public static final int MAX_SERVO_PWM = 2000; //ms
-        public static final int MIN_SERVO_PWM = 1000; //ms
-        public static final int SERVO_RANGE = MAX_SERVO_PWM - MIN_SERVO_PWM;
-        public static final int CENTER_SERVO_PWM = 1000; //ms
-        public static final int SERVO_DEADBAND = 0; //ms - no deadband
-
-        // pwm values in ms for the max and min angles of the shooter hood
-        public static final int WRIST_MAX_PWM = MIN_SERVO_PWM + (SERVO_RANGE * WRIST_MAX_POSITION);
-        public static final int WRIST_MIN_PWM = MIN_SERVO_PWM + (SERVO_RANGE * WRIST_MIN_POSITION);
-
+        public static final int WRIST_MAX_US = 2000;
+        public static final int WRIST_DEAD_BAND_MAX_US = 1500;
+        public static final int WRIST_CENTER_US = 1500;
+        public static final int WRIST_DEAD_BAND_MIN_US = 1500;
+        public static final int WRIST_MIN_US = 1000;
 
         public static final int WRIST_MOTOR_ID = 15;
         public static final int WRIST_SERVO_ID = 0;
         public static final double WRIST_KS = 0;
         public static final double WRIST_KV = 0;
         public static final double WRIST_KA = 0;
-        public static final boolean WRIST_TUNING_ENABLED = false;
+
         public static final boolean WRIST_INVERTED = false;
         public static final double WRIST_SERVO_MAX_MM = 50;
+
         public static final GearRatio WRIST_TURN_RATIO = GearRatio.from(63, 1);
         public static final PIDConstantsAK WRIST_PID = new PIDConstantsAK(0.02, 0, 0);
     }
@@ -137,14 +132,21 @@ public class Constants {
                 DriveMode.SLOW_MODE
         };
 
-        public static final boolean SWERVE_TUNING_ENABLED = false;
-        public static final boolean PHOTON_TUNING_ENABLED = false;
-        public static final boolean SHOOTER_TUNING_ENABLED = false;
-
-        public static final DashTunableNumber PHOTON_TURN_MAX_SPEED = new DashTunableNumber("Photon Turn Speed", 0.2, false);
-        public static final DashTunableNumber PHOTON_DISTANCE = new DashTunableNumber("Photon Distance", 1, false);
-        public static final DashTunableNumber PHOTON_DRIVE_MAX_SPEED = new DashTunableNumber("Photon Max Speed", 0.5, false);
-        public static final boolean DEBUG_ENABLED = false;
+        public static final DashTunableNumber PHOTON_TURN_MAX_SPEED = new DashTunableNumber(
+                "Photon: Turn Speed",
+                0.2,
+                false
+        );
+        public static final DashTunableNumber PHOTON_DISTANCE = new DashTunableNumber(
+                "Photon: Distance",
+                1,
+                false
+        );
+        public static final DashTunableNumber PHOTON_DRIVE_MAX_SPEED = new DashTunableNumber(
+                "Photon: Max Speed",
+                0.5,
+                false
+        );
 
         static {
             IOManager.initLoop(STRING_PERIODIC_NAME, PERIODIC_INTERVAL);

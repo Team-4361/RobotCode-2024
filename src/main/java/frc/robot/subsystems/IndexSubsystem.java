@@ -1,8 +1,10 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.ColorSensorV3;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.util.math.ExtendedMath;
 import frc.robot.util.math.GearRatio;
 import frc.robot.util.motor.MotorModel;
@@ -14,19 +16,18 @@ import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.inputs.LoggableInputs;
 
+import static frc.robot.Constants.Debug.INDEX_TUNING_ENABLED;
 import static frc.robot.Constants.Indexer.*;
 
 public class IndexSubsystem extends SubsystemBase implements LoggableInputs {
     private final PIDMechanismBase leftWheel;
     private final PIDMechanismBase rightWheel;
-    private final ColorSensorV3 sensor;
+    private final DigitalInput sensor;
     private final DashTunableNumber indexTune;
-    private double targetRPM = INDEX_RPM;
+    private double targetRPM = 5000;
     private boolean stopped = true;
 
-    private double redValue = 0.0;
-    private double greenValue = 0.0;
-    private double blueValue = 0.0;
+    private boolean sensorActivated = false;
 
     public IndexSubsystem() {
         String tuneName = INDEX_TUNING_ENABLED ? "Index: PID" : "";
@@ -56,7 +57,7 @@ public class IndexSubsystem extends SubsystemBase implements LoggableInputs {
                 RotationUnit.ROTATIONS
         );
 
-        sensor = new ColorSensorV3(INDEX_SENSOR_PORT);
+        sensor = new DigitalInput(INDEX_SENSOR_PORT);
 
         if (INDEX_TUNING_ENABLED) {
             indexTune = new DashTunableNumber("Index: Speed", INDEX_RPM);
@@ -75,14 +76,12 @@ public class IndexSubsystem extends SubsystemBase implements LoggableInputs {
     public void periodic() {
         leftWheel.update();
         rightWheel.update();
+
         if (indexTune != null && !stopped)
             indexTune.update();
 
-        if (!RobotBase.isSimulation()) {
-            redValue = sensor.getRed();
-            greenValue = sensor.getGreen();
-            blueValue = sensor.getBlue();
-        }
+        if (!RobotBase.isSimulation() && !Constants.isReplay())
+            sensorActivated = sensor.get();
 
         Logger.processInputs("Index", this);
     }
@@ -99,11 +98,7 @@ public class IndexSubsystem extends SubsystemBase implements LoggableInputs {
     /** Stops the {@link IndexSubsystem} from spinning. */
     public void stop() { leftWheel.stop(); rightWheel.stop(); stopped = true; }
 
-    public boolean hasNote() {
-        return ExtendedMath.inRange(redValue, RED_MINIMUM_TOLERANCE, RED_MAXIMUM_TOLERANCE) &&
-                ExtendedMath.inRange(greenValue, GREEN_MINIMUM_TOLERANCE, GREEN_MAXIMUM_TOLERANCE) &&
-                ExtendedMath.inRange(blueValue, BLUE_MINIMUM_TOLERANCE, BLUE_MAXIMUM_TOLERANCE);
-    }
+    public boolean hasNote() { return sensorActivated; }
 
     /**
      * Updates a LogTable with the data to log.
@@ -112,9 +107,7 @@ public class IndexSubsystem extends SubsystemBase implements LoggableInputs {
      */
     @Override
     public void toLog(LogTable table) {
-        table.put("Red", redValue);
-        table.put("Green", greenValue);
-        table.put("Blue", blueValue);
+        table.put("SensorActivated", sensorActivated);
     }
 
     /**
@@ -124,8 +117,6 @@ public class IndexSubsystem extends SubsystemBase implements LoggableInputs {
      */
     @Override
     public void fromLog(LogTable table) {
-        this.redValue = table.get("Red", redValue);
-        this.greenValue = table.get("Green", greenValue);
-        this.blueValue = table.get("Blue", blueValue);
+        this.sensorActivated = table.get("SensorActivated", sensorActivated);
     }
 }

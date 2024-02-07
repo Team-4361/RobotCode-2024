@@ -9,7 +9,7 @@ import frc.robot.util.pid.PIDMechanismBase;
 import frc.robot.util.pid.PIDRotationalMechanism;
 import frc.robot.util.pid.PIDRotationalMechanism.RotationUnit;
 
-import static frc.robot.Constants.Control.SHOOTER_TUNING_ENABLED;
+import static frc.robot.Constants.Debug.SHOOTER_TUNING_ENABLED;
 import static frc.robot.Constants.Shooter.*;
 
 /**
