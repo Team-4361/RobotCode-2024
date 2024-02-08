@@ -38,7 +38,7 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
 
     // All INPUT values are logged here!
     private double targetValue = 0.0;
-    private boolean rpmControl = false;
+    private final boolean rpmControl;
     private double velocityRPM = 0.0;
     private double appliedVolts = 0.0;
     private double currentAmps = 0.0;
@@ -267,7 +267,6 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
     @Override
     public void toLog(LogTable table) {
         table.put("TargetValue", this.targetValue);
-        table.put("RPMControl", this.rpmControl);
         table.put("VelocityRPM", this.velocityRPM);
         table.put("AppliedVolts", this.appliedVolts);
         table.put("CurrentAmps", this.currentAmps);
@@ -287,7 +286,6 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
     @Override
     public void fromLog(LogTable table) {
         this.targetValue         = table.get("TargetValue", this.targetValue);
-        this.rpmControl          = table.get("RPMControl", this.rpmControl);
         this.velocityRPM         = table.get("VelocityRPM", this.velocityRPM);
         this.appliedVolts        = table.get("AppliedVolts", this.appliedVolts);
         this.currentAmps         = table.get("CurrentAmps", this.currentAmps);

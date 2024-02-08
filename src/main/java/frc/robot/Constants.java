@@ -79,13 +79,13 @@ public class Constants {
 
     /** This {@link Intake} class represents all values regarding the {@link Robot}'s in-taking mechanism. */
     public static class Intake {
-        public static final double INTAKE_RPM = 2500;
+        public static final double INTAKE_RPM = 1500;
         public static final double INTAKE_KS = 0;
         public static final double INTAKE_KV = 0;
         public static final double INTAKE_KA = 0;
         public static final int INTAKE_MOTOR_ID = 14;
         public static final boolean INTAKE_INVERTED = false;
-        public static final PIDConstantsAK INTAKE_PID = new PIDConstantsAK(0.1, 0, 0);
+        public static final PIDConstantsAK INTAKE_PID = new PIDConstantsAK(0.02, 0, 0);
     }
 
     public static class Wrist {
