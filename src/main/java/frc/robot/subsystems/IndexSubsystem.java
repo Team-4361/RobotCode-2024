@@ -1,11 +1,9 @@
 package frc.robot.subsystems;
 
-import com.revrobotics.ColorSensorV3;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.util.math.ExtendedMath;
 import frc.robot.util.math.GearRatio;
 import frc.robot.util.motor.MotorModel;
 import frc.robot.util.pid.DashTunableNumber;
@@ -24,7 +22,7 @@ public class IndexSubsystem extends SubsystemBase implements LoggableInputs {
     private final PIDMechanismBase rightWheel;
     private final DigitalInput sensor;
     private final DashTunableNumber indexTune;
-    private double targetRPM = 5000;
+    private double targetSpeed = 0.4;
     private boolean stopped = true;
 
     private boolean sensorActivated = false;
@@ -41,7 +39,8 @@ public class IndexSubsystem extends SubsystemBase implements LoggableInputs {
                 "LeftIndexer",
                 tuneName,
                 GearRatio.DIRECT_DRIVE,
-                RotationUnit.ROTATIONS
+                RotationUnit.ROTATIONS,
+                true
         );
 
         rightWheel = new PIDRotationalMechanism(
@@ -54,20 +53,24 @@ public class IndexSubsystem extends SubsystemBase implements LoggableInputs {
                 "RightIndexer",
                 tuneName,
                 GearRatio.DIRECT_DRIVE,
-                RotationUnit.ROTATIONS
+                RotationUnit.ROTATIONS,
+                true
         );
+
+        leftWheel.setPIDControlSupplier(() -> false);
+        rightWheel.setPIDControlSupplier(() -> false);
 
         sensor = new DigitalInput(INDEX_SENSOR_PORT);
 
         if (INDEX_TUNING_ENABLED) {
-            indexTune = new DashTunableNumber("Index: Speed", INDEX_RPM);
-            indexTune.addConsumer(this::setTargetRPM);
+            indexTune = new DashTunableNumber("Index: Speed", INDEX_SPEED);
+            indexTune.addConsumer(this::setTargetSpeed);
         } else {
             indexTune = null;
         }
     }
 
-    public void setTargetRPM(double rpm) { this.targetRPM = rpm; }
+    public void setTargetSpeed(double rpm) { this.targetSpeed = rpm; }
 
     /** @return If the {@link IndexSubsystem} is at target. */
     public boolean atTarget() { return leftWheel.atTarget() && rightWheel.atTarget(); }
@@ -90,9 +93,9 @@ public class IndexSubsystem extends SubsystemBase implements LoggableInputs {
      * Sets the target of the {@link IndexSubsystem}.
      */
     public void start() {
-        leftWheel.setTarget(targetRPM, true);
-        rightWheel.setTarget(targetRPM, true);
-        stopped = targetRPM == 0;
+        leftWheel.translateMotor(targetSpeed);
+        rightWheel.translateMotor(targetSpeed);
+        stopped = targetSpeed == 0;
     }
 
     /** Stops the {@link IndexSubsystem} from spinning. */

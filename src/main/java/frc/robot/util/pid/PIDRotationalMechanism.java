@@ -35,8 +35,9 @@ public class PIDRotationalMechanism extends PIDMechanismBase {
                                   String moduleName,
                                   String tuneName,
                                   GearRatio ratio,
-                                  RotationUnit unit) {
-        super(motorId, constants, kS, kV, kA, model, moduleName, tuneName);
+                                  RotationUnit unit,
+                                  boolean rpmControl) {
+        super(motorId, constants, kS, kV, kA, model, moduleName, tuneName, rpmControl);
         this.ratio = ratio;
         this.unit = unit;
     }

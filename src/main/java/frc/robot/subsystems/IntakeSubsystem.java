@@ -29,7 +29,8 @@ public class IntakeSubsystem extends SubsystemBase {
                 "Intake",
                 tuneName,
                 GearRatio.DIRECT_DRIVE,
-                RotationUnit.ROTATIONS
+                RotationUnit.ROTATIONS,
+                true
         );
         if (INTAKE_TUNING_ENABLED) {
             intakeTune = new DashTunableNumber("Intake: Speed", INTAKE_RPM);
@@ -54,7 +55,7 @@ public class IntakeSubsystem extends SubsystemBase {
     /**
      * Sets the target of the {@link IndexSubsystem}.
      */
-    public void setTarget(double rpm) { intakeWheel.setTarget(INTAKE_INVERTED ? -rpm: rpm, true); }
+    public void setTarget(double rpm) { intakeWheel.setTarget(INTAKE_INVERTED ? -rpm: rpm); }
 
     public void start() {
         intakeWheel.setTarget(targetRPM);

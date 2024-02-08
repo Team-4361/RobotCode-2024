@@ -242,11 +242,15 @@ public class Robot extends LoggedRobot {
                 () -> Robot.shooter.stop()
         ));
 
-        xbox.x().onTrue(Commands.runOnce(() -> Robot.wrist.setPreset(0)));
-        xbox.y().onTrue(Commands.runOnce(() -> Robot.wrist.setPreset(1)));
+        xbox.y().whileTrue(Commands.runEnd(
+                () -> Robot.intake.start(),
+                () -> Robot.intake.stop()
+        ));
 
-        xbox.rightBumper().onTrue(Commands.runOnce(() -> Robot.wrist.setExtensionTarget(50)));
-        xbox.leftBumper().onTrue(Commands.runOnce(() -> Robot.wrist.setExtensionTarget(0)));
+        xbox.b().whileTrue(Commands.runEnd(
+                () -> Robot.index.start(),
+                () -> Robot.index.stop()
+        ));
     }
 
 
@@ -290,6 +294,5 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void teleopPeriodic() {
-        Robot.wrist.translateMotor(ExtendedMath.deadband(xbox.getLeftY()));
     }
 }
