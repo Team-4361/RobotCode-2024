@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
+import static frc.robot.Constants.Climber.CLIMBER_PRESETS;
 import static frc.robot.Constants.Control.*;
 import static frc.robot.Constants.Debug.DEBUG_LOGGING_ENABLED;
 
@@ -59,6 +60,7 @@ public class Robot extends LoggedRobot {
     public static IntakeSubsystem intake;
     public static IndexSubsystem index;
     public static WristSubsystem wrist;
+    public static ClimberSubsystem climber;
 
 
     /**
@@ -116,6 +118,7 @@ public class Robot extends LoggedRobot {
         shooter = new ShooterSubsystem();
         index = new IndexSubsystem();
         wrist = new WristSubsystem();
+        climber = new ClimberSubsystem(CLIMBER_PRESETS);
 
         swerve = new SwerveDriveSubsystem();
         frontCamera = new PhotonCameraModule("FrontCamera", Units.inchesToMeters(27), 0);
@@ -251,6 +254,9 @@ public class Robot extends LoggedRobot {
                 () -> Robot.index.start(),
                 () -> Robot.index.stop()
         ));
+
+        xbox.leftBumper().onTrue(Commands.runOnce(() -> Robot.climber.setPreset(0)));
+        xbox.rightBumper().onTrue(Commands.runOnce(() -> Robot.climber.setPreset(1)));
     }
 
 

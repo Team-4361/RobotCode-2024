@@ -11,13 +11,16 @@ import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.IDriveMode;
 import frc.robot.util.math.GearRatio;
+import frc.robot.util.math.PeakMotorDistance;
 import frc.robot.util.pid.DashTunableNumber;
 import frc.robot.util.pid.PIDConstantsAK;
 import frc.robot.util.swerve.config.ChassisSettings;
 import frc.robot.util.swerve.config.Mk4Chassis;
 
+import java.util.LinkedHashMap;
 import java.util.function.Supplier;
 
+import static edu.wpi.first.units.Units.Inches;
 import static frc.robot.Constants.LooperConfig.*;
 import static frc.robot.Constants.LooperConfig.STRING_DASHBOARD_NAME;
 
@@ -45,12 +48,12 @@ public class Constants {
     public static class Debug {
         public static final boolean SWERVE_TUNING_ENABLED = false;
         public static final boolean PHOTON_TUNING_ENABLED = false;
-        public static final boolean SHOOTER_TUNING_ENABLED = true;
+        public static final boolean SHOOTER_TUNING_ENABLED = false;
         public static final boolean DEBUG_LOGGING_ENABLED = false;
-        public static final boolean INDEX_TUNING_ENABLED = true;
-        public static final boolean INTAKE_TUNING_ENABLED = true;
+        public static final boolean INDEX_TUNING_ENABLED = false;
+        public static final boolean INTAKE_TUNING_ENABLED = false;
         public static final boolean WRIST_TUNING_ENABLED = false;
-        public static final boolean CLIMBER_TUNING_ENABLED = false;
+        public static final boolean CLIMBER_TUNING_ENABLED = true;
     }
 
 
@@ -117,7 +120,13 @@ public class Constants {
         public static final double CLIMB_KV = 0;
         public static final double CLIMB_KA = 0;
         public static final PIDConstantsAK CLIMB_PID = new PIDConstantsAK(0.05, 0 , 0);
+        public static final PeakMotorDistance MAX_DISTANCE = new PeakMotorDistance(Inches.of(24.5), 100);
 
+        public static final LinkedHashMap<String, Double> CLIMBER_PRESETS = new LinkedHashMap<>();
+        static {
+            CLIMBER_PRESETS.put("Zero", 0.0);
+            CLIMBER_PRESETS.put("Top", 24.5);
+        }
     }
 
     public static class Control {

@@ -17,7 +17,7 @@ import static frc.robot.Constants.Debug.INTAKE_TUNING_ENABLED;
 import static frc.robot.Constants.Indexer.INDEX_SENSOR_PORT;
 import static frc.robot.Constants.Intake.*;
 
-public class IntakeSubsystem extends SubsystemBase {
+public class IntakeSubsystem extends SubsystemBase implements LoggableInputs {
     private final PIDMechanismBase intakeWheel;
     private final DigitalInput sensor;
     private boolean sensorActivated = false;
