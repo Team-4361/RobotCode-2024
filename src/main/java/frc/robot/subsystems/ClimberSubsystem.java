@@ -13,7 +13,6 @@ import static frc.robot.Constants.Climber.*;
 public class ClimberSubsystem extends SubsystemBase {
     private final PIDMechanismBase leftClimbMotor;
     private final PIDMechanismBase rightClimbMotor;
-    private final DashTunableNumber climbTune;
     //private final targetRPM = ;
     private final boolean stopped = true;
 
