@@ -12,9 +12,18 @@ import frc.robot.util.motor.IMotorModel;
 public class PIDLinearMechanism extends PIDMechanismBase {
     private final PeakMotorDistance maxDistance;
     private final DistanceUnit unit;
+    private boolean tuneMode;
 
     public enum DistanceUnit { FEET, METERS, INCHES }
 
+    public void setTuneMode (boolean enable){
+
+        setPIDControlSupplier(()->enable);
+        tuneMode = enable;
+    }
+    public boolean getTuneMode (){
+        return tuneMode;
+    }
 
     private double convertUnits(double motorRotations) {
         double distanceMeters = maxDistance.rotationToMeters(motorRotations);
@@ -64,6 +73,9 @@ public class PIDLinearMechanism extends PIDMechanismBase {
      */
     @Override
     protected double getCurrentPosition(double motorRotations) {
+        if (tuneMode){
+            return motorRotations;
+        }
         return convertUnits(maxDistance.rotationToMeters(motorRotations));
     }
 }
