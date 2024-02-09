@@ -19,15 +19,13 @@ import org.littletonrobotics.junction.inputs.LoggableInputs;
 import static frc.robot.Constants.Debug.INDEX_TUNING_ENABLED;
 import static frc.robot.Constants.Indexer.*;
 
-public class IndexSubsystem extends SubsystemBase implements LoggableInputs {
+public class IndexSubsystem extends SubsystemBase {
     private final PIDMechanismBase leftWheel;
     private final PIDMechanismBase rightWheel;
-    private final DigitalInput sensor;
     private final DashTunableNumber indexTune;
     private double targetRPM = 5000;
     private boolean stopped = true;
 
-    private boolean sensorActivated = false;
 
     public IndexSubsystem() {
         String tuneName = INDEX_TUNING_ENABLED ? "Index: PID" : "";
@@ -57,8 +55,6 @@ public class IndexSubsystem extends SubsystemBase implements LoggableInputs {
                 RotationUnit.ROTATIONS
         );
 
-        sensor = new DigitalInput(INDEX_SENSOR_PORT);
-
         if (INDEX_TUNING_ENABLED) {
             indexTune = new DashTunableNumber("Index: Speed", INDEX_RPM);
             indexTune.addConsumer(this::setTargetRPM);
@@ -80,10 +76,6 @@ public class IndexSubsystem extends SubsystemBase implements LoggableInputs {
         if (indexTune != null && !stopped)
             indexTune.update();
 
-        if (!RobotBase.isSimulation() && !Constants.isReplay())
-            sensorActivated = sensor.get();
-
-        Logger.processInputs("Index", this);
     }
 
     /**
@@ -97,26 +89,7 @@ public class IndexSubsystem extends SubsystemBase implements LoggableInputs {
 
     /** Stops the {@link IndexSubsystem} from spinning. */
     public void stop() { leftWheel.stop(); rightWheel.stop(); stopped = true; }
-
-    public boolean hasNote() { return sensorActivated; }
-
-    /**
-     * Updates a LogTable with the data to log.
-     *
-     * @param table The {@link LogTable} which is provided.
-     */
-    @Override
-    public void toLog(LogTable table) {
-        table.put("SensorActivated", sensorActivated);
-    }
-
-    /**
-     * Updates data based on a LogTable.
-     *
-     * @param table The {@link LogTable} which is provided.
-     */
-    @Override
-    public void fromLog(LogTable table) {
-        this.sensorActivated = table.get("SensorActivated", sensorActivated);
-    }
 }
+
+
+

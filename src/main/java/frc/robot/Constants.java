@@ -1,5 +1,6 @@
 package frc.robot;
 
+import com.pathplanner.lib.util.PIDConstants;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -51,6 +52,7 @@ public class Constants {
         public static final boolean INDEX_TUNING_ENABLED = true;
         public static final boolean INTAKE_TUNING_ENABLED = false;
         public static final boolean WRIST_TUNING_ENABLED = false;
+        public static final boolean CLIMBER_TUNING_ENABLED = false;
     }
 
 
@@ -110,6 +112,16 @@ public class Constants {
 
         public static final GearRatio WRIST_TURN_RATIO = GearRatio.from(63, 1);
         public static final PIDConstantsAK WRIST_PID = new PIDConstantsAK(0.02, 0, 0);
+    }
+
+    public static class Climber{
+        public static final int LEFT_CLIMB_MOTOR_ID = 16;
+        public static final int RIGHT_CLIMB_MOTOR_ID = 17;
+        public static final double CLIMB_KS = 0;
+        public static final double CLIMB_KV = 0;
+        public static final double CLIMB_KA = 0;
+        public static final PIDConstantsAK CLIMB_PID = new PIDConstantsAK(0.05, 0 , 0);
+
     }
 
     public static class Control {

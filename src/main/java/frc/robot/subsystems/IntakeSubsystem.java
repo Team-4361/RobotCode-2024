@@ -1,18 +1,26 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.util.math.GearRatio;
 import frc.robot.util.motor.MotorModel;
 import frc.robot.util.pid.DashTunableNumber;
 import frc.robot.util.pid.PIDMechanismBase;
 import frc.robot.util.pid.PIDRotationalMechanism;
 import frc.robot.util.pid.PIDRotationalMechanism.RotationUnit;
-
+import org.littletonrobotics.junction.LogTable;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.inputs.LoggableInputs;
 import static frc.robot.Constants.Debug.INTAKE_TUNING_ENABLED;
+import static frc.robot.Constants.Indexer.INDEX_SENSOR_PORT;
 import static frc.robot.Constants.Intake.*;
 
 public class IntakeSubsystem extends SubsystemBase {
     private final PIDMechanismBase intakeWheel;
+    private final DigitalInput sensor;
+    private boolean sensorActivated = false;
     private final DashTunableNumber intakeTune;
     private double targetRPM = INTAKE_RPM;
     private boolean stopped = true;
@@ -31,6 +39,7 @@ public class IntakeSubsystem extends SubsystemBase {
                 GearRatio.DIRECT_DRIVE,
                 RotationUnit.ROTATIONS
         );
+        sensor = new DigitalInput(INDEX_SENSOR_PORT);
         if (INTAKE_TUNING_ENABLED) {
             intakeTune = new DashTunableNumber("Intake: Speed", INTAKE_RPM);
             intakeTune.addConsumer(this::setTargetRPM);
@@ -38,6 +47,8 @@ public class IntakeSubsystem extends SubsystemBase {
             intakeTune = null;
         }
     }
+
+
 
     public void setTargetRPM(double rpm) { this.targetRPM = rpm; }
 
@@ -49,6 +60,11 @@ public class IntakeSubsystem extends SubsystemBase {
         intakeWheel.update();
         if (intakeTune != null && !stopped)
             intakeTune.update();
+
+        if (!RobotBase.isSimulation() && !Constants.isReplay())
+            sensorActivated = sensor.get();
+
+        Logger.processInputs("Index", this);
     }
 
     /**
@@ -63,4 +79,30 @@ public class IntakeSubsystem extends SubsystemBase {
 
     /** Stops the {@link IndexSubsystem} from spinning. */
     public void stop() { intakeWheel.stop(); stopped = true; }
+
+    public boolean hasNote() { return sensorActivated; }
+
+    /**
+     * Updates a LogTable with the data to log.
+     *
+     * @param table The {@link LogTable} which is provided.
+     */
+    @Override
+    public void toLog(LogTable table) {
+        table.put("SensorActivated", sensorActivated);
+    }
+
+    /**
+     * Updates data based on a LogTable.
+     *
+     * @param table The {@link LogTable} which is provided.
+     */
+    @Override
+    public void fromLog(LogTable table) {
+        this.sensorActivated = table.get("SensorActivated", sensorActivated);
+    }
 }
+
+
+
+
