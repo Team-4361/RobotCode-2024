@@ -1,18 +1,12 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
 import frc.robot.util.math.GearRatio;
 import frc.robot.util.motor.MotorModel;
 import frc.robot.util.pid.DashTunableNumber;
 import frc.robot.util.pid.PIDMechanismBase;
 import frc.robot.util.pid.PIDRotationalMechanism;
 import frc.robot.util.pid.PIDRotationalMechanism.RotationUnit;
-import org.littletonrobotics.junction.LogTable;
-import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.inputs.LoggableInputs;
 
 import static frc.robot.Constants.Debug.INDEX_TUNING_ENABLED;
 import static frc.robot.Constants.Indexer.*;
@@ -57,8 +51,6 @@ public class IndexSubsystem extends SubsystemBase {
 
         leftWheel.setPIDControlSupplier(() -> false);
         rightWheel.setPIDControlSupplier(() -> false);
-
-        sensor = new DigitalInput(INDEX_SENSOR_PORT);
 
         if (INDEX_TUNING_ENABLED) {
             indexTune = new DashTunableNumber("Index: Speed", INDEX_SPEED);

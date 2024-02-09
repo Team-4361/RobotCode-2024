@@ -18,8 +18,9 @@ public class PIDLinearMechanism extends PIDMechanismBase {
 
     public void setTuneMode (boolean enable){
 
-        setPIDControlSupplier(()->enable);
+        setPIDControlSupplier(()->!enable);
         tuneMode = enable;
+
     }
     public boolean getTuneMode (){
         return tuneMode;

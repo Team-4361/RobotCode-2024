@@ -53,7 +53,7 @@ public class Constants {
         public static final boolean INDEX_TUNING_ENABLED = false;
         public static final boolean INTAKE_TUNING_ENABLED = false;
         public static final boolean WRIST_TUNING_ENABLED = false;
-        public static final boolean CLIMBER_TUNING_ENABLED = true;
+        public static final boolean CLIMBER_TUNING_ENABLED = false;
     }
 
 
@@ -120,7 +120,7 @@ public class Constants {
         public static final double CLIMB_KV = 0;
         public static final double CLIMB_KA = 0;
         public static final PIDConstantsAK CLIMB_PID = new PIDConstantsAK(0.05, 0 , 0);
-        public static final PeakMotorDistance MAX_DISTANCE = new PeakMotorDistance(Inches.of(24.5), 100);
+        public static final PeakMotorDistance MAX_DISTANCE = new PeakMotorDistance(Inches.of(24.5), 10);
 
         public static final LinkedHashMap<String, Double> CLIMBER_PRESETS = new LinkedHashMap<>();
         static {
