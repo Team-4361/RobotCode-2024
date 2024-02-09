@@ -49,8 +49,9 @@ public class PIDLinearMechanism extends PIDMechanismBase {
                               String moduleName,
                               String tuneName,
                               DistanceUnit unit,
-                              PeakMotorDistance maxDistance) {
-        super(motorId, constants, kS, kV, kA, model, moduleName, tuneName);
+                              PeakMotorDistance maxDistance,
+                              boolean rpmControl) {
+        super(motorId, constants, kS, kV, kA, model, moduleName, tuneName, rpmControl);
         this.unit = unit;
         this.maxDistance = maxDistance;
 

@@ -36,7 +36,8 @@ public class ShooterSubsystem extends SubsystemBase {
                 "LeftShooter",
                 tuneName,
                 GearRatio.DIRECT_DRIVE,
-                RotationUnit.ROTATIONS
+                RotationUnit.ROTATIONS,
+                true
         );
         this.rightWheel = new PIDRotationalMechanism(
                 RIGHT_SHOOTER_MOTOR_ID,
@@ -48,7 +49,8 @@ public class ShooterSubsystem extends SubsystemBase {
                 "RightShooter",
                 tuneName,
                 GearRatio.DIRECT_DRIVE,
-                RotationUnit.ROTATIONS
+                RotationUnit.ROTATIONS,
+                true
         );
 
         leftWheel.setTolerance(SHOOT_RPM_TOLERANCE);
@@ -79,8 +81,8 @@ public class ShooterSubsystem extends SubsystemBase {
      * Sets the target of the {@link ShooterSubsystem} to the Shoot RPM.
      */
     public void start() {
-        leftWheel.setTarget(targetRPM, true);
-        rightWheel.setTarget(-targetRPM, true);
+        leftWheel.setTarget(targetRPM);
+        rightWheel.setTarget(targetRPM);
         stopped = targetRPM == 0;
     }
 

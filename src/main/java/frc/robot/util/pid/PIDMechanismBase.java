@@ -6,6 +6,8 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.Constants;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.math.ExtendedMath;
@@ -36,7 +38,7 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
 
     // All INPUT values are logged here!
     private double targetValue = 0.0;
-    private boolean rpmControl = false;
+    private final boolean rpmControl;
     private double velocityRPM = 0.0;
     private double appliedVolts = 0.0;
     private double currentAmps = 0.0;
@@ -79,13 +81,16 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
                             double kA,
                             IMotorModel model,
                             String moduleName,
-                            String tuneName) {
+                            String tuneName,
+                            boolean rpmControl) {
 
         super(moduleName, tuneName != null && !tuneName.isBlank());
+
 
         this.motor = new FRCSparkMax(motorId, kBrushless, model);
         this.feedFwd = new SimpleMotorFeedforward(kS, kV, kA);
         this.controller = PIDConstantsAK.generateController(constants);
+        this.rpmControl = rpmControl;
 
         this.encoder = motor.getEncoder();
         this.moduleName = moduleName;
@@ -239,11 +244,13 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
      * @param power A motor power from -1.0 to +1.0 to spin the motor.
      */
     public void translateMotor(double power) {
-        if (DriverStation.isTeleop()) {
+        if (rpmControl || !pidEnabled) {
+            motor.set(getLimitAdjustedPower(power));
+        } else if (DriverStation.isTeleop()) {
             if (power == 0 && teleopMode) {
                 // Set the target angle to the current rotations to freeze the value and prevent the PIDController from
                 // automatically adjusting to the previous value.
-                setTarget(currentPosition, false);
+                setTarget(currentPosition);
                 teleopMode = false;
             }
             if (power != 0 && !teleopMode)
@@ -260,7 +267,6 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
     @Override
     public void toLog(LogTable table) {
         table.put("TargetValue", this.targetValue);
-        table.put("RPMControl", this.rpmControl);
         table.put("VelocityRPM", this.velocityRPM);
         table.put("AppliedVolts", this.appliedVolts);
         table.put("CurrentAmps", this.currentAmps);
@@ -280,7 +286,6 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
     @Override
     public void fromLog(LogTable table) {
         this.targetValue         = table.get("TargetValue", this.targetValue);
-        this.rpmControl          = table.get("RPMControl", this.rpmControl);
         this.velocityRPM         = table.get("VelocityRPM", this.velocityRPM);
         this.appliedVolts        = table.get("AppliedVolts", this.appliedVolts);
         this.currentAmps         = table.get("CurrentAmps", this.currentAmps);
@@ -296,26 +301,21 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
     /**
      * Sets the target of the {@link PIDMechanismBase}.
      * @param value      The value to use.
-     * @param rpmControl If the value indicates RPM or position.
      */
-    public void setTarget(double value, boolean rpmControl) {
+    public void setTarget(double value) {
         if (!rpmControl) {
             if (forwardLimit != Double.MAX_VALUE) value = Math.min(value, forwardLimit - 0.1); // Enforce forward limit
             if (reverseLimit != Double.MIN_VALUE) value = Math.max(value, reverseLimit + 0.1); // Enforce reverse limit
         }
-        if (rpmControl != this.rpmControl)
-            controller.reset(); // reset the controller when switching between position and RPM control.
-
-        this.rpmControl = rpmControl;
         this.targetValue = value;
     }
 
-    /**
-     * Sets the target of the {@link PIDMechanismBase} while retaining the current RPM/Position mode.
-     * @param value The value to use.
-     */
-    public void setTarget(double value) { setTarget(value, this.rpmControl); }
-
     /** Stops the {@link PIDMechanismBase} from spinning. */
-    public void stop() { setTarget(0, true); }
+    public void stop() {
+        if (!pidEnabled) {
+            translateMotor(0);
+        } else {
+            setTarget(0);
+        }
+    }
 }

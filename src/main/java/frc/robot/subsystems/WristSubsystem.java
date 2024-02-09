@@ -35,7 +35,8 @@ public class WristSubsystem extends PIDRotationalMechanism implements LoggableIn
                 "Wrist",
                 WRIST_TUNING_ENABLED ? "Wrist: PID" : "",
                 WRIST_TURN_RATIO,
-                RotationUnit.DEGREES
+                RotationUnit.DEGREES,
+                false
         );
         this.linearServo = new Servo(WRIST_SERVO_ID);
         linearServo.setBoundsMicroseconds(
@@ -73,9 +74,7 @@ public class WristSubsystem extends PIDRotationalMechanism implements LoggableIn
      * @param mm The extension target in <b>millimeters</b>.
      */
     public void setExtensionTarget(double mm) {
-        Constants.runIfNotReplay(() -> {
-            this.extensionTarget = mm;
-        });
+        Constants.runIfNotReplay(() -> this.extensionTarget = mm);
     }
 
     /** Extends the {@link WristSubsystem} to the maximum allowed value. */

@@ -6,9 +6,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.Servo;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.IDriveMode;
@@ -16,7 +14,7 @@ import frc.robot.util.math.GearRatio;
 import frc.robot.util.pid.DashTunableNumber;
 import frc.robot.util.pid.PIDConstantsAK;
 import frc.robot.util.swerve.config.ChassisSettings;
-import frc.robot.util.swerve.config.Mk3Chassis;
+import frc.robot.util.swerve.config.Mk4Chassis;
 
 import java.util.function.Supplier;
 
@@ -47,10 +45,10 @@ public class Constants {
     public static class Debug {
         public static final boolean SWERVE_TUNING_ENABLED = false;
         public static final boolean PHOTON_TUNING_ENABLED = false;
-        public static final boolean SHOOTER_TUNING_ENABLED = false;
+        public static final boolean SHOOTER_TUNING_ENABLED = true;
         public static final boolean DEBUG_LOGGING_ENABLED = false;
         public static final boolean INDEX_TUNING_ENABLED = true;
-        public static final boolean INTAKE_TUNING_ENABLED = false;
+        public static final boolean INTAKE_TUNING_ENABLED = true;
         public static final boolean WRIST_TUNING_ENABLED = false;
         public static final boolean CLIMBER_TUNING_ENABLED = false;
     }
@@ -77,21 +75,19 @@ public class Constants {
         public static final double INDEX_KV = 0;
         public static final double INDEX_KA = 0;
         public static final int INDEX_SENSOR_PORT = 0;
-        public static final int INDEX_RPM = 5000;
-
-        public static final PIDConstantsAK INDEX_PID = new PIDConstantsAK(0.05, 0, 0);
-
+        public static final double INDEX_SPEED = -0.4;
+        public static final PIDConstantsAK INDEX_PID = new PIDConstantsAK(0.01, 0, 0);
     }
 
     /** This {@link Intake} class represents all values regarding the {@link Robot}'s in-taking mechanism. */
     public static class Intake {
-        public static final double INTAKE_RPM = 2000;
-        public static final double INTAKE_KS = 0.1;
-        public static final double INTAKE_KV = 0.03;
+        public static final double INTAKE_RPM = 1500;
+        public static final double INTAKE_KS = 0;
+        public static final double INTAKE_KV = 0;
         public static final double INTAKE_KA = 0;
         public static final int INTAKE_MOTOR_ID = 14;
         public static final boolean INTAKE_INVERTED = false;
-        public static final PIDConstantsAK INTAKE_PID = new PIDConstantsAK(0.05, 0, 0);
+        public static final PIDConstantsAK INTAKE_PID = new PIDConstantsAK(0.02, 0, 0);
     }
 
     public static class Wrist {
@@ -235,7 +231,7 @@ public class Constants {
 
 
     public static class Chassis {
-        public static final ChassisSettings CHASSIS_MODE = new Mk3Chassis();
+        public static final ChassisSettings CHASSIS_MODE = new Mk4Chassis();
         public static final double CHASSIS_BASE_RADIUS = Math.hypot(
                 CHASSIS_MODE.getSideLength() / 2.0,
                 CHASSIS_MODE.getSideLength() / 2.0

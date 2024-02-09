@@ -37,7 +37,8 @@ public class IntakeSubsystem extends SubsystemBase {
                 "Intake",
                 tuneName,
                 GearRatio.DIRECT_DRIVE,
-                RotationUnit.ROTATIONS
+                RotationUnit.ROTATIONS,
+                true
         );
         sensor = new DigitalInput(INDEX_SENSOR_PORT);
         if (INTAKE_TUNING_ENABLED) {
@@ -70,7 +71,7 @@ public class IntakeSubsystem extends SubsystemBase {
     /**
      * Sets the target of the {@link IndexSubsystem}.
      */
-    public void setTarget(double rpm) { intakeWheel.setTarget(INTAKE_INVERTED ? -rpm: rpm, true); }
+    public void setTarget(double rpm) { intakeWheel.setTarget(INTAKE_INVERTED ? -rpm: rpm); }
 
     public void start() {
         intakeWheel.setTarget(targetRPM);
