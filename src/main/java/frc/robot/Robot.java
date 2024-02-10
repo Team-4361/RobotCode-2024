@@ -73,11 +73,6 @@ public class Robot extends LoggedRobot {
     public void robotInit() {
         initLogger(); // DO NOT TOUCH!
 
-        // Initialize the USB camera for dashboard purposes.
-        if (!RobotBase.isSimulation()) {
-
-        }
-
         boolean useNormalSticks = true;
         // Use a PresetGroup to keep the presets synchronized. We don't want one joystick sensitive
         // and the other one non-sensitive.
@@ -175,10 +170,7 @@ public class Robot extends LoggedRobot {
                 break;
         }
 
-        // TODO: setup replay/sim mode!
-        if (!DriverStation.isFMSAttached())
-            Logger.addDataReceiver(new NT4Publisher());
-
+        Logger.addDataReceiver(new NT4Publisher());
         Logger.start(); // start logging!
     }
 

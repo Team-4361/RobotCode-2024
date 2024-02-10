@@ -61,8 +61,6 @@ public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInput
     public boolean connected = false;
     public Rotation2d yawPosition = new Rotation2d();
     public double yawVelocityRadPerSec = 0.0;
-    public Rotation2d pitchPosition = new Rotation2d();
-    public Rotation2d rollPosition = new Rotation2d();
     public boolean isCalibrating = false;
 
     private Rotation2d rawGyroRotation = new Rotation2d();
@@ -186,9 +184,9 @@ public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInput
     public void periodic() {
         connected = gyro.isConnected();
         yawPosition = gyro.getRotation2d();
-        yawVelocityRadPerSec = Units.degreesToRadians(gyro.getRate());
-        pitchPosition = Rotation2d.fromDegrees(gyro.getPitch());
-        rollPosition = Rotation2d.fromDegrees(gyro.getRoll());
+        //yawVelocityRadPerSec = Units.degreesToRadians(gyro.getRate());
+        //pitchPosition = Rotation2d.fromDegrees(gyro.getPitch());
+        //rollPosition = Rotation2d.fromDegrees(gyro.getRoll());
         isCalibrating = gyro.isCalibrating();
 
         Logger.processInputs("Drive/Gyro", this);
@@ -239,10 +237,10 @@ public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInput
     }
 
     /** @return The current roll of the {@link Robot} in <b>degrees</b>. */
-    public Rotation2d getRoll() { return rollPosition.minus(rollOffset); }
+    //public Rotation2d getRoll() { return rollPosition.minus(rollOffset); }
 
     /** @return The current pitch of the {@link Robot} in <b>degrees</b>. */
-    public Rotation2d getPitch() { return pitchPosition.minus(pitchOffset); }
+    //public Rotation2d getPitch() { return pitchPosition.minus(pitchOffset); }
 
     /** @return The current {@link Rotation2d} heading of the {@link Robot}. */
     public Rotation2d getHeading() { return yawPosition; }
@@ -327,8 +325,8 @@ public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInput
     }
 
     public void reset(Pose2d pose) {
-        rollOffset = rollPosition;
-        pitchOffset = pitchPosition;
+        //rollOffset = rollPosition;
+        //pitchOffset = pitchPosition;
         Constants.runIfNotReplay(gyro::reset);
         poseEstimator.resetPosition(yawPosition, getPositions(), pose);
     }
@@ -383,9 +381,9 @@ public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInput
     public void toLog(LogTable table) {
         table.put("Connected", this.connected);
         table.put("YawPosition", this.yawPosition);
-        table.put("YawVelocityRadPerSec", this.yawVelocityRadPerSec);
-        table.put("PitchPosition", this.pitchPosition);
-        table.put("RollPosition", this.rollPosition);
+        //table.put("YawVelocityRadPerSec", this.yawVelocityRadPerSec);
+        //table.put("PitchPosition", this.pitchPosition);
+        //table.put("RollPosition", this.rollPosition);
         table.put("IsCalibrating", this.isCalibrating);
     }
 
@@ -398,9 +396,9 @@ public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInput
     public void fromLog(LogTable table) {
         this.connected = table.get("Connected", this.connected);
         this.yawPosition = table.get("YawPosition", this.yawPosition);
-        this.yawVelocityRadPerSec = table.get("YawVelocityRadPerSec", this.yawVelocityRadPerSec);
-        this.pitchPosition = table.get("PitchPosition", this.pitchPosition);
-        this.rollPosition = table.get("RollPosition", this.rollPosition);
+        //this.yawVelocityRadPerSec = table.get("YawVelocityRadPerSec", this.yawVelocityRadPerSec);
+       // this.pitchPosition = table.get("PitchPosition", this.pitchPosition);
+       // this.rollPosition = table.get("RollPosition", this.rollPosition);
         this.isCalibrating = table.get("IsCalibrating", this.isCalibrating);
     }
 }

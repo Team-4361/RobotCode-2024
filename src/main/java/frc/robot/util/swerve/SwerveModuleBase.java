@@ -188,12 +188,8 @@ public abstract class SwerveModuleBase implements LoggableInputs {
     public void toLog(LogTable table) {
         table.put("DrivePositionMeters", this.drivePositionMeters);
         table.put("DriveVelocityMPS", this.driveVelocityMPS);
-        table.put("DriveAppliedVolts", this.driveAppliedVolts);
-        table.put("DriveCurrentAmps", this.driveCurrentAmps);
         table.put("TurnAbsolutePosition", this.turnAbsolutePosition);
         table.put("TurnPosition", this.turnPosition);
-        table.put("TurnCurrentAmps", this.turnCurrentAmps);
-        table.put("TurnAppliedVolts", this.turnAppliedVolts);
     }
 
     /**
@@ -203,13 +199,9 @@ public abstract class SwerveModuleBase implements LoggableInputs {
      */
     @Override
     public void fromLog(LogTable table) {
-        this.drivePositionMeters = table.get("DrivePositionRad", this.drivePositionMeters);
-        this.driveVelocityMPS = table.get("DriveVelocityRadPerSec", this.driveVelocityMPS);
-        this.driveAppliedVolts = table.get("DriveAppliedVolts", this.driveAppliedVolts);
-        this.driveCurrentAmps = table.get("DriveCurrentAmps", this.driveCurrentAmps);
+        this.drivePositionMeters = table.get("DrivePositionMeters", this.drivePositionMeters);
+        this.driveVelocityMPS = table.get("DriveVelocityMPS", this.driveVelocityMPS);
         this.turnAbsolutePosition = table.get("TurnAbsolutePosition", this.turnAbsolutePosition);
         this.turnPosition = table.get("TurnPosition", this.turnPosition);
-        this.turnCurrentAmps = table.get("TurnCurrentAmps", this.turnCurrentAmps);
-        this.turnAppliedVolts = table.get("TurnAppliedVolts", this.turnAppliedVolts);
     }
 }
