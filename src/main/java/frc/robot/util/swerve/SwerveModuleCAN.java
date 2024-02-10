@@ -1,7 +1,6 @@
 package frc.robot.util.swerve;
 
 import com.ctre.phoenix6.StatusSignal;
-import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.CANcoderConfigurator;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -10,8 +9,6 @@ import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.util.swerve.config.ModuleSettings;
-
-import static java.lang.Math.PI;
 
 public class SwerveModuleCAN extends SwerveModuleBase {
     private final StatusSignal<Double> signal;
@@ -25,21 +22,21 @@ public class SwerveModuleCAN extends SwerveModuleBase {
      */
     public SwerveModuleCAN(String name, ModuleSettings settings) {
         super(name, settings);
-        CANcoderConfigurator config;
+
         try (CANcoder encoder = new CANcoder(settings.getEncoderID())) {
-            signal = encoder.getAbsolutePosition();
-            config = encoder.getConfigurator();
-            config.apply(new CANcoderConfiguration());
-            MagnetSensorConfigs magnetConfig = new MagnetSensorConfigs();
-            config.refresh(magnetConfig);
-            config.apply(magnetConfig
+            CANcoderConfigurator cfg                       = encoder.getConfigurator();
+            MagnetSensorConfigs  magnetSensorConfiguration = new MagnetSensorConfigs();
+            cfg.refresh(magnetSensorConfiguration);
+            cfg.apply(magnetSensorConfiguration
                     .withAbsoluteSensorRange(AbsoluteSensorRangeValue.Unsigned_0To1)
-                    .withSensorDirection(SensorDirectionValue.CounterClockwise_Positive));
+                    .withSensorDirection(SensorDirectionValue.Clockwise_Positive)
+                    .withMagnetOffset(settings.getOffsetDegrees() / 360));
+            signal = encoder.getAbsolutePosition();
         }
     }
 
     @Override
-    public double getAbsolutePositionRad() {
-        return 2 * PI * signal.refresh().getValueAsDouble();
+    public Rotation2d getAbsolutePosition() {
+        return Rotation2d.fromDegrees(signal.refresh().getValueAsDouble() * 360);
     }
 }

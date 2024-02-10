@@ -1,5 +1,6 @@
 package frc.robot.util.swerve.config;
 
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.util.math.GearRatio;
 import frc.robot.util.pid.PIDConstantsAK;
@@ -121,4 +122,10 @@ public class Mk3Chassis implements ChassisSettings {
 
     /** @return If the legacy CTRE magnetic encoders are being used. */
     @Override public boolean usingMagEncoders() { return true; }
+
+    /** @return The {@link SimpleMotorFeedforward} used for the SwerveModule. */
+    @Override
+    public SimpleMotorFeedforward getFeedForward() {
+        return new SimpleMotorFeedforward(0.1, 0.13, 0);
+    }
 }

@@ -81,7 +81,7 @@ public class GearRatio {
      * @return The {@link Rotation2d} angle.
      */
     public Rotation2d getFollowerAngle(Rotation2d leadRotations) {
-        return Rotation2d.fromRotations(ExtendedMath.round(leadRotations.getRotations() * (gearTwo / gearOne)));
+        return Rotation2d.fromRotations(GlobalUtils.round(leadRotations.getRotations() * (gearTwo / gearOne)));
     }
 
     /**
@@ -89,7 +89,7 @@ public class GearRatio {
      * @return The number of rotations from the Follower Gear.
      */
     public double getFollowerRotations(double leadRotations) {
-        return ExtendedMath.round(leadRotations * (gearTwo / gearOne));
+        return GlobalUtils.round(leadRotations * (gearTwo / gearOne));
     }
 
     /**
@@ -97,7 +97,7 @@ public class GearRatio {
      * @return The {@link Rotation2d} angle.
      */
     public Rotation2d getLeadAngle(Rotation2d followerRotations) {
-        return Rotation2d.fromRotations(ExtendedMath.round(followerRotations.getRotations() * (gearOne / gearTwo)));
+        return Rotation2d.fromRotations(GlobalUtils.round(followerRotations.getRotations() * (gearOne / gearTwo)));
     }
 
     /**
@@ -105,7 +105,7 @@ public class GearRatio {
      * @return The number of rotations from the Leader Gear.
      */
     public double getLeadRotations(double followerRotations) {
-        return ExtendedMath.round(followerRotations * (gearOne / gearTwo));
+        return GlobalUtils.round(followerRotations * (gearOne / gearTwo));
     }
 
     /**

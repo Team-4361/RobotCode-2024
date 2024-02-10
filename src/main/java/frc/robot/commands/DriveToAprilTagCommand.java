@@ -9,7 +9,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
-import frc.robot.util.math.ExtendedMath;
+import frc.robot.util.math.GlobalUtils;
 
 import java.util.Optional;
 
@@ -128,8 +128,8 @@ public class DriveToAprilTagCommand extends Command {
         if (stopOnEnd) {
             return noTarget ||
                     (
-                            ExtendedMath.inTolerance(desiredPose.getX(), currentPose.getX(), 0.1)
-                                    && ExtendedMath.inTolerance(desiredPose.getY(), currentPose.getY(), 0.1)
+                            GlobalUtils.inTolerance(desiredPose.getX(), currentPose.getX(), 0.1)
+                                    && GlobalUtils.inTolerance(desiredPose.getY(), currentPose.getY(), 0.1)
                     );
         } else {
             return false;

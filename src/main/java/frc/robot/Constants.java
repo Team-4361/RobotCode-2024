@@ -245,6 +245,11 @@ public class Constants {
                 CHASSIS_MODE.getSideLength() / 2.0,
                 CHASSIS_MODE.getSideLength() / 2.0
         );
+
+        public static final double DRIVE_POSITION_FACTOR = (CHASSIS_MODE.getWheelRadius() * 2 * Math.PI) / CHASSIS_MODE.getDriveRatio().getDivisor();
+        public static final double DRIVE_VELOCITY_FACTOR = DRIVE_POSITION_FACTOR / 60.0;
+        public static final double TURN_POSITION_FACTOR = 360.0 / CHASSIS_MODE.getTurnRatio().getDivisor();
+
        // public static final double MAX_ANGULAR_MPS = CHASSIS_MODE.getMaxSpeed() / CHASSIS_BASE_RADIUS;
     }
 }

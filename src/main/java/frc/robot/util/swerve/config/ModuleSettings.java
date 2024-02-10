@@ -1,13 +1,6 @@
 package frc.robot.util.swerve.config;
 
-import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.util.PIDConstants;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import frc.robot.Robot;
-import frc.robot.util.math.GearRatio;
-import frc.robot.util.pid.PIDConstantsAK;
-import org.photonvision.PhotonCamera;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 
 /**
  * This {@link ModuleSettings} interface is designed to store values regarding Driving the robot. This includes any offsets
@@ -20,7 +13,7 @@ public class ModuleSettings {
     private final int turnID;
     private final int encoderID;
 
-    public double getOffset() { return absOffset; }
+    public double getOffsetDegrees() { return absOffset; }
     public int getDriveID() { return driveID; }
     public int getTurnID() { return turnID; }
     public int getEncoderID() { return encoderID; }
@@ -30,13 +23,13 @@ public class ModuleSettings {
      * @param driveID The drive ID 
      * @param turnID The turn ID
      * @param encoderID The encoder ID
-     * @param offsetRad The offset in radians.
+     * @param offsetDeg The offset in degrees.
      */
-    public ModuleSettings(int driveID, int turnID, int encoderID, double offsetRad) {
+    public ModuleSettings(int driveID, int turnID, int encoderID, double offsetDeg) {
         this.driveID = driveID;
         this.turnID = turnID;
         this.encoderID = encoderID;
-        this.absOffset = offsetRad;
+        this.absOffset = offsetDeg;
     }
 }
 

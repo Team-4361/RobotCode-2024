@@ -1,5 +1,6 @@
 package frc.robot.util.swerve.config;
 
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import frc.robot.util.math.GearRatio;
 import frc.robot.util.pid.PIDConstantsAK;
 import frc.robot.util.swerve.SwerveModuleBase;
@@ -50,6 +51,9 @@ public interface ChassisSettings {
 
     /** @return The PIDConstants used for PhotonCamera turning. */
     PIDConstantsAK getPhotonTurnPID();
+
+    /** @return The {@link SimpleMotorFeedforward} used for the SwerveModule. */
+    SimpleMotorFeedforward getFeedForward();
 
     /** @return If the legacy CTRE magnetic encoders are being used. */
     boolean usingMagEncoders();

@@ -1,5 +1,6 @@
 package frc.robot.util.motor;
 
+import com.revrobotics.CANSparkLowLevel;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
@@ -211,17 +212,19 @@ public class FRCSparkMax extends CANSparkMax implements IMotorModel {
             return;
         }
 
-        this.enableVoltageCompensation(12.0);
-        this.setControlFramePeriodMs(50);
+        // Tweaks to allow the Motor to work better with PID control.
+        restoreFactoryDefaults();
+        setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus1, 500);
+        setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus2, 500);
+        setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus3, 500);
+        enableVoltageCompensation(12.0);
 
         // The motor is brushless; use the encoder to detect velocity for stall detection
-       /* FIXME: Bad alerts when not there.
         if (!RobotBase.isSimulation()) {
             conditionAlert.setCondition(() -> getMotorTemperature() >= 60 ||
                     (getOutputCurrent() >= model.getMaximumStallCurrent() - 20 && getEncoder().getVelocity() <= 10)
             );
         }
-        */
 
         if (RobotBase.isSimulation()) {
             IOManager.warnOnFail(setSimFreeSpeed(model.getFreeSpeedRPM()));

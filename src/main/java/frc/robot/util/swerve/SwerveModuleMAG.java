@@ -20,10 +20,11 @@ public class SwerveModuleMAG extends SwerveModuleBase {
     public SwerveModuleMAG(String name, ModuleSettings settings) {
         super(name, settings);
         encoder = new DutyCycleEncoder(settings.getEncoderID());
+        encoder.setPositionOffset(settings.getOffsetDegrees() / 360);
     }
 
     @Override
-    public double getAbsolutePositionRad() {
-        return 2 * PI * encoder.getAbsolutePosition();
+    public Rotation2d getAbsolutePosition() {
+        return Rotation2d.fromDegrees(encoder.getAbsolutePosition() * 360);
     }
 }

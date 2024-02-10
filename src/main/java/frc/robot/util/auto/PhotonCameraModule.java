@@ -48,13 +48,6 @@ public class PhotonCameraModule extends PhotonCamera implements Subsystem {
                 CHASSIS_MODE.getAutoTurnPID().kI,
                 CHASSIS_MODE.getAutoTurnPID().kD
         );
-        /*
-        this.poseEstimator = new PhotonPoseEstimator(
-                FIELD_LAYOUT,
-                MULTI_TAG_PNP_ON_COPROCESSOR,
-                CAMERA_OFFSET);
-
-         */
 
         if (PHOTON_TUNING_ENABLED) {
             IOManager.initPIDTune("Photon: Drive PID", driveController);

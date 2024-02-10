@@ -6,11 +6,9 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.Constants;
 import frc.robot.util.io.IOManager;
-import frc.robot.util.math.ExtendedMath;
+import frc.robot.util.math.GlobalUtils;
 import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.motor.IMotorModel;
 import frc.robot.util.preset.PresetMap;
@@ -122,7 +120,7 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
 
     /** @return If the {@link PIDMechanismBase} is at target. */
     public boolean atTarget() {
-        return ExtendedMath.inToleranceNotZero(
+        return GlobalUtils.inToleranceNotZero(
                 targetValue,
                 rpmControl ? encoder.getVelocity() : getCurrentPosition(encoder.getPosition()),
                 tolerance
