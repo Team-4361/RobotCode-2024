@@ -74,6 +74,7 @@ public abstract class SwerveModuleBase implements LoggableInputs {
         this.driveController = driveMotor.getPIDController();
         this.turnController = turnMotor.getPIDController();
         this.absOffset = Rotation2d.fromRadians(settings.getOffsetDegrees());
+        this.lastAngle = new Rotation2d();
 
         CHASSIS_MODE.getDrivePID().initController(driveController);
         CHASSIS_MODE.getTurnPID().initController(turnController);

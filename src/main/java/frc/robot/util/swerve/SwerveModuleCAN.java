@@ -1,5 +1,6 @@
 package frc.robot.util.swerve;
 
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfigurator;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
@@ -32,11 +33,15 @@ public class SwerveModuleCAN extends SwerveModuleBase {
                     .withSensorDirection(SensorDirectionValue.Clockwise_Positive)
                     .withMagnetOffset(settings.getOffsetDegrees() / 360));
             signal = encoder.getAbsolutePosition();
+            BaseStatusSignal.setUpdateFrequencyForAll(50, signal);
+            encoder.optimizeBusUtilization();
         }
     }
 
     @Override
     public Rotation2d getAbsolutePosition() {
+        if (signal == null)
+            return new Rotation2d();
         return Rotation2d.fromDegrees(signal.refresh().getValueAsDouble() * 360);
     }
 }
