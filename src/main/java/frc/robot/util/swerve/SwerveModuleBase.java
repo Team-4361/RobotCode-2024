@@ -80,7 +80,7 @@ public abstract class SwerveModuleBase implements LoggableInputs {
         CHASSIS_MODE.getTurnPID().initController(turnController);
 
         // TODO: Will this cause problems?
-        this.driveFF = CHASSIS_MODE.getFeedForward();
+        this.driveFF = new SimpleMotorFeedforward(0.1, 0.13, 0);
         this.driveEncoder = driveMotor.getEncoder();
         this.turnEncoder = turnMotor.getEncoder();
         this.name = name;

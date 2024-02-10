@@ -1,6 +1,8 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.ColorSensorV3;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -20,10 +22,17 @@ import static frc.robot.Constants.Intake.*;
 public class IntakeSubsystem extends SubsystemBase implements LoggableInputs {
     private final PIDMechanismBase intakeWheel;
     private final DigitalInput sensor;
+    private final ColorSensorV3 colorSensor;
     private boolean sensorActivated = false;
+
+    private final DashTunableNumber rTune;
+    private final DashTunableNumber gTune;
+    private final DashTunableNumber bTune;
     private final DashTunableNumber intakeTune;
     private double targetRPM = INTAKE_RPM;
     private boolean stopped = true;
+
+    private double rValue, gValue, bValue;
 
     public IntakeSubsystem() {
         String tuneName = INTAKE_TUNING_ENABLED ? "Intake: PID" : "";
@@ -40,7 +49,11 @@ public class IntakeSubsystem extends SubsystemBase implements LoggableInputs {
                 RotationUnit.ROTATIONS,
                 true
         );
+        rTune = new DashTunableNumber("Intake: R Min", 100);
+        gTune = new DashTunableNumber("Intake: G Tune", 100);
+        bTune = new DashTunableNumber("Intake: B Tune", 100);
         sensor = new DigitalInput(INDEX_SENSOR_PORT);
+        colorSensor = new ColorSensorV3(I2C.Port.kOnboard);
         if (INTAKE_TUNING_ENABLED) {
             intakeTune = new DashTunableNumber("Intake: Speed", INTAKE_RPM);
             intakeTune.addConsumer(this::setTargetRPM);
@@ -64,6 +77,10 @@ public class IntakeSubsystem extends SubsystemBase implements LoggableInputs {
 
         if (!RobotBase.isSimulation() && !Constants.isReplay())
             sensorActivated = sensor.get();
+
+        rValue = colorSensor.getRed();
+        gValue = colorSensor.getGreen();
+        bValue = colorSensor.getBlue();
 
         Logger.processInputs("Index", this);
     }
@@ -91,6 +108,9 @@ public class IntakeSubsystem extends SubsystemBase implements LoggableInputs {
     @Override
     public void toLog(LogTable table) {
         table.put("SensorActivated", sensorActivated);
+        table.put("Red", rValue);
+        table.put("Green", gValue);
+        table.put("Blue", bValue);
     }
 
     /**
@@ -101,6 +121,9 @@ public class IntakeSubsystem extends SubsystemBase implements LoggableInputs {
     @Override
     public void fromLog(LogTable table) {
         this.sensorActivated = table.get("SensorActivated", sensorActivated);
+        this.rValue = table.get("Red", rValue);
+        this.gValue = table.get("Green", gValue);
+        this.bValue = table.get("Blue", bValue);
     }
 }
 
