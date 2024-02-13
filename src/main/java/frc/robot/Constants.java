@@ -1,10 +1,13 @@
 package frc.robot;
 
 import com.pathplanner.lib.util.PIDConstants;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.util.io.IOManager;
@@ -16,6 +19,7 @@ import frc.robot.util.pid.DashTunableNumber;
 import frc.robot.util.pid.PIDConstantsAK;
 import frc.robot.util.swerve.config.ChassisSettings;
 import frc.robot.util.swerve.config.Mk4Chassis;
+import frc.robot.util.swerve.config.ModuleSettings;
 
 import java.util.LinkedHashMap;
 import java.util.function.Supplier;
@@ -34,17 +38,6 @@ import static frc.robot.Constants.LooperConfig.STRING_DASHBOARD_NAME;
  * @since 0.0.0
  */
 public class Constants {
-    public enum OperationMode { REAL, REPLAY, SIM }
-
-    public static void runIfNotReplay(Runnable runnable) {
-        if (Control.OP_MODE != OperationMode.REPLAY)
-            runnable.run();
-    }
-
-    public static boolean isReplay() { return Control.OP_MODE == OperationMode.REPLAY; }
-
-    ///////////////////////////////////////////////////////////////////////////////
-
     public static class Debug {
         public static final boolean SWERVE_TUNING_ENABLED = true;
         public static final boolean PHOTON_TUNING_ENABLED = false;
@@ -139,8 +132,6 @@ public class Constants {
         /** The Xbox Controller ID (typically 2) */
         public static final int XBOX_CONTROLLER_ID = 2;
 
-        public static final OperationMode OP_MODE = (RobotBase.isSimulation()) ? OperationMode.SIM : OperationMode.REAL;
-
         /** The default dead-zone value to use on Controllers. */
         public static final double DEAD_ZONE = 0.05;
 
@@ -150,32 +141,6 @@ public class Constants {
                 DriveMode.LINEAR_MAP,
                 DriveMode.SLOW_MODE
         };
-
-        public static final DashTunableNumber PHOTON_TURN_MAX_SPEED = new DashTunableNumber(
-                "Photon: Turn Speed",
-                0.2,
-                false
-        );
-        public static final DashTunableNumber PHOTON_DISTANCE = new DashTunableNumber(
-                "Photon: Distance",
-                1,
-                false
-        );
-        public static final DashTunableNumber PHOTON_DRIVE_MAX_SPEED = new DashTunableNumber(
-                "Photon: Max Speed",
-                0.5,
-                false
-        );
-
-        static {
-            IOManager.initLoop(STRING_PERIODIC_NAME, PERIODIC_INTERVAL);
-            IOManager.initLoop(STRING_DASHBOARD_NAME, DASHBOARD_INTERVAL);
-            IOManager.initLoop(STRING_ODOMETRY_NAME, ODOMETRY_INTERVAL);
-
-            IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, PHOTON_DISTANCE::update);
-            IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, PHOTON_DRIVE_MAX_SPEED::update);
-            IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, PHOTON_TURN_MAX_SPEED::update);
-        }
     }
 
     public static class VisionTracking {
@@ -198,23 +163,6 @@ public class Constants {
         public static final String STRING_GYRO_CALIBRATING = "Gyroscope calibrating!";
         public static final String STRING_PROGRAMMING_MOTOR = "Programing Motors...";
     }
-
-    /**
-     * Holds all {@link Constants} for the {@link IOManager} class. This mainly holds the milliseconds for
-     * Normal and Simulation operations.
-     */
-    public static class LooperConfig {
-        /** The <b>default</b> millisecond loop time. Note: this can be overridden per Looper interface. */
-        public static final String STRING_PERIODIC_NAME = "PERIODIC";
-        public static final long PERIODIC_INTERVAL = 20;
-
-        public static final String STRING_ODOMETRY_NAME = "ODOMETRY";
-        public static final long ODOMETRY_INTERVAL = 50;
-
-        public static final String STRING_DASHBOARD_NAME = "DASHBOARD";
-        public static final long DASHBOARD_INTERVAL = 250;
-    }
-
 
     /**
      * This {@link Mk4SDSRatio} enum represents commonly used Gear Reductions on the SDS Mk4.
@@ -242,16 +190,53 @@ public class Constants {
 
 
     public static class Chassis {
-        public static final ChassisSettings CHASSIS_MODE = new Mk4Chassis();
-        public static final double CHASSIS_BASE_RADIUS = Math.hypot(
-                CHASSIS_MODE.getSideLength() / 2.0,
-                CHASSIS_MODE.getSideLength() / 2.0
+        /** The {@link ModuleSettings} for the Front-Left module. */
+        public static final ModuleSettings FL_MODULE = new ModuleSettings(
+                1,
+                2,
+                30,
+                0
+        );
+        /** The {@link ModuleSettings} for the Front-Right module. */
+        public static final ModuleSettings FR_MODULE = new ModuleSettings(
+                3,
+                4,
+                31,
+                0
+        );
+        /** The {@link ModuleSettings} for the Back-Left module. */
+        public static final ModuleSettings BL_MODULE = new ModuleSettings(
+                5,
+                6,
+                32,
+                0
+        );
+        /** The {@link ModuleSettings} for the Back-Right module. */
+        public static final ModuleSettings BR_MODULE = new ModuleSettings(
+                7,
+                8,
+                33,
+                0
         );
 
-        public static final double DRIVE_POSITION_FACTOR = (CHASSIS_MODE.getWheelRadius() * 2 * Math.PI) / CHASSIS_MODE.getDriveRatio().getDivisor();
-        public static final double DRIVE_VELOCITY_FACTOR = DRIVE_POSITION_FACTOR / 60.0;
-        public static final double TURN_POSITION_FACTOR = 360.0 / CHASSIS_MODE.getTurnRatio().getDivisor();
+        public static final double SIDE_LENGTH_METERS = Units.inchesToMeters(30);
+        public static final double WHEEL_RADIUS_METERS = Units.inchesToMeters(4);
+        public static final double MAX_SPEED_MPS = 12.5;
+        public static final GearRatio DRIVE_RATIO = GearRatio.from(Mk4SDSRatio.L2.ratio, 1);
+        public static final GearRatio TURN_RATIO = GearRatio.from(12.6, 1);
+        public static final double MODULE_KS = 0.10;
+        public static final double MODULE_KV = 0.13;
+        public static final double MODULE_KA = 0.00;
+        public static final PIDConstantsAK DRIVE_PID = new PIDConstantsAK(0.2, 0, 0);
+        public static final PIDConstantsAK TURN_PID = new PIDConstantsAK(2, 0, 0);
+        public static final PIDConstantsAK AUTO_DRIVE_PID = new PIDConstantsAK(5, 0, 0);
+        public static final PIDConstantsAK AUTO_TURN_PID = new PIDConstantsAK(0.2, 0, 0);
+        public static final PIDConstantsAK PHOTON_DRIVE_PID = new PIDConstantsAK(0.01, 0, 0);
+        public static final PIDConstantsAK PHOTON_TURN_PID = new PIDConstantsAK(0.01, 0, 0);
 
-       // public static final double MAX_ANGULAR_MPS = CHASSIS_MODE.getMaxSpeed() / CHASSIS_BASE_RADIUS;
+        public static final double DRIVE_POSITION_FACTOR =
+                (WHEEL_RADIUS_METERS * 2 * Math.PI) / DRIVE_RATIO.getDivisor();
+        public static final double DRIVE_VELOCITY_FACTOR = DRIVE_POSITION_FACTOR / 60.0;
+        public static final double TURN_POSITION_FACTOR = 360.0 / TURN_RATIO.getDivisor();
     }
 }

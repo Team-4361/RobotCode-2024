@@ -158,32 +158,6 @@ public class FRCSparkMax extends CANSparkMax implements IMotorModel {
     /** @return The {@link GearRatio} used for simulation. */
     public GearRatio getRatio() { return this.ratio; }
 
-    private static SequentialCommandGroup programGroup = new SequentialCommandGroup();
-    public static void burnAllFlash() {
-        new WaitCommand(2).andThen(Commands.runOnce(() -> {
-             IOManager.getAlert(STRING_PROGRAMMING_MOTOR, AlertType.INFO)
-                    .setOneUse(true)
-                    .setEnabled(true);
-        })).andThen(programGroup).andThen(() -> {
-            IOManager.deleteAlert(STRING_PROGRAMMING_MOTOR, AlertType.INFO);
-        }).ignoringDisable(true).schedule();
-
-        // Clear the group to prevent future problems.
-        programGroup = new SequentialCommandGroup();
-    }
-
-    public static void stageFlash(FRCSparkMax motor) {
-        programGroup.addCommands(Commands.runOnce(() -> {
-            if (motor.burnFlash() != REVLibError.kOk) {
-                IOManager.getAlert(motor.getDeviceId() + " failed to program", AlertType.WARNING)
-                        .setOneUse(true)
-                        .setEnabled(true);
-            }
-        })
-                .andThen(new WaitCommand(2))
-                .ignoringDisable(true));
-    }
-
     /**
      * Create a new object to control a SPARK MAX motor Controller
      *

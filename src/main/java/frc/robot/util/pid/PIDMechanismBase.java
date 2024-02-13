@@ -14,7 +14,6 @@ import frc.robot.util.motor.IMotorModel;
 import frc.robot.util.preset.PresetMap;
 import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.inputs.LoggableInputs;
 
 import java.util.function.Supplier;
 
@@ -26,7 +25,7 @@ import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
  *
  * @author Eric Gold
  */
-public abstract class PIDMechanismBase extends PresetMap<Double> implements LoggableInputs {
+public abstract class PIDMechanismBase extends PresetMap<Double> {
     private final FRCSparkMax motor;
 
     private final SimpleMotorFeedforward feedFwd;
@@ -37,9 +36,6 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
     // All INPUT values are logged here!
     private double targetValue = 0.0;
     private final boolean rpmControl;
-    private double velocityRPM = 0.0;
-    private double appliedVolts = 0.0;
-    private double currentAmps = 0.0;
     private double currentPosition = 0.0;
     private boolean pidEnabled = true;
     private boolean limitBypassEnabled = false;
@@ -131,21 +127,17 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
     public void update() {
         encoder = motor.getEncoder();
 
-        velocityRPM = encoder.getVelocity();
+        double velocityRPM = encoder.getVelocity();
         currentPosition = getCurrentPosition(encoder.getPosition());
-        appliedVolts = motor.getAppliedVoltage();
-        currentAmps = motor.getOutputCurrent();
 
         // It is required to pull the direct values of these suppliers since AdvantageKit CANNOT log suppliers
         // correctly.
         pidEnabled = pidEnabledSupplier.get();
         limitBypassEnabled = limitBypassSupplier.get();
 
-        Logger.processInputs(moduleName, this);
-
         if ((targetValue == 0 && rpmControl) || atTarget()) {
             motor.setVoltage(0);
-        } else if (!Constants.isReplay() && pidEnabled && !teleopMode) {
+        } else if (pidEnabled && !teleopMode) {
             double velocityRadPerSec = Units.rotationsPerMinuteToRadiansPerSecond(velocityRPM);
             if (rpmControl) {
                 double targetVelocityRadPerSec = Units.rotationsPerMinuteToRadiansPerSecond(targetValue);
@@ -164,8 +156,6 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
                 );
             }
         }
-
-        Logger.recordOutput(moduleName + "/TargetReached", atTarget());
     }
 
     /**
@@ -256,36 +246,6 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
 
             motor.set(getLimitAdjustedPower(power));
         }
-    }
-
-    /**
-     * Updates a LogTable with the data to log.
-     * @param table The {@link LogTable} which is provided.
-     */
-    @Override
-    public void toLog(LogTable table) {
-        table.put("TargetValue", this.targetValue);
-        table.put("VelocityRPM", this.velocityRPM);
-        table.put("CurrentValue", this.currentPosition);
-        table.put("LimitBypassed", this.limitBypassEnabled);
-        table.put("ManualControl", this.teleopMode);
-        table.put("ForwardLimit", this.forwardLimit);
-        table.put("ReverseLimit", this.reverseLimit);
-    }
-
-    /**
-     * Updates data based on a LogTable.
-     * @param table The {@link LogTable} which is provided.
-     */
-    @Override
-    public void fromLog(LogTable table) {
-        this.targetValue         = table.get("TargetValue", this.targetValue);
-        this.velocityRPM         = table.get("VelocityRPM", this.velocityRPM);
-        this.currentPosition     = table.get("CurrentValue", this.currentPosition);
-        this.limitBypassEnabled  = table.get("LimitBypassed", this.limitBypassEnabled);
-        this.teleopMode          = table.get("ManualControl", this.teleopMode);
-        this.forwardLimit        = table.get("ForwardLimit", this.forwardLimit);
-        this.reverseLimit        = table.get("ReverseLimit", this.reverseLimit);
     }
 
     /**

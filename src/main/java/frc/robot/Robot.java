@@ -5,8 +5,6 @@
 
 package frc.robot;
 
-import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -15,7 +13,6 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -30,14 +27,12 @@ import frc.robot.util.joystick.DriveJoystick;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.DriveXboxController;
 import frc.robot.util.preset.PresetGroup;
-import frc.robot.util.preset.PresetMode;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.BiConsumer;
 
 import static frc.robot.Constants.Control.*;
@@ -71,12 +66,10 @@ public class Robot extends LoggedRobot {
      */
     @Override
     public void robotInit() {
-        initLogger(); // DO NOT TOUCH!
-
         boolean useNormalSticks = true;
         // Use a PresetGroup to keep the presets synchronized. We don't want one joystick sensitive
         // and the other one non-sensitive.
-        drivePresets = new PresetGroup("Drive Presets", PresetMode.PARALLEL);
+        drivePresets = new PresetGroup("Drive Presets");
 
         //noinspection ConstantValue
         if (useNormalSticks) {
@@ -125,53 +118,10 @@ public class Robot extends LoggedRobot {
         swerve = new SwerveDriveSubsystem();
         frontCamera = new PhotonCameraModule("FrontCamera", Units.inchesToMeters(27), 0);
 
-        BiConsumer<Command, Boolean> logCommandFunction = getCommandActivity();
-        CommandScheduler.getInstance().onCommandInitialize(c -> logCommandFunction.accept(c, true));
-        CommandScheduler.getInstance().onCommandFinish(c -> logCommandFunction.accept(c, false));
-        CommandScheduler.getInstance().onCommandInterrupt(c -> logCommandFunction.accept(c, false));
-
         // *** IMPORTANT: Call this method at the VERY END of robotInit!!! *** //
         registerAlerts(!useNormalSticks);
         configureBindings(!useNormalSticks);
         // ******************************************************************* //
-    }
-
-    /** NOTE: This method <b>MUST</b> be called at the very beginning! */
-    private void initLogger() {
-        boolean isLogSupported = false;
-        try (StringSubscriber sc = NetworkTableInstance.getDefault()
-                .getTable("Robot")
-                .getStringTopic("SystemType")
-                .subscribe("")) {
-            if (sc.get().equals("RoboRIO2"))
-                isLogSupported = true;
-        } catch (Exception ignored) {}
-
-        Logger.recordMetadata("Project Name", BuildConstants.MAVEN_NAME);
-        Logger.recordMetadata("Build Date", BuildConstants.BUILD_DATE);
-        Logger.recordMetadata("Git SHA", BuildConstants.GIT_SHA);
-        Logger.recordMetadata("Git Date", BuildConstants.GIT_DATE);
-        Logger.recordMetadata("Git Branch", BuildConstants.GIT_BRANCH);
-        Logger.recordMetadata("RoboRIO Version", isLogSupported ? "2" : "1");
-
-        //noinspection RedundantSuppression
-        switch (BuildConstants.DIRTY) {
-            //noinspection DataFlowIssue
-            case 0:
-                Logger.recordMetadata("Git Status", "All changes committed");
-                break;
-            //noinspection DataFlowIssue
-            case 1:
-                Logger.recordMetadata("Git Status", "Un-committed changes");
-                break;
-            //noinspection DataFlowIssue
-            default:
-                Logger.recordMetadata("Git Status", "Unknown");
-                break;
-        }
-
-        Logger.addDataReceiver(new NT4Publisher());
-        Logger.start(); // start logging!
     }
 
     private void registerAlerts(boolean xboxOnly) {
@@ -223,7 +173,6 @@ public class Robot extends LoggedRobot {
         }
 
         if (!xboxOnly) {
-           // xbox.a().onTrue(new IntakeCommand(INTAKE_SPEED));
             leftStick.button(10).onTrue(Commands.runOnce(() -> drivePresets.nextPreset(true)));
             leftStick.button(11).onTrue(swerve.resetCommand());
             leftStick.trigger().whileTrue(Commands.runEnd(
@@ -253,23 +202,8 @@ public class Robot extends LoggedRobot {
                 () -> Robot.index.start(),
                 () -> Robot.index.stop()
         ));
-
-       // xbox.leftBumper().onTrue(Commands.runOnce(() -> Robot.climber.setPreset(0)));
-        //xbox.rightBumper().onTrue(Commands.runOnce(() -> Robot.climber.setPreset(1)));
     }
 
-
-    private static BiConsumer<Command, Boolean> getCommandActivity() {
-        Map<String, Integer> commandCounts = new HashMap<>();
-        return (Command command, Boolean active) -> {
-            String name = command.getName();
-            int count = commandCounts.getOrDefault(name, 0) + (active ? 1 : -1);
-            commandCounts.put(name, count);
-            Logger.recordOutput(
-                            "CommandsUnique/" + name + "_" + Integer.toHexString(command.hashCode()), active);
-            Logger.recordOutput("CommandsAll/" + name, count > 0);
-        };
-    }
 
     /**
      * This method is called every 20 ms, no matter the mode. Use this for items like diagnostics
@@ -293,11 +227,5 @@ public class Robot extends LoggedRobot {
 
     @Override public void disabledInit() { CommandScheduler.getInstance().cancelAll(); }
     @Override public void testInit() { CommandScheduler.getInstance().cancelAll(); }
-    @Override public void teleopInit() {
-        CommandScheduler.getInstance().cancelAll();
-    }
-
-    @Override
-    public void teleopPeriodic() {
-    }
+    @Override public void teleopInit() { CommandScheduler.getInstance().cancelAll(); }
 }

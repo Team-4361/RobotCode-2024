@@ -1,17 +1,16 @@
 package frc.robot.util.swerve.config;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.util.math.GearRatio;
 import frc.robot.util.pid.PIDConstantsAK;
-import frc.robot.util.swerve.SwerveModuleBase;
+import frc.robot.util.swerve.SwerveModule;
 
 import static frc.robot.Constants.Mk4SDSRatio.L2;
 
 public class Mk4Chassis implements ChassisSettings {
     /**
-     * @return The {@link ModuleSettings} associated with the front-left {@link SwerveModuleBase}.
+     * @return The {@link ModuleSettings} associated with the front-left {@link SwerveModule}.
      */
     @Override
     public ModuleSettings getFLModule() {
@@ -24,7 +23,7 @@ public class Mk4Chassis implements ChassisSettings {
     }
 
     /**
-     * @return The {@link ModuleSettings} associated with the front-right {@link SwerveModuleBase}.
+     * @return The {@link ModuleSettings} associated with the front-right {@link SwerveModule}.
      */
     @Override
     public ModuleSettings getFRModule() {
@@ -37,7 +36,7 @@ public class Mk4Chassis implements ChassisSettings {
     }
 
     /**
-     * @return The {@link ModuleSettings} associated with the back-left {@link SwerveModuleBase}.
+     * @return The {@link ModuleSettings} associated with the back-left {@link SwerveModule}.
      */
     @Override
     public ModuleSettings getBLModule() {
@@ -50,7 +49,7 @@ public class Mk4Chassis implements ChassisSettings {
     }
 
     /**
-     * @return The {@link ModuleSettings} associated with the front-right {@link SwerveModuleBase}.
+     * @return The {@link ModuleSettings} associated with the front-right {@link SwerveModule}.
      */
     @Override
     public ModuleSettings getBRModule() {

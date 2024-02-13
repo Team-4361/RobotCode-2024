@@ -9,13 +9,15 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.util.io.IOManager;
+import frc.robot.util.pid.PIDConstantsAK;
 import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 import java.util.Optional;
 
-import static frc.robot.Constants.Chassis.CHASSIS_MODE;
+import static frc.robot.Constants.Chassis.AUTO_DRIVE_PID;
+import static frc.robot.Constants.Chassis.AUTO_TURN_PID;
 import static frc.robot.Constants.Debug.PHOTON_ENABLED;
 import static frc.robot.Constants.Debug.PHOTON_TUNING_ENABLED;
 
@@ -39,16 +41,8 @@ public class PhotonCameraModule extends PhotonCamera implements Subsystem {
         this.cameraHeight = height;
         this.cameraPitch = pitch;
 
-        this.driveController = new PIDController(
-                CHASSIS_MODE.getAutoDrivePID().kP,
-                CHASSIS_MODE.getAutoDrivePID().kI,
-                CHASSIS_MODE.getAutoDrivePID().kD
-        );
-        this.turnController = new PIDController(
-                CHASSIS_MODE.getAutoTurnPID().kP,
-                CHASSIS_MODE.getAutoTurnPID().kI,
-                CHASSIS_MODE.getAutoTurnPID().kD
-        );
+        this.driveController = PIDConstantsAK.generateController(AUTO_DRIVE_PID);
+        this.turnController = PIDConstantsAK.generateController(AUTO_TURN_PID);
 
         if (PHOTON_TUNING_ENABLED) {
             IOManager.initPIDTune("Photon: Drive PID", driveController);
@@ -59,10 +53,7 @@ public class PhotonCameraModule extends PhotonCamera implements Subsystem {
     }
 
 
-    public void setTargetHeight(double height) {
-        this.targetHeight = height;
-    }
-
+    public void setTargetHeight(double height) { this.targetHeight = height; }
     public double getTargetHeight() { return this.targetHeight; }
     public double getCameraHeight() { return this.cameraHeight; }
     public double getCameraPitch() { return this.cameraPitch; }

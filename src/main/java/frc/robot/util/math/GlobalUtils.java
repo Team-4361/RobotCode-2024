@@ -16,7 +16,7 @@ import java.util.Random;
  * @since 0.0.0
  */
 public class GlobalUtils {
-    private static final Random rand = new Random();
+    public static final Random rand = new Random();
 
     /**
      * @param val Value that is rounded to the second decimal place.

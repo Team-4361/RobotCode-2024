@@ -18,41 +18,26 @@ import java.util.Optional;
  */
 public class PresetGroup extends ArrayList<IPresetContainer> implements IPresetContainer {
     private final String name;
-    private final PresetMode mode;
-    private final Looper seqLooper;
-
     private int index;
-    private int seqIndex;
-    private boolean finished;
 
     /**
      * Constructs a new {@link PresetGroup} with the specified Type and Name.
      *
      * @param name The name of the {@link PresetGroup}.
-     * @param mode The mode of Operation.
      */
-    public PresetGroup(String name, PresetMode mode) {
+    public PresetGroup(String name) {
         this.name = name;
-        this.mode = mode;
         this.index = 0;
-        this.seqIndex = 0;
-        this.finished = false;
-
-        if (mode == PresetMode.SEQUENTIAL) {
-
-        }
-        this.seqLooper = null;
     }
 
     /**
      * Constructs a new {@link PresetGroup} with the specified Type and Name.
      *
      * @param name     The name of the {@link PresetGroup}.
-     * @param mode     The mode of Operation.
      * @param elements The elements to add.
      */
-    public PresetGroup(String name, PresetMode mode, IPresetContainer... elements) {
-        this(name, mode);
+    public PresetGroup(String name, IPresetContainer... elements) {
+        this(name);
         addAll(List.of(elements));
     }
 
@@ -70,9 +55,6 @@ public class PresetGroup extends ArrayList<IPresetContainer> implements IPresetC
                 .orElse(0);
     }
 
-    /** @return The {@link PresetMode} in which this {@link PresetGroup} is operating in. */
-    public PresetMode getMode() { return this.mode; }
-
     /**
      * Attempts to set the Preset to the specific Index.
      *
@@ -85,52 +67,10 @@ public class PresetGroup extends ArrayList<IPresetContainer> implements IPresetC
             return false;
 
         this.index = idx;
-        this.finished = false;
-
-        // If the mode is SEQUENTIAL, we need to run a Looper to check for "isFinished" events.
-        if (mode == PresetMode.SEQUENTIAL) {
-            if (!IOManager.initLoop(name + "-SEQ",50))
-                return false; // still running.
-
-            Optional<Looper> loop = IOManager.getLoop(name + "-SEQ");
-            if (loop.isEmpty())
-                return false; // Failed to initialize.
-            loop.ifPresent(looper -> looper
-                    .addInit(() -> seqIndex = 0)
-                    .addPeriodic(() -> {
-                        if (seqIndex < 0 || seqIndex > size() - 1) {
-                            finished = true;
-
-                            // TODO: warn on fail.
-                            IOManager.deleteLoop(name + "-SEQ");
-                        }
-                        IPresetContainer inst = get(seqIndex);
-                        if (inst.getSelectedIndex() != index) {
-                            // Set the preset if not currently set; then wait until finished.
-                            inst.setPreset(index);
-                        }
-                        // Check right now to eliminate the need for another Periodic cycle if true
-                        // will instantly be thrown.
-                        if (inst.isFinished()) {
-                            if (seqIndex >= size() - 1) {
-                                // We reached the last element; end the Loop.
-                                finished = true;
-
-                                // TODO: warn on fail
-                                IOManager.deleteLoop(name + "-SEQ");
-                                return;
-                            }
-                            // Otherwise, advance to the next position.
-                            seqIndex++;
-                        }
-                    }));
-        }
         for (IPresetContainer c : this) {
             if (!c.setPreset(idx))
                 return false;
         }
-
-        this.finished = true;
         return true;
     }
 
@@ -140,7 +80,6 @@ public class PresetGroup extends ArrayList<IPresetContainer> implements IPresetC
      * @param name The Name to change the Preset to.
      * @return True if the operation was successful; false otherwise.
      */
-    @SuppressWarnings("UnusedReturnValue")
     public boolean setPreset(String name) {
         int idx = 0;
         for (IPresetContainer preset : this) {
@@ -154,7 +93,6 @@ public class PresetGroup extends ArrayList<IPresetContainer> implements IPresetC
 
     /**
      * Advances the Preset Container to the next option.
-     *
      * @return True if the operation was successful; false otherwise.
      */
     @Override
@@ -166,7 +104,6 @@ public class PresetGroup extends ArrayList<IPresetContainer> implements IPresetC
 
     /**
      * Declines the Preset Container to the previous option.
-     *
      * @return True if the operation was successful; false otherwise.
      */
     @Override
@@ -176,8 +113,6 @@ public class PresetGroup extends ArrayList<IPresetContainer> implements IPresetC
         return false;
     }
 
-    /**
-     * @return If the {@link IPresetContainer} has finished moving position; used for sequential effects.
-     */
-    @Override public boolean isFinished() { return finished; }
+    /** @return If the {@link IPresetContainer} has finished moving position. */
+    @Override public boolean isFinished() { return true; }
 }

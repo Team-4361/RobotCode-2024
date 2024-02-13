@@ -1,6 +1,14 @@
 package frc.robot.util.swerve;
 
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.CANcoderConfigurator;
+import com.ctre.phoenix6.configs.MagnetSensorConfigs;
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.revrobotics.*;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
@@ -11,10 +19,10 @@ import frc.robot.util.io.IOManager;
 import frc.robot.util.math.GlobalUtils;
 import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.motor.MotorModel;
+import frc.robot.util.pid.PIDConstantsAK;
 import frc.robot.util.swerve.config.ModuleSettings;
 import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.inputs.LoggableInputs;
 
 import static com.revrobotics.CANSparkBase.ControlType.kPosition;
 import static com.revrobotics.CANSparkBase.ControlType.kVelocity;
@@ -23,7 +31,7 @@ import static frc.robot.Constants.Chassis.*;
 import static frc.robot.Constants.Debug.SWERVE_TUNING_ENABLED;
 
 /**
- * A {@link SwerveModuleBase} is composed of two motors and two encoders:
+ * A {@link SwerveModule} is composed of two motors and two encoders:
  * a drive motor/encoder and a turn motor/encoder. The turn motor is
  * responsible for controlling the direction the drive motor faces, essentially
  * allowing the robot to move in any direction.
@@ -32,58 +40,43 @@ import static frc.robot.Constants.Debug.SWERVE_TUNING_ENABLED;
  *
  * @author Eric Gold
  */
-public abstract class SwerveModuleBase implements LoggableInputs {
-    private Rotation2d lastAngle;
-
+public class SwerveModule {
     private final SimpleMotorFeedforward driveFF;
-    private final SparkPIDController driveController;
-    private final SparkPIDController turnController;
-
-    private double drivePositionMeters = 0.0;
-    private double driveVelocityMPS = 0.0;
-    private double driveAppliedVolts = 0.0;
-    private double driveCurrentAmps = 0.0;
-    private Rotation2d turnPosition = new Rotation2d();
-    private Rotation2d turnAbsolutePosition = new Rotation2d();
-    private double turnCurrentAmps = 0.0;
-    private double turnAppliedVolts = 0.0;
-
+    private final PIDController driveController;
+    private final PIDController turnController;
     private final FRCSparkMax driveMotor;
     private final FRCSparkMax turnMotor;
-
     private final Rotation2d absOffset;
-
-    private RelativeEncoder driveEncoder;
-    private RelativeEncoder turnEncoder;
-
+    private final StatusSignal<Double> signal;
     private final String name;
 
-    public abstract Rotation2d getAbsolutePosition();
+    private RelativeEncoder driveEncoder;
+    private Double speedSetpoint = null;
+    private Rotation2d angleSetpoint = null;
 
+    private RelativeEncoder turnEncoder;
+    private Rotation2d turnPosition;
+    private Rotation2d turnAbsolutePosition;
+    private double driveVelocityMPS;
 
     /**
-     * Creates a new {@link SwerveModuleBase} instance using the specified parameters. The {@link CANSparkMax}
+     * Creates a new {@link SwerveModule} instance using the specified parameters. The {@link CANSparkMax}
      * motor instance will be <b>created and reserved.</b>
      *
-     * @param name     The {@link String} name of the {@link SwerveModuleBase}.
-     * @param settings The {@link ModuleSettings} of the {@link SwerveModuleBase}.
+     * @param name     The {@link String} name of the {@link SwerveModule}.
+     * @param settings The {@link ModuleSettings} of the {@link SwerveModule}.
      */
-    public SwerveModuleBase(String name, ModuleSettings settings) {
+    public SwerveModule(String name, ModuleSettings settings) {
         this.driveMotor = new FRCSparkMax(settings.getDriveID(), kBrushless, MotorModel.NEO);
         this.turnMotor = new FRCSparkMax(settings.getTurnID(), kBrushless, MotorModel.NEO);
-        this.driveController = driveMotor.getPIDController();
-        this.turnController = turnMotor.getPIDController();
-        this.absOffset = Rotation2d.fromRadians(settings.getOffsetDegrees());
-        this.lastAngle = new Rotation2d();
+        this.driveFF = new SimpleMotorFeedforward(MODULE_KS, MODULE_KV, MODULE_KA);
 
-        CHASSIS_MODE.getDrivePID().initController(driveController);
-        CHASSIS_MODE.getTurnPID().initController(turnController);
-
-        // TODO: Will this cause problems?
-        this.driveFF = new SimpleMotorFeedforward(0.1, 0.13, 0);
+        this.name = name;
+        this.driveController = PIDConstantsAK.generateController(DRIVE_PID);
+        this.turnController = PIDConstantsAK.generateController(TURN_PID);
+        this.absOffset = Rotation2d.fromDegrees(settings.getOffsetDegrees());
         this.driveEncoder = driveMotor.getEncoder();
         this.turnEncoder = turnMotor.getEncoder();
-        this.name = name;
 
         turnEncoder.setPositionConversionFactor(TURN_POSITION_FACTOR);
         driveEncoder.setPositionConversionFactor(DRIVE_POSITION_FACTOR);
@@ -96,9 +89,23 @@ public abstract class SwerveModuleBase implements LoggableInputs {
             IOManager.initPIDTune("Swerve: Drive PID", driveController);
             IOManager.initPIDTune("Swerve: Turn PID", turnController);
         }
-        Timer.delay(1);
 
-        turnEncoder.setPosition(getAbsolutePosition().minus(absOffset).getDegrees());
+        try (CANcoder encoder = new CANcoder(settings.getEncoderID())) {
+            CANcoderConfigurator cfg = encoder.getConfigurator();
+            MagnetSensorConfigs magnetSensorConfiguration = new MagnetSensorConfigs();
+            cfg.refresh(magnetSensorConfiguration);
+            cfg.apply(magnetSensorConfiguration
+                    .withAbsoluteSensorRange(AbsoluteSensorRangeValue.Unsigned_0To1)
+                    .withSensorDirection(SensorDirectionValue.Clockwise_Positive)
+                    .withMagnetOffset(settings.getOffsetDegrees() / 360));
+            signal = encoder.getAbsolutePosition();
+            BaseStatusSignal.setUpdateFrequencyForAll(50, signal);
+            encoder.optimizeBusUtilization();
+        }
+
+        Timer.delay(1);
+        update();
+        turnEncoder.setPosition(turnAbsolutePosition.minus(absOffset).getDegrees());
     }
 
     public void update() {
@@ -106,41 +113,33 @@ public abstract class SwerveModuleBase implements LoggableInputs {
         turnEncoder = turnMotor.getEncoder();
 
         ////////////////////////////////////////////// Update all the inputs inside this method.
-        drivePositionMeters = driveEncoder.getPosition();
-        driveVelocityMPS = driveEncoder.getVelocity();
-
-        driveAppliedVolts = driveMotor.getAppliedVoltage();
-        driveCurrentAmps = driveMotor.getOutputCurrent();
-
-        turnAbsolutePosition = getAbsolutePosition().minus(absOffset);
+        turnAbsolutePosition = Rotation2d.fromDegrees(signal.getValueAsDouble()*360).minus(absOffset);
         turnPosition = Rotation2d.fromDegrees(turnEncoder.getPosition());
-
-        turnAppliedVolts = turnMotor.getAppliedVoltage();
-        turnCurrentAmps = turnMotor.getOutputCurrent();
         //////////////////////////////////////////////////////////////////////////////////////
 
-        Logger.processInputs("Drive/Module" + name, this);
+        turnMotor.setVoltage(
+                turnController.calculate(
+                        turnPosition.getRadians(),
+                        angleSetpoint.getRadians()
+                )
+        );
+        if (speedSetpoint != null) {
+            double adjustedSpeedMPS = speedSetpoint * Math.cos(turnController.getPositionError());
+            driveMotor.setVoltage(
+                    driveFF.calculate(adjustedSpeedMPS)
+                        + driveController.calculate(driveVelocityMPS, adjustedSpeedMPS));
+        }
+
     }
 
     public SwerveModuleState setState(SwerveModuleState desiredState) {
         desiredState = GlobalUtils.optimize(desiredState, getState().angle);
 
         // Prevent rotating module if speed is less than 1% to prevent jerky movement.
-        Rotation2d angle =
-                (Math.abs(desiredState.speedMetersPerSecond) <= (CHASSIS_MODE.getMaxSpeed() * 0.01))
-                        ? lastAngle
-                        : desiredState.angle;
-
-        turnController.setReference(angle.getDegrees(), kPosition);
-        lastAngle = angle;
-
-        driveController.setReference(
-                desiredState.speedMetersPerSecond,
-                kVelocity,
-                0,
-                driveFF.calculate(desiredState.speedMetersPerSecond)
-        );
-
+        angleSetpoint = (Math.abs(desiredState.speedMetersPerSecond) <= (MAX_SPEED_MPS * 0.01))
+                ? angleSetpoint
+                : desiredState.angle;
+        speedSetpoint = desiredState.speedMetersPerSecond;
         return desiredState;
     }
 
@@ -154,7 +153,7 @@ public abstract class SwerveModuleBase implements LoggableInputs {
      */
     public SwerveModuleState getState() {
         return new SwerveModuleState(
-                driveVelocityMPS,
+                driveEncoder.getVelocity(),
                 turnPosition
         );
     }
@@ -171,37 +170,11 @@ public abstract class SwerveModuleBase implements LoggableInputs {
      */
     public SwerveModulePosition getPosition() {
         return new SwerveModulePosition(
-                drivePositionMeters,
+                driveEncoder.getPosition(),
                 turnAbsolutePosition
         );
     }
 
-    /** @return The name of the {@link SwerveModuleBase}. */
+    /** @return The name of the {@link SwerveModule}. */
     public String getName() { return name; }
-
-    /**
-     * Updates a LogTable with the data to log.
-     *
-     * @param table The {@link LogTable} which is provided.
-     */
-    @Override
-    public void toLog(LogTable table) {
-        table.put("DrivePositionMeters", this.drivePositionMeters);
-        table.put("DriveVelocityMPS", this.driveVelocityMPS);
-        table.put("TurnAbsolutePosition", this.turnAbsolutePosition);
-        table.put("TurnPosition", this.turnPosition);
-    }
-
-    /**
-     * Updates data based on a LogTable.
-     *
-     * @param table The {@link LogTable} which is provided.
-     */
-    @Override
-    public void fromLog(LogTable table) {
-        this.drivePositionMeters = table.get("DrivePositionMeters", this.drivePositionMeters);
-        this.driveVelocityMPS = table.get("DriveVelocityMPS", this.driveVelocityMPS);
-        this.turnAbsolutePosition = table.get("TurnAbsolutePosition", this.turnAbsolutePosition);
-        this.turnPosition = table.get("TurnPosition", this.turnPosition);
-    }
 }

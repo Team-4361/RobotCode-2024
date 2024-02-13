@@ -1,6 +1,5 @@
 package frc.robot.subsystems;
 
-import com.ctre.phoenix6.mechanisms.swerve.SwerveModule;
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.pathfinding.Pathfinding;
@@ -13,7 +12,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.*;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -22,17 +20,10 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Robot;
-import frc.robot.util.auto.LocalADStarAK;
 import frc.robot.util.io.AlertType;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveHIDBase;
-import frc.robot.util.swerve.SwerveModuleBase;
-import frc.robot.util.swerve.SwerveModuleCAN;
-import frc.robot.util.swerve.SwerveModuleMAG;
-import org.littletonrobotics.junction.AutoLogOutput;
-import org.littletonrobotics.junction.LogTable;
-import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.inputs.LoggableInputs;
+import frc.robot.util.swerve.SwerveModule;
 
 import java.util.Optional;
 
@@ -40,16 +31,16 @@ import static frc.robot.Constants.AlertConfig.STRING_GYRO_CALIBRATING;
 import static frc.robot.Constants.Chassis.*;
 
 /**
- * This {@link SwerveDriveSubsystem} is designed to be used for controlling the {@link SwerveModuleBase}s, and utilizing
+ * This {@link SwerveDriveSubsystem} is designed to be used for controlling the {@link SwerveModule}s, and utilizing
  * an {@link AHRS} gyroscope to provide the field-relating driving a robot needs. This is also useful for debugging
  * purposes (or for simple autonomous) as it allows driving in a specific direction.
  *
  * @since 0.0.0
  * @author Eric Gold
  */
-public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInputs {
+public class SwerveDriveSubsystem extends SubsystemBase {
     private final SwerveDriveKinematics kinematics;
-    private final SwerveModuleBase[] modules;
+    private final SwerveModule[] modules;
     private final AHRS gyro;
     private final SwerveModulePosition[] lastModulePositions = new SwerveModulePosition[] {
             new SwerveModulePosition(),
@@ -57,20 +48,14 @@ public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInput
             new SwerveModulePosition(),
             new SwerveModulePosition()
     };
+    private Rotation2d rawGyroRotation = new Rotation2d();
+    private final SwerveDrivePoseEstimator poseEstimator;
 
     public boolean connected = false;
     public Rotation2d yawPosition = new Rotation2d();
     public double yawVelocityRadPerSec = 0.0;
     public boolean isCalibrating = false;
 
-    private Rotation2d rawGyroRotation = new Rotation2d();
-    private final SwerveDrivePoseEstimator poseEstimator;
-
-    // Used for keeping the gyro angle at zero when the floor
-    // is not PERFECTLY flat. A YAW OFFSET is not required due to integrated
-    // functionality in the gyroscope.
-    private Rotation2d rollOffset;
-    private Rotation2d pitchOffset;
 
     public static boolean fieldOriented = true;
 
@@ -94,35 +79,22 @@ public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInput
      * Constructs a new {@link SwerveDriveSubsystem} with the specified modules.
      */
     public SwerveDriveSubsystem() {
-        if (CHASSIS_MODE.usingMagEncoders()) {
-            this.modules = new SwerveModuleBase[]{
-                    new SwerveModuleMAG("FL", CHASSIS_MODE.getFLModule()),
-                    new SwerveModuleMAG("FR", CHASSIS_MODE.getFRModule()),
-                    new SwerveModuleMAG("BL", CHASSIS_MODE.getBLModule()),
-                    new SwerveModuleMAG("BR", CHASSIS_MODE.getBRModule()),
-            };
-        } else {
-            this.modules = new SwerveModuleBase[]{
-                    new SwerveModuleCAN("FL", CHASSIS_MODE.getFLModule()),
-                    new SwerveModuleCAN("FR", CHASSIS_MODE.getFRModule()),
-                    new SwerveModuleCAN("BL", CHASSIS_MODE.getBLModule()),
-                    new SwerveModuleCAN("BR", CHASSIS_MODE.getBRModule()),
-            };
-        }
+        this.modules = new SwerveModule[]{
+                new SwerveModule("FL", FL_MODULE),
+                new SwerveModule("FR", FR_MODULE),
+                new SwerveModule("BL", BL_MODULE),
+                new SwerveModule("BR", BR_MODULE),
+        };
 
         this.gyro = new AHRS(SPI.Port.kMXP);
         gyro.reset();
 
-        this.pitchOffset = Rotation2d.fromDegrees(0);
-        this.rollOffset = Rotation2d.fromDegrees(0);
-
         // Define the distances relative to the center of the robot. +X is forward and +Y is left.
-        double SWERVE_CHASSIS_SIDE_LENGTH = CHASSIS_MODE.getSideLength();
         this.kinematics = new SwerveDriveKinematics(
-                new Translation2d(SWERVE_CHASSIS_SIDE_LENGTH / 2, SWERVE_CHASSIS_SIDE_LENGTH / 2),  // FL
-                new Translation2d(SWERVE_CHASSIS_SIDE_LENGTH / 2, -SWERVE_CHASSIS_SIDE_LENGTH / 2), // FR
-                new Translation2d(-SWERVE_CHASSIS_SIDE_LENGTH / 2, SWERVE_CHASSIS_SIDE_LENGTH / 2), // BL
-                new Translation2d(-SWERVE_CHASSIS_SIDE_LENGTH / 2, -SWERVE_CHASSIS_SIDE_LENGTH / 2) // BR
+                new Translation2d(SIDE_LENGTH_METERS / 2, SIDE_LENGTH_METERS / 2),  // FL
+                new Translation2d(SIDE_LENGTH_METERS / 2, -SIDE_LENGTH_METERS / 2), // FR
+                new Translation2d(-SIDE_LENGTH_METERS / 2, SIDE_LENGTH_METERS / 2), // BL
+                new Translation2d(-SIDE_LENGTH_METERS / 2, -SIDE_LENGTH_METERS / 2) // BR
         );
 
         this.poseEstimator = new SwerveDrivePoseEstimator(
@@ -140,22 +112,14 @@ public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInput
                 this::getRobotVelocity,
                 this::drive,
                 new HolonomicPathFollowerConfig(
-                        CHASSIS_MODE.getMaxSpeed(), CHASSIS_BASE_RADIUS, new ReplanningConfig()
+                        MAX_SPEED_MPS,
+                        Math.hypot(SIDE_LENGTH_METERS/2, SIDE_LENGTH_METERS/2),
+                        new ReplanningConfig()
                 ), () -> {
                     Optional<DriverStation.Alliance> alliance = DriverStation.getAlliance();
                     return alliance.filter(value -> value == DriverStation.Alliance.Red).isPresent();
                 },
                 this
-        );
-        Pathfinding.setPathfinder(new LocalADStarAK());
-        PathPlannerLogging.setLogActivePathCallback(
-                (activePath) -> {
-                    //noinspection ToArrayCallWithZeroLengthArrayArgument
-                    Logger.recordOutput(
-                            "Odometry/Trajectory", activePath.toArray(new Pose2d[activePath.size()]));
-                });
-        PathPlannerLogging.setLogTargetPoseCallback(
-                (targetPose) -> Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose)
         );
     }
 
@@ -180,25 +144,16 @@ public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInput
      * Commands, and which will be handled here.
      */
     @Override
-    @SuppressWarnings("RedundantArrayCreation")
     public void periodic() {
         connected = gyro.isConnected();
         yawPosition = gyro.getRotation2d();
-        //yawVelocityRadPerSec = Units.degreesToRadians(gyro.getRate());
-        //pitchPosition = Rotation2d.fromDegrees(gyro.getPitch());
-        //rollPosition = Rotation2d.fromDegrees(gyro.getRoll());
         isCalibrating = gyro.isCalibrating();
 
-        Logger.processInputs("Drive/Gyro", this);
-
-        for (SwerveModuleBase module : modules)
+        for (SwerveModule module : modules)
             module.update();
 
-        if (DriverStation.isDisabled()) {
+        if (DriverStation.isDisabled())
             stop();
-            Logger.recordOutput("SwerveStates/Setpoints", new SwerveModuleState[] {});
-            Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});
-        }
 
         // Read wheel positions and deltas from each module
         SwerveModulePosition[] modulePositions = getPositions();
@@ -236,12 +191,6 @@ public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInput
         return kinematics.toChassisSpeeds(getStates());
     }
 
-    /** @return The current roll of the {@link Robot} in <b>degrees</b>. */
-    //public Rotation2d getRoll() { return rollPosition.minus(rollOffset); }
-
-    /** @return The current pitch of the {@link Robot} in <b>degrees</b>. */
-    //public Rotation2d getPitch() { return pitchPosition.minus(pitchOffset); }
-
     /** @return The current {@link Rotation2d} heading of the {@link Robot}. */
     public Rotation2d getHeading() { return yawPosition; }
 
@@ -249,7 +198,7 @@ public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInput
         if (states.length != modules.length)
             return;
 
-        SwerveDriveKinematics.desaturateWheelSpeeds(states, CHASSIS_MODE.getMaxSpeed());
+        SwerveDriveKinematics.desaturateWheelSpeeds(states, MAX_SPEED_MPS);
         for (int i=0; i<modules.length; i++) {
             modules[i].setState(states[i]);
         }
@@ -261,9 +210,9 @@ public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInput
      */
     public void drive(DriveHIDBase stick) {
         // Calculate the maximum speed based on XY and Twist.
-        double xS = stick.getRobotX() * CHASSIS_MODE.getMaxSpeed();
-        double yS = stick.getRobotY() * CHASSIS_MODE.getMaxSpeed();
-        double tS = stick.getRobotTwist() * CHASSIS_MODE.getMaxSpeed();
+        double xS = stick.getRobotX() * MAX_SPEED_MPS;
+        double yS = stick.getRobotY() * MAX_SPEED_MPS;
+        double tS = stick.getRobotTwist() * MAX_SPEED_MPS;
 
         ChassisSpeeds speeds = new ChassisSpeeds(xS, yS, tS);
 
@@ -279,9 +228,9 @@ public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInput
      * @param twistStick The {@link DriveHIDBase} to use for Twist.
      */
     public void drive(DriveHIDBase xyStick, DriveHIDBase twistStick) {
-        double xS = xyStick.getRobotX() * CHASSIS_MODE.getMaxSpeed();
-        double yS = xyStick.getRobotY() * CHASSIS_MODE.getMaxSpeed();
-        double tS = twistStick.getRobotTwist() * CHASSIS_MODE.getMaxSpeed();
+        double xS = xyStick.getRobotX() * MAX_SPEED_MPS;
+        double yS = xyStick.getRobotY() * MAX_SPEED_MPS;
+        double tS = twistStick.getRobotTwist() * MAX_SPEED_MPS;
 
         ChassisSpeeds speeds = new ChassisSpeeds(xS, yS, tS);
 
@@ -298,21 +247,14 @@ public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInput
     public void drive(ChassisSpeeds speeds) { setStates(kinematics.toSwerveModuleStates(speeds)); }
 
     public void driveRobotRelative(ChassisSpeeds speeds) {
-        // Calculate module setpoints
         ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
         SwerveModuleState[] states = kinematics.toSwerveModuleStates(discreteSpeeds);
-        SwerveDriveKinematics.desaturateWheelSpeeds(states, CHASSIS_MODE.getMaxSpeed());
+        SwerveDriveKinematics.desaturateWheelSpeeds(states, MAX_SPEED_MPS);
 
-        // Send setpoints to modules
-        SwerveModuleState[] optimizedStates = new SwerveModuleState[4];
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < modules.length; i++) {
             // The module returns the optimized state, useful for logging
-            optimizedStates[i] = modules[i].setState(states[i]);
+            modules[i].setState(states[i]);
         }
-
-        // Log setpoint states
-        Logger.recordOutput("SwerveStates/Setpoints", states);
-        Logger.recordOutput("SwerveStates/SetpointsOptimized", optimizedStates);
     }
 
     public void lock() {
@@ -325,15 +267,13 @@ public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInput
     }
 
     public void reset(Pose2d pose) {
-        //rollOffset = rollPosition;
-        //pitchOffset = pitchPosition;
-        Constants.runIfNotReplay(gyro::reset);
+        gyro.reset();
         poseEstimator.resetPosition(yawPosition, getPositions(), pose);
     }
 
     public void reset() { reset(new Pose2d()); }
 
-    public SwerveModuleBase[] getModules() { return this.modules; }
+    public SwerveModule[] getModules() { return this.modules; }
     public SwerveDriveKinematics getKinematics() { return kinematics; }
 
     public SwerveModulePosition[] getPositions() {
@@ -344,7 +284,6 @@ public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInput
         return positions;
     }
 
-    @AutoLogOutput(key = "SwerveStates/Measured")
     public SwerveModuleState[] getStates() {
         SwerveModuleState[] states = new SwerveModuleState[modules.length];
         for (int i=0; i<modules.length; i++) {
@@ -353,52 +292,6 @@ public class SwerveDriveSubsystem extends SubsystemBase implements LoggableInput
         return states;
     }
 
-    @AutoLogOutput(key = "Odometry/Pose")
-    public Pose2d getPose() {
-        return poseEstimator.getEstimatedPosition();
-    }
-
-    public Rotation2d getRotation() {
-        return getPose().getRotation();
-    }
-
-    /**
-     * Adds a vision measurement to the pose estimator.
-     *
-     * @param visionPose The pose of the robot as measured by the vision camera.
-     * @param timestamp The timestamp of the vision measurement in seconds.
-     */
-    public void addVisionMeasurement(Pose2d visionPose, double timestamp) {
-        poseEstimator.addVisionMeasurement(visionPose, timestamp);
-    }
-
-    /**
-     * Updates a LogTable with the data to log.
-     *
-     * @param table The {@link LogTable} which is provided.
-     */
-    @Override
-    public void toLog(LogTable table) {
-        table.put("Connected", this.connected);
-        table.put("YawPosition", this.yawPosition);
-        //table.put("YawVelocityRadPerSec", this.yawVelocityRadPerSec);
-        //table.put("PitchPosition", this.pitchPosition);
-        //table.put("RollPosition", this.rollPosition);
-        table.put("IsCalibrating", this.isCalibrating);
-    }
-
-    /**
-     * Updates data based on a LogTable.
-     *
-     * @param table The {@link LogTable} which is provided.
-     */
-    @Override
-    public void fromLog(LogTable table) {
-        this.connected = table.get("Connected", this.connected);
-        this.yawPosition = table.get("YawPosition", this.yawPosition);
-        //this.yawVelocityRadPerSec = table.get("YawVelocityRadPerSec", this.yawVelocityRadPerSec);
-       // this.pitchPosition = table.get("PitchPosition", this.pitchPosition);
-       // this.rollPosition = table.get("RollPosition", this.rollPosition);
-        this.isCalibrating = table.get("IsCalibrating", this.isCalibrating);
-    }
+    public Pose2d getPose() { return poseEstimator.getEstimatedPosition(); }
+    public Rotation2d getRotation() { return getPose().getRotation(); }
 }
