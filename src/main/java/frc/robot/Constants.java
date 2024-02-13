@@ -54,6 +54,7 @@ public class Constants {
         public static final boolean INTAKE_TUNING_ENABLED = false;
         public static final boolean WRIST_TUNING_ENABLED = false;
         public static final boolean CLIMBER_TUNING_ENABLED = false;
+        public static final boolean TRAP_ARM_TUNING_ENABLED = false;
     }
 
 
@@ -92,7 +93,7 @@ public class Constants {
         public static final boolean INTAKE_INVERTED = false;
         public static final PIDConstantsAK INTAKE_PID = new PIDConstantsAK(0.02, 0, 0);
     }
-
+    //** This {@link Wrist} class represents all values regarding the {@link Robot}'s wrist mechanism. */
     public static class Wrist {
         public static final int WRIST_MAX_US = 2000;
         public static final int WRIST_DEAD_BAND_MAX_US = 1500;
@@ -112,10 +113,33 @@ public class Constants {
         public static final GearRatio WRIST_TURN_RATIO = GearRatio.from(63, 1);
         public static final PIDConstantsAK WRIST_PID = new PIDConstantsAK(0.02, 0, 0);
     }
+    public static class Arm {
+        // change later?
+        public static final int ARM_MAX_US = 2000;
+        public static final int ARM_DEAD_BAND_MAX_US = 1500;
+        public static final int ARM_CENTER_US = 1500;
+        public static final int ARM_DEAD_BAND_MIN_US = 1500;
+        public static final int ARM_MIN_US = 1000;
 
+        public static final int ARM_MOTOR_ID = 18;
+        public static final int ARM_SERVO_ID = 1;
+        public static final double ARM_KS = 0;
+        public static final double ARM_KV = 0;
+        public static final double ARM_KA = 0;
+
+        public static final double ARM_SERVO_MAX_MM = 50;
+
+        // change later?
+        public static final GearRatio ARM_TURN_RATIO = GearRatio.from(63, 1);
+
+        public static final PIDConstantsAK ARM_PID = new PIDConstantsAK(0.02, 0, 0);
+    }
+
+    //** This {@link Climber} class represents all values regarding the {@link Robot}'s climber mechanism. */
     public static class Climber{
         public static final int LEFT_CLIMB_MOTOR_ID = 16;
         public static final int RIGHT_CLIMB_MOTOR_ID = 17;
+        public static final int MAGNET_SENSOR_PORT = 1;
         public static final double CLIMB_KS = 0;
         public static final double CLIMB_KV = 0;
         public static final double CLIMB_KA = 0;
