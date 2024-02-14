@@ -1,25 +1,17 @@
 package frc.robot;
 
-import com.pathplanner.lib.util.PIDConstants;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotBase;
-import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.IDriveMode;
 import frc.robot.util.math.GearRatio;
 import frc.robot.util.math.PeakMotorDistance;
-import frc.robot.util.pid.DashTunableNumber;
 import frc.robot.util.pid.PIDConstantsAK;
-import frc.robot.util.swerve.config.ChassisSettings;
-import frc.robot.util.swerve.config.Mk4Chassis;
-import frc.robot.util.swerve.config.ModuleSettings;
+import frc.robot.util.swerve.ModuleSettings;
 
 import java.util.LinkedHashMap;
 import java.util.function.Supplier;
@@ -109,19 +101,10 @@ public class Constants {
     }
 
     public static class Climber{
-        public static final int LEFT_CLIMB_MOTOR_ID = 16;
-        public static final int RIGHT_CLIMB_MOTOR_ID = 17;
-        public static final double CLIMB_KS = 0;
-        public static final double CLIMB_KV = 0;
-        public static final double CLIMB_KA = 0;
-        public static final PIDConstantsAK CLIMB_PID = new PIDConstantsAK(0.05, 0 , 0);
-        public static final PeakMotorDistance MAX_DISTANCE = new PeakMotorDistance(Inches.of(24.5), 10);
-
-        public static final LinkedHashMap<String, Double> CLIMBER_PRESETS = new LinkedHashMap<>();
-        static {
-            CLIMBER_PRESETS.put("Zero", 0.0);
-            CLIMBER_PRESETS.put("Top", 24.5);
-        }
+        public static final int CLIMBER_LEFT_ID = 16;
+        public static final int CLIMBER_RIGHT_ID = 17;
+        public static final int CLIMBER_LEFT_DIO = 0;
+        public static final int CLIMBER_RIGHT_DIO = 1;
     }
 
     public static class Control {
@@ -146,7 +129,6 @@ public class Constants {
     public static class VisionTracking {
         /** The maximum duration a Camera must have no {@link Pose2d} for it to register. */
         public static final double CAMERA_POSE_BUFFER_MILLIS = 500;
-      //  public static final AprilTagFieldLayout FIELD_LAYOUT = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2024Crescendo.m_resourceFile);
         public static final Transform3d CAMERA_OFFSET = new Transform3d(
                 new Translation3d(0.3, 0, 0.3),
                 new Rotation3d(0, 0, 0)
@@ -222,17 +204,18 @@ public class Constants {
         public static final double SIDE_LENGTH_METERS = Units.inchesToMeters(30);
         public static final double WHEEL_RADIUS_METERS = Units.inchesToMeters(4);
         public static final double MAX_SPEED_MPS = 12.5;
-        public static final GearRatio DRIVE_RATIO = GearRatio.from(Mk4SDSRatio.L2.ratio, 1);
-        public static final GearRatio TURN_RATIO = GearRatio.from(12.6, 1);
         public static final double MODULE_KS = 0.10;
         public static final double MODULE_KV = 0.13;
         public static final double MODULE_KA = 0.00;
+
         public static final PIDConstantsAK DRIVE_PID = new PIDConstantsAK(0.2, 0, 0);
         public static final PIDConstantsAK TURN_PID = new PIDConstantsAK(2, 0, 0);
         public static final PIDConstantsAK AUTO_DRIVE_PID = new PIDConstantsAK(5, 0, 0);
         public static final PIDConstantsAK AUTO_TURN_PID = new PIDConstantsAK(0.2, 0, 0);
         public static final PIDConstantsAK PHOTON_DRIVE_PID = new PIDConstantsAK(0.01, 0, 0);
         public static final PIDConstantsAK PHOTON_TURN_PID = new PIDConstantsAK(0.01, 0, 0);
+        public static final GearRatio DRIVE_RATIO = GearRatio.from(Mk4SDSRatio.L2.ratio, 1);
+        public static final GearRatio TURN_RATIO = GearRatio.from(12.6, 1);
 
         public static final double DRIVE_POSITION_FACTOR =
                 (WHEEL_RADIUS_METERS * 2 * Math.PI) / DRIVE_RATIO.getDivisor();

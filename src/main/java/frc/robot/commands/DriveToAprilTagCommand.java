@@ -13,10 +13,6 @@ import frc.robot.util.math.GlobalUtils;
 
 import java.util.Optional;
 
-import static frc.robot.Constants.Chassis.CHASSIS_MODE;
-import static frc.robot.Constants.Control.PHOTON_DRIVE_MAX_SPEED;
-import static frc.robot.Constants.Control.PHOTON_TURN_MAX_SPEED;
-
 public class DriveToAprilTagCommand extends Command {
     private final Pose2d desiredPose;
     private final int id;

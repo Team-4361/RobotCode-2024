@@ -32,18 +32,12 @@ import static frc.robot.Constants.LooperConfig.*;
  * @since 0.0.1
  */
 public class IOManager {
-    private static final List<Looper> LOOPS = new ArrayList<>();
     private static final List<Alert> ALERTS = new ArrayList<>();
     private static final List<DashTunablePID> PID_TUNES = new ArrayList<>();
     private static final RuntimeMXBean MX_BEAN = ManagementFactory.getRuntimeMXBean();
-
-    private static long lastLoopUpdate = 0;
     private static long lastAlertUpdate = 0;
 
     private static final long testModeDisable = System.currentTimeMillis() + 5000;
-
-    /** @return A {@link List} of all registered {@link Looper} instances. */
-    public static List<Looper> getLoops() { return LOOPS; }
 
     /** @return A {@link List} of all registered {@link Alert} instances. */
     public static List<Alert> getAlerts() { return ALERTS; }
@@ -51,63 +45,8 @@ public class IOManager {
     /** @return A {@link List} of all registered {@link DashTunablePID} instances. */
     public static List<DashTunablePID> getPIDTunes() { return PID_TUNES; }
 
-    static {
-        getAlert(STRING_HIGH_PERIODIC_MS, AlertType.WARNING)
-                .setCondition(() -> System.currentTimeMillis() - lastLoopUpdate >= 25)
-                .setEnableDelay(2000)
-                .setDisableDelay(2000)
-                .setPersistent(false)
-                .setOneUse(false);
-    }
-
-    /**
-     * Initializes a {@link Notifier} instance and automatically registers it.
-     *
-     * @param loopName      The {@link String} name of the {@link Looper} (case-insensitive)
-     * @param interval      The interval of the {@link Looper} <code>periodic</code> calls.
-     *
-     * @return True if the {@link Looper} does <b>not</b> exist and successfully initialized; false otherwise.
-     */
-    @SuppressWarnings("UnusedReturnValue")
-    public static boolean initLoop(String loopName, long interval) {
-        if (loopExists(loopName))
-            return false;
-        Looper looper = new Looper(loopName, interval);
-        return LOOPS.add(looper);
-    }
-
-    /** @return If the {@link Looper} exists. <b>Highly recommended to call this before {@link #getLoop(String)}</b> */
-    public static boolean loopExists(String loopName) { return (getLoop(loopName).isPresent()); }
-
     /** @return If the {@link DashTunablePID} exists. <b>Highly recommended to call this before a method.</b> */
     public static boolean tuneExists(String loopName) { return (getDashTune(loopName).isPresent()); }
-
-    /**
-     * Automatically registers a {@link DashTunablePID} instance based on the {@link PIDController} supplied
-     * values. This {@link IOManager} also takes care of updating the PID instance.
-     *
-     * @param name The {@link String} name of the {@link DashTunablePID}.
-     * @param controller The {@link PIDController} to pull the values from.
-     * @return True if the {@link DashTunablePID} did not exist; false otherwise.
-     */
-    @SuppressWarnings("UnusedReturnValue")
-    public static boolean initPIDTune(String name, PIDController controller) {
-        if (tuneExists(name))
-            return false;
-        DashTunablePID pid = new DashTunablePID(name, new PIDConstants(
-                controller.getP(),
-                controller.getI(),
-                controller.getD()
-        ));
-        pid.addConsumer(controller::setP, controller::setI, controller::setD); // will auto-update the controller.
-        PID_TUNES.add(pid);
-
-        // Attempt to add the update method to the loop.
-        if (!loopExists(STRING_DASHBOARD_NAME))
-            initLoop(STRING_DASHBOARD_NAME, DASHBOARD_INTERVAL);
-
-        return addPeriodicIfExists(STRING_ODOMETRY_NAME, pid::update);
-    }
 
     /**
      * Automatically registers a {@link DashTunablePID} instance based on the {@link SparkPIDController} supplied
@@ -118,13 +57,13 @@ public class IOManager {
      * @param name The {@link String} name of the {@link DashTunablePID}.
      * @param controller The {@link SparkPIDController} to pull the values from.
      */
-    public static void initPIDTune(String name, SparkPIDController controller) {
+    public static boolean initPIDTune(String name, SparkPIDController controller) {
         Optional<DashTunablePID> tune = getDashTune(name);
 
         if (tune.isPresent()) {
             // Simply add the consumer to the tune. It already exists.
             tune.get().addConsumer(controller::setP, controller::setI, controller::setD);
-            return;
+            return false;
         }
 
         DashTunablePID pid = new DashTunablePID(name, new PIDConstants(
@@ -135,68 +74,7 @@ public class IOManager {
         pid.addConsumer(controller::setP, controller::setI, controller::setD); // will auto-update the controller.
         PID_TUNES.add(pid);
 
-        // Attempt to add the update method to the loop.
-        if (!loopExists(STRING_DASHBOARD_NAME))
-            initLoop(STRING_DASHBOARD_NAME, DASHBOARD_INTERVAL);
-
-        addPeriodicIfExists(STRING_ODOMETRY_NAME, pid::update);
-    }
-
-    /**
-     * Adds a <code>periodic</code> {@link Runnable} to the {@link Looper} only if currently initialized.
-     * @param loopName The {@link String} name of the {@link Looper} (case-insensitive)
-     * @param periodic The <code>periodic</code> {@link Runnable} to add.
-     * @return True if the {@link Looper} exists; false otherwise.
-     */
-    @SuppressWarnings("UnusedReturnValue")
-    public static boolean addPeriodicIfExists(String loopName, Runnable periodic) {
-        Optional<Looper> loop;
-        if ((loop = getLoop(loopName)).isEmpty()) {
-            return false;
-        }
-        loop.get().addPeriodic(periodic);
-        return true;
-    }
-
-    /**
-     * Adds an <code>init</code> {@link Runnable} to the {@link Looper} only if currently initialized.
-     * @param loopName The {@link String} name of the {@link Looper} (case-insensitive)
-     * @param init     The <code>init</code> {@link Runnable} to add.
-     * @return True if the {@link Looper} exists; false otherwise.
-     */
-    public static boolean addInitIfExists(String loopName, Runnable init) {
-        Optional<Looper> loop;
-        if ((loop = getLoop(loopName)).isEmpty()) {
-            return false;
-        }
-        loop.get().addInit(init);
-        return true;
-    }
-
-    /**
-     * Adds an <code>onFinished</code> {@link Runnable} to the {@link Looper} only if currently initialized.
-     * @param loopName  The {@link String} name of the {@link Looper} (case-insensitive)
-     * @param onFinished The <code>onFinished</code> {@link Runnable} to add.
-     * @return True if the {@link Looper} exists; false otherwise.
-     */
-    public static boolean addOnFinishedIfExists(String loopName, Runnable onFinished) {
-        Optional<Looper> loop;
-        if ((loop = getLoop(loopName)).isEmpty()) {
-            return false;
-        }
-        loop.get().addOnFinished(onFinished);
-        return true;
-    }
-
-    /**
-     * Attempts to find a {@link Looper} based on the {@link String} name.
-     * @param loopName The {@link String} name of the {@link Looper} (case-insensitive)
-     * @return An {@link Optional} containing the {@link Looper} or empty if non-existent.
-     */
-    public static Optional<Looper> getLoop(String loopName) {
-        return LOOPS.stream()
-                .filter(o -> o.getName().equalsIgnoreCase(loopName))
-                .findFirst();
+        // FIXME: add way to update
     }
 
     /**
@@ -218,34 +96,6 @@ public class IOManager {
         if (!ALERTS.contains(alert))
             ALERTS.add(alert);
         return alert;
-    }
-
-    @SuppressWarnings("UnusedReturnValue")
-    public static boolean deleteAlert(String alertName, AlertType type) {
-        Iterator<Alert> it = ALERTS.iterator();
-        while (it.hasNext()) {
-            Alert alert = it.next();
-            if (alert.getName().equalsIgnoreCase(alertName) && alert.getType() == type) {
-                it.remove();
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @SuppressWarnings("UnusedReturnValue")
-    public static boolean deleteLoop(String loopName) {
-        Iterator<Looper> it = LOOPS.iterator();
-        while (it.hasNext()) {
-            Looper loop = it.next();
-            if (loop.getName().equalsIgnoreCase(loopName)) {
-                // Try to force the Looper to end itself and call the "onFinished" method.
-                loop.stop();
-                it.remove();
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -413,27 +263,6 @@ public class IOManager {
     };
 
     public static synchronized void run() {
-        if (System.currentTimeMillis() - lastLoopUpdate < 20)
-            return;
-
-        Iterator<Looper> it = LOOPS.iterator();
-        while (it.hasNext()) {
-            Looper looper = it.next();
-            if (!looper.isFinished() && !looper.isRunning()) {
-                looper.start();
-                info(IOManager.class, "Executing loop (\"" + looper.getName() + "\")");
-                continue;
-            }
-            if (looper.isFinished()) {
-                info(IOManager.class, "Terminating loop (\"" + looper.getName() + "\")");
-                it.remove();
-                continue;
-            }
-        }
-
-        lastLoopUpdate = System.currentTimeMillis();
-
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////////
         if (System.currentTimeMillis() - lastAlertUpdate <= ALERT_PERIODIC_MS.get())
             return;
 

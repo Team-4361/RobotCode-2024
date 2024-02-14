@@ -1,52 +1,30 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.motor.MotorModel;
-import frc.robot.util.pid.PIDLinearMechanism;
 
-import java.util.LinkedHashMap;
-
-import static frc.robot.Constants.Debug.CLIMBER_TUNING_ENABLED;
+import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 import static frc.robot.Constants.Climber.*;
 
 public class ClimberSubsystem extends SubsystemBase {
-    private final PIDLinearMechanism leftClimber;
-    private final PIDLinearMechanism rightClimber;
+    private final FRCSparkMax leftMotor;
+    private final FRCSparkMax rightMotor;
+    private final DigitalInput leftSensor;
+    private final DigitalInput rightSensor;
 
     public ClimberSubsystem(){
-        leftClimber = new PIDLinearMechanism(
-                LEFT_CLIMB_MOTOR_ID,
-                CLIMB_PID,
-                CLIMB_KS,
-                CLIMB_KV,
-                CLIMB_KA,
-                MotorModel.NEO,
-                "LeftClimber",
-                "",
-                PIDLinearMechanism.DistanceUnit.INCHES,
-                MAX_DISTANCE
-        );
-
-        rightClimber = new PIDLinearMechanism(
-                RIGHT_CLIMB_MOTOR_ID,
-                CLIMB_PID,
-                CLIMB_KS,
-                CLIMB_KV,
-                CLIMB_KA,
-                MotorModel.NEO,
-                "RightClimber",
-                "",
-                PIDLinearMechanism.DistanceUnit.INCHES,
-                MAX_DISTANCE
-        );
-        leftClimber.setTuneMode(CLIMBER_TUNING_ENABLED);
-        rightClimber.setTuneMode(CLIMBER_TUNING_ENABLED);
+        this.leftMotor = new FRCSparkMax(CLIMBER_LEFT_ID, kBrushless, MotorModel.NEO_550);
+        this.rightMotor = new FRCSparkMax(CLIMBER_RIGHT_ID, kBrushless, MotorModel.NEO_550);
+        this.leftSensor = new DigitalInput(CLIMBER_LEFT_DIO);
+        this.rightSensor = new DigitalInput(CLIMBER_RIGHT_DIO);
     }
 
-    public PIDLinearMechanism getLeftClimber() { return this.leftClimber; }
-    public PIDLinearMechanism getRightClimber() { return this.rightClimber; }
+    public void
 
     /**
      * This method is called periodically by the {@link CommandScheduler}. Useful for updating
@@ -56,7 +34,9 @@ public class ClimberSubsystem extends SubsystemBase {
      */
     @Override
     public void periodic() {
-        leftClimber.update();
-        rightClimber.update();
+        if (RobotBase.isSimulation()) {
+            leftMotor.updateSim();
+            rightMotor.updateSim();
+        }
     }
 }
