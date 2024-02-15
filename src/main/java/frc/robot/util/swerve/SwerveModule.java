@@ -16,10 +16,10 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
-import frc.robot.util.io.IOManager;
 import frc.robot.util.math.GlobalUtils;
 import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.motor.MotorModel;
+import frc.robot.util.pid.DashTunablePID;
 import frc.robot.util.pid.PIDConstantsAK;
 
 import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
@@ -39,6 +39,8 @@ import static frc.robot.Constants.Debug.SWERVE_TUNING_ENABLED;
 public class SwerveModule {
     private final SimpleMotorFeedforward driveFF;
     private final PIDController driveController;
+    private final DashTunablePID driveTune;
+    private final DashTunablePID turnTune;
     private final PIDController turnController;
     private final FRCSparkMax driveMotor;
     private final FRCSparkMax turnMotor;
@@ -81,8 +83,14 @@ public class SwerveModule {
 
         if (SWERVE_TUNING_ENABLED) {
             // FIXME: change!
-            //IOManager.initPIDTune("Swerve: Drive PID", driveController);
-            //IOManager.initPIDTune("Swerve: Turn PID", turnController);
+            this.driveTune = new DashTunablePID("Swerve: Drive PID", DRIVE_PID);
+            this.turnTune = new DashTunablePID("Swerve: Turn PID", TURN_PID);
+
+            driveTune.addConsumer(driveController::setP, driveController::setI, driveController::setD);
+            turnTune.addConsumer(turnController::setP, turnController::setI, turnController::setD);
+        } else {
+            this.driveTune = null;
+            this.turnTune = null;
         }
 
         try (CANcoder encoder = new CANcoder(settings.getEncoderID())) {
@@ -118,6 +126,11 @@ public class SwerveModule {
     public void update() {
         driveEncoder = driveMotor.getEncoder();
         turnEncoder = turnMotor.getEncoder();
+
+        if (driveTune != null)
+            driveTune.update();
+        if (turnTune != null)
+            turnTune.update();
 
         if (angleSetpoint != null) {
             turnMotor.setVoltage(

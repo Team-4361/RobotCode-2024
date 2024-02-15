@@ -15,8 +15,8 @@ import java.util.Optional;
 
 public class DriveToAprilTagCommand extends Command {
     private final Pose2d desiredPose;
-    private final int id;
     private final double targetHeightMeters;
+    private final int id;
 
     private Pose2d currentPose;
     private boolean noTarget, firstTarget, stopOnEnd;
@@ -67,7 +67,7 @@ public class DriveToAprilTagCommand extends Command {
     }
 
     private ChassisSpeeds calculateSpeeds() {
-        /*
+        /* TODO: FIX!
         PIDController driveController = Robot.frontCamera.getDriveController();
         PIDController turnController = Robot.frontCamera.getTurnController();
 
