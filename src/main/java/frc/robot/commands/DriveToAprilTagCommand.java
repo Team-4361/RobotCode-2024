@@ -23,13 +23,12 @@ public class DriveToAprilTagCommand extends Command {
     private long initTimeout = System.currentTimeMillis() + 5000;
 
     public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, int id, boolean stopOnEnd) {
-        addRequirements(Robot.swerve);
         this.desiredPose = desiredPose;
         this.targetHeightMeters = targetHeightMeters;
         this.noTarget = false;
         this.firstTarget = false;
         this.id = id;
-        addRequirements(Robot.swerve);
+        //addRequirements(Robot.swerve);
     }
 
     public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, boolean stopOnEnd) {

@@ -101,8 +101,8 @@ public class Constants {
     public static class Climber{
         public static final int CLIMBER_LEFT_ID = 16;
         public static final int CLIMBER_RIGHT_ID = 17;
-        public static final int CLIMBER_LEFT_DIO = 0;
-        public static final int CLIMBER_RIGHT_DIO = 1;
+        public static final int CLIMBER_LEFT_DIO = 1;
+        public static final int CLIMBER_RIGHT_DIO = 2;
         public static final double CLIMBER_SPEED = 0.5;
         public static final boolean CLIMBER_LEFT_INVERTED = true;
         public static final boolean CLIMBER_RIGHT_INVERTED = false;

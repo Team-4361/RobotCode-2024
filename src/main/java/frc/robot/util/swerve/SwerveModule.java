@@ -119,17 +119,19 @@ public class SwerveModule {
         driveEncoder = driveMotor.getEncoder();
         turnEncoder = turnMotor.getEncoder();
 
-        turnMotor.setVoltage(
-                turnController.calculate(
-                        Units.degreesToRadians(turnEncoder.getPosition()),
-                        angleSetpoint.getRadians()
-                )
-        );
-        if (speedSetpoint != null) {
-            double adjustedSpeedMPS = speedSetpoint * Math.cos(turnController.getPositionError());
-            driveMotor.setVoltage(
-                    driveFF.calculate(adjustedSpeedMPS)
-                        + driveController.calculate(driveEncoder.getVelocity(), adjustedSpeedMPS));
+        if (angleSetpoint != null) {
+            turnMotor.setVoltage(
+                    turnController.calculate(
+                            Units.degreesToRadians(turnEncoder.getPosition()),
+                            angleSetpoint.getRadians()
+                    )
+            );
+            if (speedSetpoint != null) {
+                double adjustedSpeedMPS = speedSetpoint * Math.cos(turnController.getPositionError());
+                driveMotor.setVoltage(
+                        driveFF.calculate(adjustedSpeedMPS)
+                            + driveController.calculate(driveEncoder.getVelocity(), adjustedSpeedMPS));
+            }
         }
     }
 

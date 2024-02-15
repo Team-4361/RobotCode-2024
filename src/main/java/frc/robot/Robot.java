@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -24,7 +25,6 @@ import frc.robot.util.joystick.DriveJoystick;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.DriveXboxController;
 import frc.robot.util.preset.PresetGroup;
-import org.littletonrobotics.junction.LoggedRobot;
 
 import static frc.robot.Constants.Control.*;
 import static frc.robot.Constants.Debug.DEBUG_LOGGING_ENABLED;
@@ -36,7 +36,7 @@ import static frc.robot.Constants.Debug.DEBUG_LOGGING_ENABLED;
  * the package after creating this project, you must also update the build.gradle file in the
  * project.
  */
-public class Robot extends LoggedRobot {
+public class Robot extends TimedRobot {
     public static PowerDistribution pdh;
     public static DriveXboxController xbox;
     public static DriveJoystick leftStick;
@@ -108,7 +108,7 @@ public class Robot extends LoggedRobot {
         climber = new ClimberSubsystem();
         arm = new TrapArmSubsystem();
 
-        swerve = new SwerveDriveSubsystem();
+        //swerve = new SwerveDriveSubsystem();
         frontCamera = new PhotonCameraModule("FrontCamera", Units.inchesToMeters(27), 0);
 
         // *** IMPORTANT: Call this method at the VERY END of robotInit!!! *** //
@@ -153,21 +153,25 @@ public class Robot extends LoggedRobot {
     private void configureBindings(boolean xboxOnly) {
         if (xboxOnly) {
             IOManager.debug(this, "Xbox-only/Simulation mode detected.");
+            /* 
             Robot.swerve.setDefaultCommand(Robot.swerve.runEnd(
                     () -> Robot.swerve.drive(xbox),
                     () -> Robot.swerve.lock())
             );
+            */
         } else {
             IOManager.debug(this, "Regular mode detected.");
+            /* 
             Robot.swerve.setDefaultCommand(Robot.swerve.runEnd(
                     () -> Robot.swerve.drive(leftStick, rightStick),
                     () -> Robot.swerve.lock())
             );
+            */
         }
 
         if (!xboxOnly) {
             leftStick.button(10).onTrue(Commands.runOnce(() -> drivePresets.nextPreset(true)));
-            leftStick.button(11).onTrue(swerve.resetCommand());
+           // leftStick.button(11).onTrue(swerve.resetCommand());
             leftStick.trigger().whileTrue(Commands.runEnd(
                     () -> drivePresets.setPreset(2),
                     () -> drivePresets.setPreset(0)

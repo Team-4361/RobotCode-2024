@@ -12,8 +12,6 @@ import frc.robot.util.math.GlobalUtils;
 import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.motor.IMotorModel;
 import frc.robot.util.preset.PresetMap;
-import org.littletonrobotics.junction.LogTable;
-import org.littletonrobotics.junction.Logger;
 
 import java.util.function.Supplier;
 
