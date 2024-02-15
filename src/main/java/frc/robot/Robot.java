@@ -108,7 +108,7 @@ public class Robot extends TimedRobot {
         climber = new ClimberSubsystem();
         arm = new TrapArmSubsystem();
 
-        //swerve = new SwerveDriveSubsystem();
+        swerve = new SwerveDriveSubsystem();
         frontCamera = new PhotonCameraModule("FrontCamera", Units.inchesToMeters(27), 0);
 
         // *** IMPORTANT: Call this method at the VERY END of robotInit!!! *** //
