@@ -1,6 +1,8 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.ColorSensorV3;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -24,9 +26,12 @@ import static frc.robot.Constants.Intake.*;
 
 public class IntakeSubsystem extends SubsystemBase{
     private final PIDMechanismBase intakeWheel;
+    private final DigitalInput sensor;
+    private boolean sensorActivated = false;
     private final DashTunableNumber intakeTune;
     private double targetRPM = INTAKE_RPM;
     private boolean stopped = true;
+
 
     public IntakeSubsystem() {
         String tuneName = INTAKE_TUNING_ENABLED ? "Intake: PID" : "";
@@ -43,6 +48,9 @@ public class IntakeSubsystem extends SubsystemBase{
                 RotationUnit.ROTATIONS,
                 true
         );
+      
+        sensor = new DigitalInput(INDEX_SENSOR_PORT);
+   
         if (INTAKE_TUNING_ENABLED) {
             intakeTune = new DashTunableNumber("Intake: Speed", INTAKE_RPM);
             intakeTune.addConsumer(this::setTargetRPM);
@@ -64,7 +72,6 @@ public class IntakeSubsystem extends SubsystemBase{
         if (intakeTune != null && !stopped)
             intakeTune.update();
 
-
         Logger.processInputs("Index", this);
     }
 
@@ -82,6 +89,28 @@ public class IntakeSubsystem extends SubsystemBase{
     public void stop() { intakeWheel.stop(); stopped = true; }
 
 
+    public boolean hasNote() { return sensorActivated; }
+
+    /**
+     * Updates a LogTable with the data to log.
+     *
+     * @param table The {@link LogTable} which is provided.
+     */
+    @Override
+    public void toLog(LogTable table) {
+        table.put("SensorActivated", sensorActivated);
+    }
+
+    /**
+     * Updates data based on a LogTable.
+     *
+     * @param table The {@link LogTable} which is provided.
+     */
+    @Override
+    public void fromLog(LogTable table) {
+        this.sensorActivated = table.get("SensorActivated", sensorActivated);
+      
+    }
 }
 
 

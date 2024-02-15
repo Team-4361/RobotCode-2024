@@ -1,5 +1,6 @@
 package frc.robot.util.swerve;
 
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfigurator;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
@@ -12,6 +13,7 @@ import frc.robot.util.swerve.config.ModuleSettings;
 
 public class SwerveModuleCAN extends SwerveModuleBase {
     private final StatusSignal<Double> signal;
+    private int attempts;
 
     /**
      * Creates a new {@link SwerveModuleBase} instance using the specified parameters. The {@link CANSparkMax}
@@ -32,11 +34,24 @@ public class SwerveModuleCAN extends SwerveModuleBase {
                     .withSensorDirection(SensorDirectionValue.Clockwise_Positive)
                     .withMagnetOffset(settings.getOffsetDegrees() / 360));
             signal = encoder.getAbsolutePosition();
+            BaseStatusSignal.setUpdateFrequencyForAll(50, signal);
+            encoder.optimizeBusUtilization();
         }
     }
 
     @Override
     public Rotation2d getAbsolutePosition() {
+        if (signal == null)
+            return new Rotation2d();
+
+        if (attempts >= 1000) {
+            if (signal.getAppliedUpdateFrequency() > 0)
+               signal.setUpdateFrequency(0);
+            return Rotation2d.fromDegrees(0);
+        } else if (signal.getStatus().isError()) {
+            attempts++;
+            return Rotation2d.fromDegrees(0);
+        }
         return Rotation2d.fromDegrees(signal.refresh().getValueAsDouble() * 360);
     }
 }

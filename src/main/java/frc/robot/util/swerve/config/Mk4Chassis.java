@@ -18,7 +18,7 @@ public class Mk4Chassis implements ChassisSettings {
         return new ModuleSettings(
                 2,
                 1,
-                0,
+                30,
                 0
         );
     }
@@ -31,7 +31,7 @@ public class Mk4Chassis implements ChassisSettings {
         return new ModuleSettings(
                 4,
                 3,
-                1,
+                31,
                 0
         );
     }
@@ -44,7 +44,7 @@ public class Mk4Chassis implements ChassisSettings {
         return new ModuleSettings(
                 6,
                 5,
-                2,
+                32,
                 0
         );
     }
@@ -57,7 +57,7 @@ public class Mk4Chassis implements ChassisSettings {
         return new ModuleSettings(
                 8,
                 7,
-                3,
+                33,
                 0
         );
     }

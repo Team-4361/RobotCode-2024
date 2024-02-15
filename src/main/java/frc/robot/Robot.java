@@ -5,6 +5,8 @@
 
 package frc.robot;
 
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -13,6 +15,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -34,6 +37,7 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 
 import static frc.robot.Constants.Control.*;
@@ -166,10 +170,7 @@ public class Robot extends LoggedRobot {
                 break;
         }
 
-        // TODO: setup replay/sim mode!
-        if (!DriverStation.isFMSAttached())
-            Logger.addDataReceiver(new NT4Publisher());
-
+        Logger.addDataReceiver(new NT4Publisher());
         Logger.start(); // start logging!
     }
 

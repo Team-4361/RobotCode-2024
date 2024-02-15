@@ -16,6 +16,7 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 import java.util.Optional;
 
 import static frc.robot.Constants.Chassis.CHASSIS_MODE;
+import static frc.robot.Constants.Debug.PHOTON_ENABLED;
 import static frc.robot.Constants.Debug.PHOTON_TUNING_ENABLED;
 
 public class PhotonCameraModule extends PhotonCamera implements Subsystem {
@@ -25,7 +26,7 @@ public class PhotonCameraModule extends PhotonCamera implements Subsystem {
     private final double cameraHeight;
     private final double cameraPitch;
     private double targetHeight;
-    private Pose2d trackedPose;
+    private Pose2d trackedPose = new Pose2d();
     private long lastFoundMillis = System.currentTimeMillis();
     private int aprilTagID = 0;
 
@@ -70,6 +71,8 @@ public class PhotonCameraModule extends PhotonCamera implements Subsystem {
 
     @Override
     public void periodic() {
+        if (!PHOTON_ENABLED)
+            return;
         PhotonPipelineResult result = getLatestResult();
         if (result.hasTargets()) {
             Transform3d targetTransform;

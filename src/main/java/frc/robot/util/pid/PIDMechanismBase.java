@@ -266,12 +266,8 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
     public void toLog(LogTable table) {
         table.put("TargetValue", this.targetValue);
         table.put("VelocityRPM", this.velocityRPM);
-        table.put("AppliedVolts", this.appliedVolts);
-        table.put("CurrentAmps", this.currentAmps);
         table.put("CurrentValue", this.currentPosition);
-        table.put("PIDEnabled", this.pidEnabled);
         table.put("LimitBypassed", this.limitBypassEnabled);
-        table.put("ValueTolerance", this.tolerance);
         table.put("ManualControl", this.teleopMode);
         table.put("ForwardLimit", this.forwardLimit);
         table.put("ReverseLimit", this.reverseLimit);
@@ -285,12 +281,8 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
     public void fromLog(LogTable table) {
         this.targetValue         = table.get("TargetValue", this.targetValue);
         this.velocityRPM         = table.get("VelocityRPM", this.velocityRPM);
-        this.appliedVolts        = table.get("AppliedVolts", this.appliedVolts);
-        this.currentAmps         = table.get("CurrentAmps", this.currentAmps);
         this.currentPosition     = table.get("CurrentValue", this.currentPosition);
-        this.pidEnabled          = table.get("PIDEnabled", this.pidEnabled);
         this.limitBypassEnabled  = table.get("LimitBypassed", this.limitBypassEnabled);
-        this.tolerance           = table.get("ValueTolerance", this.tolerance);
         this.teleopMode          = table.get("ManualControl", this.teleopMode);
         this.forwardLimit        = table.get("ForwardLimit", this.forwardLimit);
         this.reverseLimit        = table.get("ReverseLimit", this.reverseLimit);

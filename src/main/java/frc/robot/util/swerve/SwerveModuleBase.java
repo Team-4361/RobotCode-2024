@@ -74,12 +74,13 @@ public abstract class SwerveModuleBase implements LoggableInputs {
         this.driveController = driveMotor.getPIDController();
         this.turnController = turnMotor.getPIDController();
         this.absOffset = Rotation2d.fromRadians(settings.getOffsetDegrees());
+        this.lastAngle = new Rotation2d();
 
         CHASSIS_MODE.getDrivePID().initController(driveController);
         CHASSIS_MODE.getTurnPID().initController(turnController);
 
         // TODO: Will this cause problems?
-        this.driveFF = CHASSIS_MODE.getFeedForward();
+        this.driveFF = new SimpleMotorFeedforward(0.1, 0.13, 0);
         this.driveEncoder = driveMotor.getEncoder();
         this.turnEncoder = turnMotor.getEncoder();
         this.name = name;
@@ -187,12 +188,8 @@ public abstract class SwerveModuleBase implements LoggableInputs {
     public void toLog(LogTable table) {
         table.put("DrivePositionMeters", this.drivePositionMeters);
         table.put("DriveVelocityMPS", this.driveVelocityMPS);
-        table.put("DriveAppliedVolts", this.driveAppliedVolts);
-        table.put("DriveCurrentAmps", this.driveCurrentAmps);
         table.put("TurnAbsolutePosition", this.turnAbsolutePosition);
         table.put("TurnPosition", this.turnPosition);
-        table.put("TurnCurrentAmps", this.turnCurrentAmps);
-        table.put("TurnAppliedVolts", this.turnAppliedVolts);
     }
 
     /**
@@ -202,13 +199,9 @@ public abstract class SwerveModuleBase implements LoggableInputs {
      */
     @Override
     public void fromLog(LogTable table) {
-        this.drivePositionMeters = table.get("DrivePositionRad", this.drivePositionMeters);
-        this.driveVelocityMPS = table.get("DriveVelocityRadPerSec", this.driveVelocityMPS);
-        this.driveAppliedVolts = table.get("DriveAppliedVolts", this.driveAppliedVolts);
-        this.driveCurrentAmps = table.get("DriveCurrentAmps", this.driveCurrentAmps);
+        this.drivePositionMeters = table.get("DrivePositionMeters", this.drivePositionMeters);
+        this.driveVelocityMPS = table.get("DriveVelocityMPS", this.driveVelocityMPS);
         this.turnAbsolutePosition = table.get("TurnAbsolutePosition", this.turnAbsolutePosition);
         this.turnPosition = table.get("TurnPosition", this.turnPosition);
-        this.turnCurrentAmps = table.get("TurnCurrentAmps", this.turnCurrentAmps);
-        this.turnAppliedVolts = table.get("TurnAppliedVolts", this.turnAppliedVolts);
     }
 }

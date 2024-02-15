@@ -213,10 +213,10 @@ public class FRCSparkMax extends CANSparkMax implements IMotorModel {
         }
 
         // Tweaks to allow the Motor to work better with PID control.
-        restoreFactoryDefaults();
-        setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus1, 500);
-        setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus2, 500);
-        setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus3, 500);
+        //restoreFactoryDefaults();
+        //setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus1, 500);
+        //setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus2, 500);
+        //setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus3, 500);
         enableVoltageCompensation(12.0);
 
         // The motor is brushless; use the encoder to detect velocity for stall detection
