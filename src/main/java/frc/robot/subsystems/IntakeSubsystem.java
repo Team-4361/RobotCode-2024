@@ -19,20 +19,19 @@ import static frc.robot.Constants.Debug.INTAKE_TUNING_ENABLED;
 import static frc.robot.Constants.Indexer.INDEX_SENSOR_PORT;
 import static frc.robot.Constants.Intake.*;
 
-public class IntakeSubsystem extends SubsystemBase implements LoggableInputs {
+/**This {@link IntakeSubsystem} is designed to enable the robot to intake notes. Mechanism is made up of
+ * a NEO that spins two rods of wheels. Rods connected by gear system. A {@link DigitalInput} is used to detect if a
+ * note is present.
+ */
+
+public class IntakeSubsystem extends SubsystemBase{
     private final PIDMechanismBase intakeWheel;
     private final DigitalInput sensor;
-    private final ColorSensorV3 colorSensor;
     private boolean sensorActivated = false;
-
-    private final DashTunableNumber rTune;
-    private final DashTunableNumber gTune;
-    private final DashTunableNumber bTune;
     private final DashTunableNumber intakeTune;
     private double targetRPM = INTAKE_RPM;
     private boolean stopped = true;
 
-    private double rValue, gValue, bValue;
 
     public IntakeSubsystem() {
         String tuneName = INTAKE_TUNING_ENABLED ? "Intake: PID" : "";
@@ -49,11 +48,9 @@ public class IntakeSubsystem extends SubsystemBase implements LoggableInputs {
                 RotationUnit.ROTATIONS,
                 true
         );
-        rTune = new DashTunableNumber("Intake: R Min", 100);
-        gTune = new DashTunableNumber("Intake: G Tune", 100);
-        bTune = new DashTunableNumber("Intake: B Tune", 100);
+      
         sensor = new DigitalInput(INDEX_SENSOR_PORT);
-        colorSensor = new ColorSensorV3(I2C.Port.kOnboard);
+   
         if (INTAKE_TUNING_ENABLED) {
             intakeTune = new DashTunableNumber("Intake: Speed", INTAKE_RPM);
             intakeTune.addConsumer(this::setTargetRPM);
@@ -66,7 +63,7 @@ public class IntakeSubsystem extends SubsystemBase implements LoggableInputs {
 
     public void setTargetRPM(double rpm) { this.targetRPM = rpm; }
 
-    /** @return If the {@link IndexSubsystem} is at target. */
+    /** @return If the {@link IntakeSubsystem} is at target. */
     public boolean atTarget() { return intakeWheel.atTarget(); }
 
     @Override
@@ -75,18 +72,11 @@ public class IntakeSubsystem extends SubsystemBase implements LoggableInputs {
         if (intakeTune != null && !stopped)
             intakeTune.update();
 
-        if (!RobotBase.isSimulation() && !Constants.isReplay())
-            sensorActivated = sensor.get();
-
-        rValue = colorSensor.getRed();
-        gValue = colorSensor.getGreen();
-        bValue = colorSensor.getBlue();
-
         Logger.processInputs("Index", this);
     }
 
     /**
-     * Sets the target of the {@link IndexSubsystem}.
+     * Sets the target of the {@link IntakeSubsystem}.
      */
     public void setTarget(double rpm) { intakeWheel.setTarget(INTAKE_INVERTED ? -rpm: rpm); }
 
@@ -95,8 +85,9 @@ public class IntakeSubsystem extends SubsystemBase implements LoggableInputs {
         stopped = targetRPM == 0;
     }
 
-    /** Stops the {@link IndexSubsystem} from spinning. */
+    /** Stops the {@link IntakeSubsystem} from spinning. */
     public void stop() { intakeWheel.stop(); stopped = true; }
+
 
     public boolean hasNote() { return sensorActivated; }
 
@@ -108,9 +99,6 @@ public class IntakeSubsystem extends SubsystemBase implements LoggableInputs {
     @Override
     public void toLog(LogTable table) {
         table.put("SensorActivated", sensorActivated);
-        table.put("Red", rValue);
-        table.put("Green", gValue);
-        table.put("Blue", bValue);
     }
 
     /**
@@ -121,9 +109,7 @@ public class IntakeSubsystem extends SubsystemBase implements LoggableInputs {
     @Override
     public void fromLog(LogTable table) {
         this.sensorActivated = table.get("SensorActivated", sensorActivated);
-        this.rValue = table.get("Red", rValue);
-        this.gValue = table.get("Green", gValue);
-        this.bValue = table.get("Blue", bValue);
+      
     }
 }
 
