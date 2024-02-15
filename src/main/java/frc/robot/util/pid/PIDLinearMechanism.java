@@ -17,14 +17,11 @@ public class PIDLinearMechanism extends PIDMechanismBase {
     public enum DistanceUnit { FEET, METERS, INCHES }
 
     public void setTuneMode (boolean enable){
-
         setPIDControlSupplier(()->!enable);
         tuneMode = enable;
+    }
 
-    }
-    public boolean getTuneMode (){
-        return tuneMode;
-    }
+    public boolean getTuneMode() { return tuneMode; }
 
     private double convertUnits(double motorRotations) {
         double distanceMeters = maxDistance.rotationToMeters(motorRotations);

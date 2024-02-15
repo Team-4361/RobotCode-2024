@@ -9,9 +9,6 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants;
 import frc.robot.util.io.Alert;
 import frc.robot.util.io.AlertType;
@@ -19,8 +16,6 @@ import frc.robot.util.io.IOManager;
 import frc.robot.util.math.GearRatio;
 
 import static frc.robot.Constants.AlertConfig.STRING_MOTOR_OVER_TEMP;
-import static frc.robot.Constants.AlertConfig.STRING_PROGRAMMING_MOTOR;
-import static frc.robot.Constants.LooperConfig.STRING_PERIODIC_NAME;
 
 /**
  * This class enables a safe interaction with {@link CANSparkMax} motors; temperature control and watchdogs
@@ -188,9 +183,9 @@ public class FRCSparkMax extends CANSparkMax implements IMotorModel {
 
         // Tweaks to allow the Motor to work better with PID control.
         //restoreFactoryDefaults();
-        //setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus1, 500);
-        //setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus2, 500);
-        //setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus3, 500);
+        setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus1, 500);
+        setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus2, 500);
+        setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus3, 500);
         enableVoltageCompensation(12.0);
 
         // The motor is brushless; use the encoder to detect velocity for stall detection
@@ -206,15 +201,18 @@ public class FRCSparkMax extends CANSparkMax implements IMotorModel {
 
             motorSim = new DCMotorSim(model.getMotorInstance(1), ratio.getDivisor(), 0.025);
             lastSimUpdateMillis = System.currentTimeMillis();
-
-            IOManager.info(this, "Adding SparkMax ID #" + deviceId + " to simulation.");
-            IOManager.addPeriodicIfExists(STRING_PERIODIC_NAME, () -> {
-                // Update the DCMotorSim instance approximately every 20ms.
-                motorSim.update((System.currentTimeMillis() - lastSimUpdateMillis)/1000f);
-                lastSimUpdateMillis = System.currentTimeMillis();
-            });
         } else { motorSim = null; }
     }
+
+    public void updateSim() {
+        if (RobotBase.isSimulation()) {
+            // Update the DCMotorSim instance approximately every 20ms.
+            motorSim.update((System.currentTimeMillis() - lastSimUpdateMillis) / 1000f);
+            lastSimUpdateMillis = System.currentTimeMillis();
+        }
+    }
+
+    public boolean isStalling() { return conditionAlert.isEnabled(); }
 
     /**
      * Create a new object to control a SPARK MAX motor Controller
@@ -279,14 +277,12 @@ public class FRCSparkMax extends CANSparkMax implements IMotorModel {
      */
     @Override
     public void setVoltage(double outputVolts) {
-        Constants.runIfNotReplay(() -> {
-            if (RobotBase.isSimulation() && motorSim != null) {
-                simVolts = MathUtil.clamp(outputVolts, -12, 12);
-                motorSim.setInputVoltage(simVolts);
-            } else {
-                super.setVoltage(outputVolts);
-            }
-        });
+        if (RobotBase.isSimulation() && motorSim != null) {
+            simVolts = MathUtil.clamp(outputVolts, -12, 12);
+            motorSim.setInputVoltage(simVolts);
+        } else {
+            super.setVoltage(outputVolts);
+        }
     }
 
     public double getAppliedVoltage() {

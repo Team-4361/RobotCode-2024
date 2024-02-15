@@ -1,6 +1,4 @@
-package frc.robot.util.swerve.config;
-
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+package frc.robot.util.swerve;
 
 /**
  * This {@link ModuleSettings} interface is designed to store values regarding Driving the robot. This includes any offsets

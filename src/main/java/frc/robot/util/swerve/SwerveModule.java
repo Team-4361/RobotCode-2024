@@ -14,18 +14,14 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.math.GlobalUtils;
 import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.motor.MotorModel;
 import frc.robot.util.pid.PIDConstantsAK;
-import frc.robot.util.swerve.config.ModuleSettings;
-import org.littletonrobotics.junction.LogTable;
-import org.littletonrobotics.junction.Logger;
 
-import static com.revrobotics.CANSparkBase.ControlType.kPosition;
-import static com.revrobotics.CANSparkBase.ControlType.kVelocity;
 import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 import static frc.robot.Constants.Chassis.*;
 import static frc.robot.Constants.Debug.SWERVE_TUNING_ENABLED;
@@ -50,14 +46,12 @@ public class SwerveModule {
     private final StatusSignal<Double> signal;
     private final String name;
 
-    private RelativeEncoder driveEncoder;
     private Double speedSetpoint = null;
     private Rotation2d angleSetpoint = null;
 
+
     private RelativeEncoder turnEncoder;
-    private Rotation2d turnPosition;
-    private Rotation2d turnAbsolutePosition;
-    private double driveVelocityMPS;
+    private RelativeEncoder driveEncoder;
 
     /**
      * Creates a new {@link SwerveModule} instance using the specified parameters. The {@link CANSparkMax}
@@ -86,8 +80,9 @@ public class SwerveModule {
         turnEncoder.setPosition(0.0);
 
         if (SWERVE_TUNING_ENABLED) {
-            IOManager.initPIDTune("Swerve: Drive PID", driveController);
-            IOManager.initPIDTune("Swerve: Turn PID", turnController);
+            // FIXME: change!
+            //IOManager.initPIDTune("Swerve: Drive PID", driveController);
+            //IOManager.initPIDTune("Swerve: Turn PID", turnController);
         }
 
         try (CANcoder encoder = new CANcoder(settings.getEncoderID())) {
@@ -105,21 +100,28 @@ public class SwerveModule {
 
         Timer.delay(1);
         update();
-        turnEncoder.setPosition(turnAbsolutePosition.minus(absOffset).getDegrees());
+        new Thread(() -> {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ignored) {}
+            synchronizeEncoders();
+        }).start();
+    }
+
+    public void synchronizeEncoders() {
+        turnEncoder.setPosition(Rotation2d.fromDegrees(signal.getValueAsDouble()*360)
+                .minus(absOffset)
+                .getDegrees()
+        );
     }
 
     public void update() {
         driveEncoder = driveMotor.getEncoder();
         turnEncoder = turnMotor.getEncoder();
 
-        ////////////////////////////////////////////// Update all the inputs inside this method.
-        turnAbsolutePosition = Rotation2d.fromDegrees(signal.getValueAsDouble()*360).minus(absOffset);
-        turnPosition = Rotation2d.fromDegrees(turnEncoder.getPosition());
-        //////////////////////////////////////////////////////////////////////////////////////
-
         turnMotor.setVoltage(
                 turnController.calculate(
-                        turnPosition.getRadians(),
+                        Units.degreesToRadians(turnEncoder.getPosition()),
                         angleSetpoint.getRadians()
                 )
         );
@@ -127,12 +129,11 @@ public class SwerveModule {
             double adjustedSpeedMPS = speedSetpoint * Math.cos(turnController.getPositionError());
             driveMotor.setVoltage(
                     driveFF.calculate(adjustedSpeedMPS)
-                        + driveController.calculate(driveVelocityMPS, adjustedSpeedMPS));
+                        + driveController.calculate(driveEncoder.getVelocity(), adjustedSpeedMPS));
         }
-
     }
 
-    public SwerveModuleState setState(SwerveModuleState desiredState) {
+    public void setState(SwerveModuleState desiredState) {
         desiredState = GlobalUtils.optimize(desiredState, getState().angle);
 
         // Prevent rotating module if speed is less than 1% to prevent jerky movement.
@@ -140,7 +141,6 @@ public class SwerveModule {
                 ? angleSetpoint
                 : desiredState.angle;
         speedSetpoint = desiredState.speedMetersPerSecond;
-        return desiredState;
     }
 
     /**
@@ -154,7 +154,7 @@ public class SwerveModule {
     public SwerveModuleState getState() {
         return new SwerveModuleState(
                 driveEncoder.getVelocity(),
-                turnPosition
+                Rotation2d.fromDegrees(turnEncoder.getPosition())
         );
     }
 
@@ -171,7 +171,7 @@ public class SwerveModule {
     public SwerveModulePosition getPosition() {
         return new SwerveModulePosition(
                 driveEncoder.getPosition(),
-                turnAbsolutePosition
+                Rotation2d.fromDegrees(signal.getValueAsDouble()*360).minus(absOffset)
         );
     }
 

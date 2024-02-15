@@ -9,11 +9,8 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StringSubscriber;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -28,12 +25,6 @@ import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.DriveXboxController;
 import frc.robot.util.preset.PresetGroup;
 import org.littletonrobotics.junction.LoggedRobot;
-import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.networktables.NT4Publisher;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.BiConsumer;
 
 import static frc.robot.Constants.Control.*;
 import static frc.robot.Constants.Debug.DEBUG_LOGGING_ENABLED;
@@ -58,6 +49,7 @@ public class Robot extends LoggedRobot {
     public static IndexSubsystem index;
     public static WristSubsystem wrist;
     public static ClimberSubsystem climber;
+    public static TrapArmSubsystem arm;
 
 
     /**
@@ -114,6 +106,7 @@ public class Robot extends LoggedRobot {
         index = new IndexSubsystem();
         wrist = new WristSubsystem();
         climber = new ClimberSubsystem();
+        arm = new TrapArmSubsystem();
 
         swerve = new SwerveDriveSubsystem();
         frontCamera = new PhotonCameraModule("FrontCamera", Units.inchesToMeters(27), 0);
@@ -187,21 +180,6 @@ public class Robot extends LoggedRobot {
                     ), 27, 7, false
             ));
         }
-
-        xbox.a().whileTrue(Commands.runEnd(
-                () -> Robot.shooter.start(),
-                () -> Robot.shooter.stop()
-        ));
-
-        xbox.y().whileTrue(Commands.runEnd(
-                () -> Robot.intake.start(),
-                () -> Robot.intake.stop()
-        ));
-
-        xbox.b().whileTrue(Commands.runEnd(
-                () -> Robot.index.start(),
-                () -> Robot.index.stop()
-        ));
     }
 
 
@@ -222,6 +200,9 @@ public class Robot extends LoggedRobot {
         // block in order for anything in the Command-based framework to work.
         CommandScheduler.getInstance().run();
         IOManager.run();
+
+        Robot.arm.translateMotor(Robot.xbox.getLeftY()/2);
+        Robot.arm.translateAngle(Robot.xbox.getRightY()/2);
         // ************************* DO NOT TOUCH ************************* //
     }
 

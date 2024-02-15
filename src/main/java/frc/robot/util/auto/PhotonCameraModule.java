@@ -45,8 +45,10 @@ public class PhotonCameraModule extends PhotonCamera implements Subsystem {
         this.turnController = PIDConstantsAK.generateController(AUTO_TURN_PID);
 
         if (PHOTON_TUNING_ENABLED) {
-            IOManager.initPIDTune("Photon: Drive PID", driveController);
-            IOManager.initPIDTune("Photon: Turn PID", turnController);
+
+            // TODO: fix!
+           // IOManager.initPIDTune("Photon: Drive PID", driveController);
+           // IOManager.initPIDTune("Photon: Turn PID", turnController);
         }
 
         CommandScheduler.getInstance().registerSubsystem(this);

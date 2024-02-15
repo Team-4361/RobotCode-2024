@@ -13,10 +13,6 @@ import frc.robot.util.math.GlobalUtils;
 
 import java.util.Optional;
 
-import static frc.robot.Constants.Chassis.CHASSIS_MODE;
-import static frc.robot.Constants.Control.PHOTON_DRIVE_MAX_SPEED;
-import static frc.robot.Constants.Control.PHOTON_TURN_MAX_SPEED;
-
 public class DriveToAprilTagCommand extends Command {
     private final Pose2d desiredPose;
     private final int id;
@@ -72,10 +68,12 @@ public class DriveToAprilTagCommand extends Command {
     }
 
     private ChassisSpeeds calculateSpeeds() {
+        /*
         PIDController driveController = Robot.frontCamera.getDriveController();
         PIDController turnController = Robot.frontCamera.getTurnController();
 
-        double mX = PHOTON_DRIVE_MAX_SPEED.getValue();
+        //double mX = PHOTON_DRIVE_MAX_SPEED.getValue();
+        double mX = 0.5; // FIXME: change!
         double jX = MathUtil.clamp(driveController.calculate(currentPose.getX(), desiredPose.getX()), -mX, mX);
         double jY = MathUtil.clamp(driveController.calculate(currentPose.getY(), desiredPose.getY()),-mX,mX);
         double jO = MathUtil.clamp(
@@ -91,6 +89,9 @@ public class DriveToAprilTagCommand extends Command {
                 jY * CHASSIS_MODE.getMaxSpeed(),
                 jO * CHASSIS_MODE.getMaxSpeed()
         ), Robot.swerve.getHeading());
+
+         */
+        return new ChassisSpeeds(0, 0, 0);
     }
 
     /**

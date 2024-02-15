@@ -29,6 +29,7 @@ public abstract class PIDMechanismBase extends PresetMap<Double> {
     private final FRCSparkMax motor;
 
     private final SimpleMotorFeedforward feedFwd;
+    private final DashTunablePID pidTune;
     private final PIDController controller;
     private final String moduleName;
     private final boolean tuneEnabled;
@@ -92,10 +93,12 @@ public abstract class PIDMechanismBase extends PresetMap<Double> {
         encoder.setPosition(0);
 
         if (tuneName != null && !tuneName.isBlank()) {
-            IOManager.initPIDTune(tuneName, controller);
+            pidTune = new DashTunablePID(tuneName, constants);
+            pidTune.addConsumer(controller::setP, controller::setI, controller::setD);
             tuneEnabled = true;
         } else {
             tuneEnabled = false;
+            pidTune = null;
         }
     }
 
@@ -126,6 +129,9 @@ public abstract class PIDMechanismBase extends PresetMap<Double> {
     /** Updates the {@link PIDMechanismBase}. <b>This MUST be called in a periodic/execute method!</b> */
     public void update() {
         encoder = motor.getEncoder();
+
+        if (pidTune != null)
+            pidTune.update();
 
         double velocityRPM = encoder.getVelocity();
         currentPosition = getCurrentPosition(encoder.getPosition());
