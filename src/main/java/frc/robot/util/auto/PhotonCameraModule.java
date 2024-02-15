@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.util.pid.DashTunableNumber;
 import frc.robot.util.pid.DashTunablePID;
 import frc.robot.util.pid.PIDConstantsAK;
 
@@ -16,11 +17,7 @@ import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
-import static frc.robot.Constants.Chassis.AUTO_DRIVE_PID;
-import static frc.robot.Constants.Chassis.AUTO_TURN_PID;
-import static frc.robot.Constants.Chassis.PHOTON_DRIVE_PID;
-import static frc.robot.Constants.Chassis.PHOTON_TURN_PID;
-import static frc.robot.Constants.Chassis.TURN_PID;
+import static frc.robot.Constants.Chassis.*;
 import static frc.robot.Constants.Debug.PHOTON_ENABLED;
 import static frc.robot.Constants.Debug.PHOTON_TUNING_ENABLED;
 
@@ -30,6 +27,7 @@ public class PhotonCameraModule extends PhotonCamera {
     private final PIDController turnController;
     private final DashTunablePID driveTune;
     private final DashTunablePID turnTune;
+    private final DashTunableNumber speedTune;
     private final double cameraHeight;
     private final double cameraPitch;
     private double targetHeight;
@@ -49,15 +47,19 @@ public class PhotonCameraModule extends PhotonCamera {
         this.driveController = PIDConstantsAK.generateController(PHOTON_DRIVE_PID);
         this.turnController = PIDConstantsAK.generateController(PHOTON_TURN_PID);
 
+
         if (PHOTON_TUNING_ENABLED) {
             this.driveTune = new DashTunablePID("Photon: Drive PID", PHOTON_DRIVE_PID);
             this.turnTune = new DashTunablePID("Photon: Turn PID", PHOTON_TURN_PID);
+            this.speedTune = new DashTunableNumber("Photon: Max Speed", PHOTON_DRIVE_MAX_SPEED);
 
+            speedTune.addConsumer();
             driveTune.addConsumer(driveController::setP, driveController::setI, driveController::setD);
             turnTune.addConsumer(turnController::setP, turnController::setI, turnController::setD);
         } else {
             driveTune = null;
             turnTune = null;
+            speedTune = null;
         }
     }
 

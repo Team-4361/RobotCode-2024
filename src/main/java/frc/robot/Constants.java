@@ -229,6 +229,7 @@ public class Constants {
         public static final double MODULE_KS = 0.10;
         public static final double MODULE_KV = 0.13;
         public static final double MODULE_KA = 0.00;
+        public static final double PHOTON_DRIVE_MAX_SPEED = 0.5;
 
         public static final PIDConstantsAK DRIVE_PID = new PIDConstantsAK(0.2, 0, 0);
         public static final PIDConstantsAK TURN_PID = new PIDConstantsAK(2, 0, 0);
