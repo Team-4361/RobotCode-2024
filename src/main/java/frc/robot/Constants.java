@@ -104,7 +104,7 @@ public class Constants {
         public static final boolean CLIMBER_RIGHT_INVERTED = false;
     }
 
-    public static class Arm {
+    public static class TrapArm {
         // change later?
         public static final int ARM_MAX_US = 2000;
         public static final int ARM_DEAD_BAND_MAX_US = 1500;

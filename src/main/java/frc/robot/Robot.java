@@ -189,8 +189,11 @@ public class Robot extends TimedRobot {
             ));
         }
 
-        xbox.b().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(0)));
-        xbox.a().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(1)));
+        xbox.b().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(1)));
+        xbox.a().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(0)));
+
+        xbox.y().onTrue(Commands.runOnce(() -> Robot.wrist.grabNote()));
+        xbox.x().onTrue(Commands.runOnce(() -> Robot.wrist.dropNote()));
     }
 
 

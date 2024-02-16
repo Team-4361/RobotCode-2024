@@ -8,8 +8,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import static frc.robot.util.math.GlobalUtils.ensurePrefix;
-
 /**
  * This {@link PresetMap} is designed to hold various fixed positions of a mechanism. Functionality
  * is almost identical to a HashMap, except for (a) elements are stored in a consistent order -- and (b)
