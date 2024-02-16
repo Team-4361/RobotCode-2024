@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.util.math.GearRatio;
@@ -76,6 +77,9 @@ public class ShooterSubsystem extends SubsystemBase {
         if (shootTune != null && !stopped)
             shootTune.update();
     }
+
+    //private final Spark LED_1 = new Spark(0);
+
 
     /**
      * Sets the target of the {@link ShooterSubsystem} to the Shoot RPM.

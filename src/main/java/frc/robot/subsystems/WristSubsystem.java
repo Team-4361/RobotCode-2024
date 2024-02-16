@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.DigitalOutput;
 import edu.wpi.first.wpilibj.Servo;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -55,6 +56,7 @@ public class WristSubsystem extends SubsystemBase {
         extensionPosition = grabServo.getPosition() * WRIST_SERVO_MAX_MM;
         mechanism.update();
         grabServo.setPosition(Math.max(0, extensionTarget / WRIST_SERVO_MAX_MM));
+        SmartDashboard.putNumber("Wrist: EXT Position", getExtensionPosition());
     }
 
     /**
@@ -70,4 +72,6 @@ public class WristSubsystem extends SubsystemBase {
 
     /** Retracts the {@link WristSubsystem} to the minimum allowed value. */
     public void retractWrist() { setExtensionTarget(0); }
+
+    public double getExtensionPosition(){return extensionPosition;}
 }
