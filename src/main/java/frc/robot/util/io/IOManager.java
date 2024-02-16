@@ -105,20 +105,6 @@ public class IOManager {
     }
 
     /**
-     * Broadcasts a DEBUG message to the RIOLOG with a null sender.
-     * @param text The {@link String} to broadcast.
-     */
-    @Deprecated(forRemoval = true)
-    public static void debug(String text) { debug(null, text); }
-
-    /**
-     * Broadcasts an INFO message to the RIOLOG with a null sender.
-     * @param text The {@link String} to broadcast.
-     */
-    @Deprecated(forRemoval = true)
-    public static void info(String text) { info(null, text); }
-
-    /**
      * Formats the uptime as a string.
      *
      * @param uptime The uptime in milliseconds.

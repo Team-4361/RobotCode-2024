@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import static frc.robot.util.math.GlobalUtils.ensurePrefix;
+
 /**
  * This {@link PresetMap} is designed to hold various fixed positions of a mechanism. Functionality
  * is almost identical to a HashMap, except for (a) elements are stored in a consistent order -- and (b)
@@ -174,7 +176,7 @@ public class PresetMap<T> extends LinkedHashMap<String, T> implements IPresetCon
         this.startMs = System.currentTimeMillis();
         listeners.forEach(o -> o.onPresetAdjust(getSelectedName(), get(getSelectedName())));
         if (dashboardEnabled)
-            SmartDashboard.putString(getName(), getSelectedName() + " index is " + index);
+            SmartDashboard.putString(getName() + " : Preset", getSelectedName());
         return true;
     }
 

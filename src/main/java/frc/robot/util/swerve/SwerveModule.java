@@ -16,6 +16,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.util.math.GlobalUtils;
 import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.motor.MotorModel;
@@ -106,7 +107,6 @@ public class SwerveModule {
             encoder.optimizeBusUtilization();
         }
 
-        Timer.delay(1);
         update();
         new Thread(() -> {
             try {
@@ -146,6 +146,7 @@ public class SwerveModule {
                             + driveController.calculate(driveEncoder.getVelocity(), adjustedSpeedMPS));
             }
         }
+        // TODO: dashboard!!!!!!!!!!
     }
 
     public void setState(SwerveModuleState desiredState) {

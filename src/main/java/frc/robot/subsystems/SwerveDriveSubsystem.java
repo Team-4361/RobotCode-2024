@@ -2,9 +2,7 @@ package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
-import com.pathplanner.lib.util.PathPlannerLogging;
 import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -14,11 +12,11 @@ import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.*;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.util.io.AlertType;
 import frc.robot.util.io.IOManager;
@@ -28,6 +26,7 @@ import frc.robot.util.swerve.SwerveModule;
 import java.util.Optional;
 
 import static frc.robot.Constants.AlertConfig.STRING_GYRO_CALIBRATING;
+import static frc.robot.Constants.AlertConfig.STRING_NO_GYRO;
 import static frc.robot.Constants.Chassis.*;
 
 /**
@@ -51,13 +50,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     private Rotation2d rawGyroRotation = new Rotation2d();
     private final SwerveDrivePoseEstimator poseEstimator;
 
-    public boolean connected = false;
     public Rotation2d yawPosition = new Rotation2d();
-    public double yawVelocityRadPerSec = 0.0;
-    public boolean isCalibrating = false;
-
-
-    public static boolean fieldOriented = true;
+    public boolean fieldOriented = true;
 
     /** @return A {@link Command} used to toggle teleoperated field-oriented. */
     public Command toggleFieldOrientedCommand() { return Commands.runOnce(() -> fieldOriented = !fieldOriented); }
@@ -101,16 +95,21 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                 kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
 
         IOManager.getAlert(STRING_GYRO_CALIBRATING, AlertType.WARNING)
-                .setCondition(() -> isCalibrating)
+                .setCondition(gyro::isCalibrating)
                 .setPersistent(false)
                 .setDisableDelay(2000)
                 .setOneUse(false);
+
+        IOManager.getAlert(STRING_NO_GYRO, AlertType.ERROR)
+                .setCondition(() -> !gyro.isConnected())
+                .setPersistent(true);
+
 
         AutoBuilder.configureHolonomic(
                 this::getPose,
                 this::reset,
                 this::getRobotVelocity,
-                this::drive,
+                this::setSpeeds,
                 new HolonomicPathFollowerConfig(
                         MAX_SPEED_MPS,
                         Math.hypot(SIDE_LENGTH_METERS/2, SIDE_LENGTH_METERS/2),
@@ -145,10 +144,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
      */
     @Override
     public void periodic() {
-        connected = gyro.isConnected();
         yawPosition = gyro.getRotation2d();
-        isCalibrating = gyro.isCalibrating();
-
         for (SwerveModule module : modules)
             module.update();
 
@@ -169,7 +165,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
 
         // Update gyro angle
-        if (connected) {
+        if (gyro.isConnected()) {
             // Use the real gyro angle
             rawGyroRotation = yawPosition;
         } else {
@@ -187,9 +183,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
      *
      * @return A ChassisSpeeds object of the current robot-relative velocity
      */
-    public ChassisSpeeds getRobotVelocity() {
-        return kinematics.toChassisSpeeds(getStates());
-    }
+    public ChassisSpeeds getRobotVelocity() { return kinematics.toChassisSpeeds(getStates()); }
 
     /** @return The current {@link Rotation2d} heading of the {@link Robot}. */
     public Rotation2d getHeading() { return yawPosition; }
@@ -219,7 +213,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         if (fieldOriented)
             speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getHeading());
 
-        driveRobotRelative(speeds);
+        setSpeeds(speeds);
     }
 
     /**
@@ -237,22 +231,15 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         if (fieldOriented)
             speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getHeading());
 
-        driveRobotRelative(speeds);
+        setSpeeds(speeds);
     }
 
-    /**
-     * Drives the Robot without field orientated using an input {@link ChassisSpeeds}.
-     * @param speeds The {@link ChassisSpeeds} to use.
-     */
-    public void drive(ChassisSpeeds speeds) { setStates(kinematics.toSwerveModuleStates(speeds)); }
-
-    public void driveRobotRelative(ChassisSpeeds speeds) {
+    public void setSpeeds(ChassisSpeeds speeds) {
         ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
         SwerveModuleState[] states = kinematics.toSwerveModuleStates(discreteSpeeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(states, MAX_SPEED_MPS);
 
         for (int i = 0; i < modules.length; i++) {
-            // The module returns the optimized state, useful for logging
             modules[i].setState(states[i]);
         }
     }
@@ -272,7 +259,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     }
 
     public void reset() { reset(new Pose2d()); }
-
     public SwerveModule[] getModules() { return this.modules; }
     public SwerveDriveKinematics getKinematics() { return kinematics; }
 

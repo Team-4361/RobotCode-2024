@@ -1,24 +1,21 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj.DigitalOutput;
 import edu.wpi.first.wpilibj.Servo;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.util.motor.MotorModel;
 import frc.robot.util.pid.PIDRotationalMechanism;
 import frc.robot.util.pid.PIDRotationalMechanism.RotationUnit;
+import frc.robot.util.preset.PresetMap;
 
 import static frc.robot.Constants.Debug.WRIST_TUNING_ENABLED;
 import static frc.robot.Constants.Wrist.*;
 
 /**
- * This {@link WristSubsystem} is designed to control the {@link Robot}'s wrist. It has an Actuonix L16-50-35-6R
+ * This {@link TrapWristSubsystem} is designed to control the {@link Robot}'s wrist. It has an Actuonix L16-50-35-6R
  * Linear Servo for grabbing, and a 63:1 NEO-550 motor used for turning.
  */
-public class WristSubsystem extends SubsystemBase {
+public class TrapWristSubsystem extends SubsystemBase {
     private final Servo grabServo;
     private final PIDRotationalMechanism mechanism;
 
@@ -26,7 +23,7 @@ public class WristSubsystem extends SubsystemBase {
     public double extensionTarget = 0.0;
 
     /** Constructs a new {@link PIDRotationalMechanism}. */
-    public WristSubsystem() {
+    public TrapWristSubsystem() {
         mechanism = new PIDRotationalMechanism(
                 WRIST_MOTOR_ID,
                 WRIST_PID,
@@ -40,7 +37,8 @@ public class WristSubsystem extends SubsystemBase {
                 RotationUnit.DEGREES,
                 false
         );
-        this.grabServo = new Servo(WRIST_SERVO_ID);
+
+        grabServo = new Servo(WRIST_SERVO_ID);
         grabServo.setBoundsMicroseconds(
                 WRIST_MAX_US,
                 WRIST_DEAD_BAND_MAX_US,
@@ -48,6 +46,12 @@ public class WristSubsystem extends SubsystemBase {
                 WRIST_DEAD_BAND_MIN_US,
                 WRIST_MIN_US
         );
+
+        mechanism.setInverted(WRIST_INVERTED);
+    }
+
+    public void registerPresets(PresetMap<Double> map) {
+        mechanism.registerPresets(map);
     }
 
     @Override
@@ -58,16 +62,18 @@ public class WristSubsystem extends SubsystemBase {
     }
 
     /**
-     * Sets the extension target of the {@link WristSubsystem}.
+     * Sets the extension target of the {@link TrapWristSubsystem}.
      * @param mm The extension target in <b>millimeters</b>.
      */
-    public void setExtensionTarget(double mm) {
-        this.extensionTarget = mm;
+    public void setExtensionTarget(double mm) { this.extensionTarget = mm; }
+
+    public void translateWrist(double speed) {
+        mechanism.translateMotor(speed);
     }
 
-    /** Extends the {@link WristSubsystem} to the maximum allowed value. */
-    public void extendWrist() { setExtensionTarget(WRIST_SERVO_MAX_MM); }
+    /** Extends the {@link TrapWristSubsystem} to the maximum allowed value -- dropping the note. */
+    public void dropNote() { setExtensionTarget(WRIST_SERVO_MAX_MM); }
 
-    /** Retracts the {@link WristSubsystem} to the minimum allowed value. */
-    public void retractWrist() { setExtensionTarget(0); }
+    /** Retracts the {@link TrapWristSubsystem} to the minimum allowed value -- grabbing the note. */
+    public void grabNote() { setExtensionTarget(0); }
 }

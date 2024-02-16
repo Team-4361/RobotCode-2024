@@ -11,6 +11,8 @@ import frc.robot.util.joystick.IDriveMode;
 import frc.robot.util.math.GearRatio;
 import frc.robot.util.math.PeakMotorDistance;
 import frc.robot.util.pid.PIDConstantsAK;
+import frc.robot.util.preset.PresetGroup;
+import frc.robot.util.preset.PresetMap;
 import frc.robot.util.swerve.ModuleSettings;
 
 import java.util.function.Supplier;
@@ -37,7 +39,6 @@ public class Constants {
         public static final boolean WRIST_TUNING_ENABLED = false;
         public static final boolean CLIMBER_TUNING_ENABLED = false;
         public static final boolean TRAP_ARM_TUNING_ENABLED = true;
-
         public static final boolean PHOTON_ENABLED = false;
     }
 
@@ -58,13 +59,8 @@ public class Constants {
     public static class Indexer {
         public static final int INDEX_LEFT_MOTOR_ID = 12;
         public static final int INDEX_RIGHT_MOTOR_ID = 13;
-
-        public static final double INDEX_KS = 0;
-        public static final double INDEX_KV = 0;
-        public static final double INDEX_KA = 0;
         public static final int INDEX_SENSOR_PORT = 0;
         public static final double INDEX_SPEED = -0.4;
-        public static final PIDConstantsAK INDEX_PID = new PIDConstantsAK(0.01, 0, 0);
     }
 
     /** This {@link Intake} class represents all values regarding the {@link Robot}'s in-taking mechanism. */
@@ -159,13 +155,49 @@ public class Constants {
 
     public static class AlertConfig {
         public static final Supplier<Long> ALERT_PERIODIC_MS = () -> (long)(DriverStation.isEnabled() ? 1000 : 3000);
-        public static final String STRING_HIGH_PERIODIC_MS = "Slow main Thread loop (>= 25ms)";
 
         /** The {@link String} used when a Motor is stalled/over-temp. Use '%ID%' to reference the ID. */
         public static final String STRING_MOTOR_OVER_TEMP = "Motor #%ID% stalled/over-temp; output disabled.";
 
         public static final String STRING_GYRO_CALIBRATING = "Gyroscope calibrating!";
-        public static final String STRING_PROGRAMMING_MOTOR = "Programing Motors...";
+        public static final String STRING_NO_GYRO = "Gyroscope disconnected!";
+    }
+
+    public static class Presets {
+        public static final PresetMap<Double> TRAP_ARM_PRESETS = new PresetMap<>(
+                "Trap Arm",
+                true
+        );
+        public static final PresetMap<Double> TRAP_WRIST_PRESETS = new PresetMap<>(
+                "Trap Wrist",
+                true
+        );
+        public static final PresetMap<Double> TRAP_ARM_ANGLE_PRESETS = new PresetMap<>(
+                "Trap Angle",
+                true
+        );
+
+        static {
+            TRAP_ARM_PRESETS.put("Zero", 0.0);
+            TRAP_WRIST_PRESETS.put("Zero", 0.0);
+            TRAP_ARM_ANGLE_PRESETS.put("Zero", 0.0);
+
+            TRAP_ARM_ANGLE_PRESETS.put("One", 20.0);
+
+            // TODO: add real entries!
+
+            Robot.arm.registerExtensionPresets(TRAP_ARM_PRESETS);
+            Robot.arm.registerAnglePresets(TRAP_ARM_ANGLE_PRESETS);
+            Robot.wrist.registerPresets(TRAP_WRIST_PRESETS);
+        }
+
+        /** Use this group for interfacing the trap presets!! **/
+        public static final PresetGroup TRAP_PRESET_GROUP = new PresetGroup(
+                "Trap Group",
+                TRAP_ARM_PRESETS,
+                TRAP_WRIST_PRESETS,
+                TRAP_ARM_ANGLE_PRESETS
+        );
     }
 
     /**

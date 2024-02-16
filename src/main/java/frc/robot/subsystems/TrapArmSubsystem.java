@@ -2,14 +2,15 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.util.motor.MotorModel;
 import frc.robot.util.pid.PIDLinearMechanism;
 import frc.robot.util.pid.PIDRotationalMechanism;
 import frc.robot.util.pid.PIDLinearMechanism.DistanceUnit;
+import frc.robot.util.preset.IPresetContainer;
+import frc.robot.util.preset.PresetGroup;
+import frc.robot.util.preset.PresetMap;
 
 import static frc.robot.Constants.Arm.*;
 import static frc.robot.Constants.Debug.TRAP_ARM_TUNING_ENABLED;
@@ -58,11 +59,34 @@ public class TrapArmSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Arm Position", extensionPosition);
     }
 
-    public void translateMotor(double speed) {
+    public void registerAnglePresets(PresetMap<Double> map) {
+        map.addListener((mapName, value) -> setAnglePosition(value));
+    }
+    public void registerExtensionPresets(PresetMap<Double> map) {
+        mechanism.registerPresets(map);
+    }
+
+    /**
+     * Sets the target linear {@link Servo} position, changing the angle of the {@link TrapArmSubsystem}.
+     * @param mm The {@link Double} value in millimeters.
+     */
+    public void setAnglePosition(double mm) {
+        extensionTarget = mm;
+    }
+
+    /**
+     * Sets the extension speed of the {@link TrapArmSubsystem}.
+     * @param speed The {@link Double} value from -1.0 to +1.0
+     */
+    public void setExtensionSpeed(double speed) {
         mechanism.translateMotor(speed);
     }
 
-    public void translateAngle(double speed) {
+    /**
+     * Sets the speed of the linear {@link Servo}.
+     * @param speed The {@link Double} value from -1.0 to +1.0
+     */
+    public void setAngleSpeed(double speed) {
         linearServo.set(speed);
     }
 }
