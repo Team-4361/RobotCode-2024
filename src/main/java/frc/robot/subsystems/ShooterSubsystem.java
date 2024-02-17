@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.motorcontrol.Spark;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.util.math.GearRatio;
@@ -76,6 +77,7 @@ public class ShooterSubsystem extends SubsystemBase {
         rightWheel.update();
         if (shootTune != null && !stopped)
             shootTune.update();
+        SmartDashboard.putBoolean("Shooter: At Target", atTarget());
     }
 
     //private final Spark LED_1 = new Spark(0);
@@ -85,7 +87,7 @@ public class ShooterSubsystem extends SubsystemBase {
      * Sets the target of the {@link ShooterSubsystem} to the Shoot RPM.
      */
     public void start() {
-        leftWheel.setTarget(targetRPM);
+        leftWheel.setTarget(-targetRPM);
         rightWheel.setTarget(targetRPM);
         stopped = targetRPM == 0;
     }

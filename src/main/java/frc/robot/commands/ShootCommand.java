@@ -19,7 +19,6 @@ public class ShootCommand extends Command {
     @Override
     public void initialize() {
         // FIXME: what if sensor fails?
-        Robot.shooter.start();
     }
 
     /**
@@ -27,6 +26,7 @@ public class ShootCommand extends Command {
      */
     @Override
     public void execute() {
+        Robot.shooter.start();
         if (Robot.shooter.atTarget()) {
             Robot.index.start();
             Robot.intake.start();
