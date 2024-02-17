@@ -5,6 +5,7 @@ import com.revrobotics.SparkPIDController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.Robot;
+import swervelib.parser.PIDFConfig;
 
 import java.util.function.Consumer;
 
@@ -23,6 +24,12 @@ public class PIDConstantsAK {
      */
     public static PIDController generateController(PIDConstantsAK constants) {
         return new PIDController(constants.kP, constants.kI, constants.kD);
+    }
+
+    public PIDFConfig toPIDF() {
+        return new PIDFConfig(
+                kP, kI, kD
+        );
     }
 
     public void initController(Consumer<Double> p, Consumer<Double> i, Consumer<Double> d) {
