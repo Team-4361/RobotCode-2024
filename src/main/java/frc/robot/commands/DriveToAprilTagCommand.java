@@ -15,21 +15,20 @@ import java.util.Optional;
 
 public class DriveToAprilTagCommand extends Command {
     private final Pose2d desiredPose;
-    private final int id;
     private final double targetHeightMeters;
+    private final int id;
 
     private Pose2d currentPose;
     private boolean noTarget, firstTarget, stopOnEnd;
     private long initTimeout = System.currentTimeMillis() + 5000;
 
     public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, int id, boolean stopOnEnd) {
-        addRequirements(Robot.swerve);
         this.desiredPose = desiredPose;
         this.targetHeightMeters = targetHeightMeters;
         this.noTarget = false;
         this.firstTarget = false;
         this.id = id;
-        addRequirements(Robot.swerve);
+        //addRequirements(Robot.swerve);
     }
 
     public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, boolean stopOnEnd) {
@@ -68,10 +67,13 @@ public class DriveToAprilTagCommand extends Command {
     }
 
     private ChassisSpeeds calculateSpeeds() {
+        /* TODO: FIX!
         PIDController driveController = Robot.frontCamera.getDriveController();
         PIDController turnController = Robot.frontCamera.getTurnController();
 
-        double mX = PHOTON_DRIVE_MAX_SPEED.getValue();
+
+        //double mX = PHOTON_DRIVE_MAX_SPEED.getValue();
+        double mX = 0.5; // FIXME: change!
         double jX = MathUtil.clamp(driveController.calculate(currentPose.getX(), desiredPose.getX()), -mX, mX);
         double jY = MathUtil.clamp(driveController.calculate(currentPose.getY(), desiredPose.getY()),-mX,mX);
         double jO = MathUtil.clamp(
@@ -87,6 +89,9 @@ public class DriveToAprilTagCommand extends Command {
                 jY * CHASSIS_MODE.getMaxSpeed(),
                 jO * CHASSIS_MODE.getMaxSpeed()
         ), Robot.swerve.getHeading());
+
+         */
+        return new ChassisSpeeds(0, 0, 0);
     }
 
     /**

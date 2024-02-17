@@ -13,12 +13,9 @@ import frc.robot.util.math.PeakMotorDistance;
 import frc.robot.util.pid.PIDConstantsAK;
 import frc.robot.util.swerve.ModuleSettings;
 
-import java.util.LinkedHashMap;
 import java.util.function.Supplier;
 
 import static edu.wpi.first.units.Units.Inches;
-import static frc.robot.Constants.LooperConfig.*;
-import static frc.robot.Constants.LooperConfig.STRING_DASHBOARD_NAME;
 
 /**
  * This {@link Constants} class is an easy-to-use place for fixed value storage (ex. motor/controller IDs,
@@ -39,6 +36,7 @@ public class Constants {
         public static final boolean INTAKE_TUNING_ENABLED = false;
         public static final boolean WRIST_TUNING_ENABLED = false;
         public static final boolean CLIMBER_TUNING_ENABLED = false;
+        public static final boolean TRAP_ARM_TUNING_ENABLED = true;
 
         public static final boolean PHOTON_ENABLED = false;
     }
@@ -103,8 +101,32 @@ public class Constants {
     public static class Climber{
         public static final int CLIMBER_LEFT_ID = 16;
         public static final int CLIMBER_RIGHT_ID = 17;
-        public static final int CLIMBER_LEFT_DIO = 0;
-        public static final int CLIMBER_RIGHT_DIO = 1;
+        public static final int CLIMBER_LEFT_DIO = 1;
+        public static final int CLIMBER_RIGHT_DIO = 2;
+        public static final double CLIMBER_SPEED = 0.5;
+        public static final boolean CLIMBER_LEFT_INVERTED = true;
+        public static final boolean CLIMBER_RIGHT_INVERTED = false;
+    }
+
+    public static class Arm {
+        // change later?
+        public static final int ARM_MAX_US = 2000;
+        public static final int ARM_DEAD_BAND_MAX_US = 1500;
+        public static final int ARM_CENTER_US = 1500;
+        public static final int ARM_DEAD_BAND_MIN_US = 1500;
+        public static final int ARM_MIN_US = 1000;
+
+        public static final int ARM_MOTOR_ID = 18;
+        public static final int ARM_SERVO_ID = 1;
+        public static final double ARM_KS = 0;
+        public static final double ARM_KV = 0;
+        public static final double ARM_KA = 0;
+
+        public static final double ARM_SERVO_MAX_MM = 50;
+
+        // change later?
+        public static final PeakMotorDistance ARM_DISTANCE = new PeakMotorDistance(Inches.of(24), 10);
+        public static final PIDConstantsAK ARM_PID = new PIDConstantsAK(0.02, 0, 0);
     }
 
     public static class Control {
@@ -207,6 +229,7 @@ public class Constants {
         public static final double MODULE_KS = 0.10;
         public static final double MODULE_KV = 0.13;
         public static final double MODULE_KA = 0.00;
+        public static final double PHOTON_DRIVE_MAX_SPEED = 0.5;
 
         public static final PIDConstantsAK DRIVE_PID = new PIDConstantsAK(0.2, 0, 0);
         public static final PIDConstantsAK TURN_PID = new PIDConstantsAK(2, 0, 0);

@@ -14,6 +14,7 @@ import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.*;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -180,6 +181,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
         // Apply odometry update
         poseEstimator.update(rawGyroRotation, modulePositions);
+        SmartDashboard.putString("Robot Pose", getPose().toString());
     }
 
     /**
@@ -202,6 +204,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         for (int i=0; i<modules.length; i++) {
             modules[i].setState(states[i]);
         }
+
     }
 
     /**

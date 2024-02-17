@@ -277,14 +277,12 @@ public class FRCSparkMax extends CANSparkMax implements IMotorModel {
      */
     @Override
     public void setVoltage(double outputVolts) {
-        Constants.runIfNotReplay(() -> {
-            if (RobotBase.isSimulation() && motorSim != null) {
-                simVolts = MathUtil.clamp(outputVolts, -12, 12);
-                motorSim.setInputVoltage(simVolts);
-            } else {
-                super.setVoltage(outputVolts);
-            }
-        });
+        if (RobotBase.isSimulation() && motorSim != null) {
+            simVolts = MathUtil.clamp(outputVolts, -12, 12);
+            motorSim.setInputVoltage(simVolts);
+        } else {
+            super.setVoltage(outputVolts);
+        }
     }
 
     public double getAppliedVoltage() {

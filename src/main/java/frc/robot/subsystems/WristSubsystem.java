@@ -1,14 +1,16 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj.DigitalOutput;
 import edu.wpi.first.wpilibj.Servo;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Subsystem;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.util.motor.MotorModel;
 import frc.robot.util.pid.PIDRotationalMechanism;
-import org.littletonrobotics.junction.LogTable;
-import org.littletonrobotics.junction.inputs.LoggableInputs;
+import frc.robot.util.pid.PIDRotationalMechanism.RotationUnit;
 
 import static frc.robot.Constants.Debug.WRIST_TUNING_ENABLED;
 import static frc.robot.Constants.Wrist.*;
@@ -17,15 +19,16 @@ import static frc.robot.Constants.Wrist.*;
  * This {@link WristSubsystem} is designed to control the {@link Robot}'s wrist. It has an Actuonix L16-50-35-6R
  * Linear Servo for grabbing, and a 63:1 NEO-550 motor used for turning.
  */
-public class WristSubsystem extends PIDRotationalMechanism implements LoggableInputs, Subsystem {
-    private final Servo linearServo;
+public class WristSubsystem extends SubsystemBase {
+    private final Servo grabServo;
+    private final PIDRotationalMechanism mechanism;
 
     public double extensionPosition = 0.0;
     public double extensionTarget = 0.0;
 
     /** Constructs a new {@link PIDRotationalMechanism}. */
     public WristSubsystem() {
-        super(
+        mechanism = new PIDRotationalMechanism(
                 WRIST_MOTOR_ID,
                 WRIST_PID,
                 WRIST_KS,
@@ -38,35 +41,22 @@ public class WristSubsystem extends PIDRotationalMechanism implements LoggableIn
                 RotationUnit.DEGREES,
                 false
         );
-        this.linearServo = new Servo(WRIST_SERVO_ID);
-        linearServo.setBoundsMicroseconds(
+        this.grabServo = new Servo(WRIST_SERVO_ID);
+        grabServo.setBoundsMicroseconds(
                 WRIST_MAX_US,
                 WRIST_DEAD_BAND_MAX_US,
                 WRIST_CENTER_US,
                 WRIST_DEAD_BAND_MIN_US,
                 WRIST_MIN_US
         );
-
-        CommandScheduler.getInstance().registerSubsystem(this);
     }
 
     @Override
     public void periodic() {
-        Constants.runIfNotReplay(() -> extensionPosition = linearServo.getPosition() * WRIST_SERVO_MAX_MM);
-        super.update();
-
-        linearServo.setPosition(Math.max(0, extensionTarget / WRIST_SERVO_MAX_MM));
-    }
-
-    /**
-     * Updates a LogTable with the data to log.
-     * @param table The {@link LogTable} which is provided.
-     */
-    @Override
-    public void toLog(LogTable table) {
-        super.toLog(table);
-        table.put("ExtensionMM", extensionPosition);
-        table.put("TargetMM", extensionTarget);
+        extensionPosition = grabServo.getPosition() * WRIST_SERVO_MAX_MM;
+        mechanism.update();
+        grabServo.setPosition(Math.max(0, extensionTarget / WRIST_SERVO_MAX_MM));
+        SmartDashboard.putNumber("Wrist: EXT Position", getExtensionPosition());
     }
 
     /**
@@ -74,7 +64,7 @@ public class WristSubsystem extends PIDRotationalMechanism implements LoggableIn
      * @param mm The extension target in <b>millimeters</b>.
      */
     public void setExtensionTarget(double mm) {
-        Constants.runIfNotReplay(() -> this.extensionTarget = mm);
+        this.extensionTarget = mm;
     }
 
     /** Extends the {@link WristSubsystem} to the maximum allowed value. */
@@ -83,14 +73,5 @@ public class WristSubsystem extends PIDRotationalMechanism implements LoggableIn
     /** Retracts the {@link WristSubsystem} to the minimum allowed value. */
     public void retractWrist() { setExtensionTarget(0); }
 
-    /**
-     * Updates data based on a LogTable.
-     * @param table The {@link LogTable} which is provided.
-     */
-    @Override
-    public void fromLog(LogTable table) {
-        super.fromLog(table);
-        this.extensionPosition = table.get("ExtensionMM", this.extensionPosition);
-        this.extensionTarget = table.get("TargetMM", this.extensionTarget);
-    }
+    public double getExtensionPosition(){return extensionPosition;}
 }
