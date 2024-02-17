@@ -17,6 +17,8 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.DriveToAprilTagCommand;
+import frc.robot.commands.IntakeNoteCommand;
+import frc.robot.commands.ShootCommand;
 import frc.robot.subsystems.*;
 import frc.robot.util.auto.PhotonCameraModule;
 import frc.robot.util.io.AlertType;
@@ -189,11 +191,31 @@ public class Robot extends TimedRobot {
             ));
         }
 
-        xbox.b().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(1)));
-        xbox.a().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(0)));
+        xbox.b().whileTrue(new IntakeNoteCommand());
+        xbox.a().whileTrue(new ShootCommand());
+        xbox.leftTrigger().whileTrue(Robot.climber.runEnd(
+                () -> Robot.climber.moveLeftUp(),
+                () -> Robot.climber.stopLeft()
+        ));
+        xbox.rightTrigger().whileTrue(Robot.climber.runEnd(
+                () -> Robot.climber.moveRightUp(),
+                () -> Robot.climber.stopRight()
+        ));
+        xbox.leftBumper().whileTrue(Robot.climber.runEnd(
+                () -> Robot.climber.moveLeftDown(),
+                () -> Robot.climber.stopLeft()
+        ));
+        xbox.rightBumper().whileTrue(Robot.climber.runEnd(
+                () -> Robot.climber.moveRightDown(),
+                () -> Robot.climber.stopRight()
+        ));
 
-        xbox.y().onTrue(Commands.runOnce(() -> Robot.wrist.grabNote()));
-        xbox.x().onTrue(Commands.runOnce(() -> Robot.wrist.dropNote()));
+//
+//        xbox.b().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(1)));
+//        xbox.a().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(0)));
+//
+//        xbox.y().onTrue(Commands.runOnce(() -> Robot.wrist.grabNote()));
+//        xbox.x().onTrue(Commands.runOnce(() -> Robot.wrist.dropNote()));
     }
 
 
@@ -217,14 +239,14 @@ public class Robot extends TimedRobot {
         IOManager.run();
 
         // ************************* DO NOT TOUCH ************************* //
-
-        Robot.arm.setExtensionSpeed(deadband(Robot.xbox.getLeftY())/2);
-        Robot.arm.setAngleSpeed(deadband(Robot.xbox.getRightY())/2);
-
-        Robot.wrist.translateWrist(GlobalUtils.getDualSpeed(
-                Robot.xbox.getLeftTriggerAxis(),
-                Robot.xbox.getRightTriggerAxis()
-        ));
+//
+//        Robot.arm.setExtensionSpeed(deadband(Robot.xbox.getLeftY())/2);
+//        Robot.arm.setAngleSpeed(deadband(Robot.xbox.getRightY())/2);
+//
+//        Robot.wrist.translateWrist(GlobalUtils.getDualSpeed(
+//                Robot.xbox.getLeftTriggerAxis(),
+//                Robot.xbox.getRightTriggerAxis()
+//        ));
     }
 
     @Override public void disabledInit() { CommandScheduler.getInstance().cancelAll(); }

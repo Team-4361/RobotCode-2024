@@ -3,37 +3,19 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
 
-import static frc.robot.Constants.Shooter.SHOOT_END_DELAY_MS;
+public class IntakeNoteCommand extends Command {
 
-public class ShootCommand extends Command {
-    private long endMillis = 0;
-
-    /**
-     * Default constructor.
-     */
-    public ShootCommand() { addRequirements(Robot.shooter, Robot.index, Robot.intake); }
+    public IntakeNoteCommand() {
+        addRequirements(Robot.intake, Robot.index);
+    }
 
     /**
      * The initial subroutine of a command. Called once when the command is initially scheduled.
      */
     @Override
     public void initialize() {
-        // FIXME: what if sensor fails?
-        Robot.shooter.start();
-    }
-
-    /**
-     * The main body of a command. Called repeatedly while the command is scheduled.
-     */
-    @Override
-    public void execute() {
-        if (Robot.shooter.atTarget()) {
-            Robot.index.start();
-            Robot.intake.start();
-        }
-        if (!Robot.intake.hasNote() && endMillis == 0) {
-            endMillis = System.currentTimeMillis() + SHOOT_END_DELAY_MS;
-        }
+        Robot.intake.start();
+        Robot.index.start();
     }
 
     /**
@@ -47,9 +29,8 @@ public class ShootCommand extends Command {
      */
     @Override
     public void end(boolean interrupted) {
-        Robot.shooter.stop();
-        Robot.index.stop();
         Robot.intake.stop();
+        Robot.index.stop();
     }
 
     /**
@@ -60,6 +41,6 @@ public class ShootCommand extends Command {
      */
     @Override
     public boolean isFinished() {
-        return !Robot.intake.hasNote() && System.currentTimeMillis() >= endMillis;
+        return Robot.intake.hasNote();
     }
 }

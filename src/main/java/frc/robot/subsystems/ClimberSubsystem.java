@@ -1,7 +1,9 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -19,6 +21,8 @@ public class ClimberSubsystem extends SubsystemBase {
     private final DigitalInput leftSensor;
     private final DigitalInput rightSensor;
     private final DashTunableNumber speedTune;
+    private final RelativeEncoder leftEncoder;
+    private final RelativeEncoder rightEncoder;
     private double targetSpeed = CLIMBER_SPEED;
 
     public void setTargetSpeed(double speed) { this.targetSpeed = speed; }
@@ -28,6 +32,9 @@ public class ClimberSubsystem extends SubsystemBase {
         this.rightMotor = new FRCSparkMax(CLIMBER_RIGHT_ID, kBrushless, MotorModel.NEO_550);
         this.leftSensor = new DigitalInput(CLIMBER_LEFT_DIO);
         this.rightSensor = new DigitalInput(CLIMBER_RIGHT_DIO);
+
+        this.leftEncoder = leftMotor.getEncoder();
+        this.rightEncoder = rightMotor.getEncoder();
 
         leftMotor.setInverted(CLIMBER_LEFT_INVERTED);
         rightMotor.setInverted(CLIMBER_RIGHT_INVERTED);
@@ -43,20 +50,14 @@ public class ClimberSubsystem extends SubsystemBase {
     public boolean isLeftRetracted() { return leftSensor.get(); }
     public boolean isRightRetracted() { return rightSensor.get(); }
 
-    public void moveUp() {
-        leftMotor.set(targetSpeed);
-        rightMotor.set(targetSpeed);
-    }
+    public void moveLeftUp() { leftMotor.set(targetSpeed); }
+    public void moveRightUp() { rightMotor.set(targetSpeed); }
+    public void moveLeftDown() { leftMotor.set(-targetSpeed); }
+    public void moveRightDown() { rightMotor.set(-targetSpeed); }
 
-    public void moveDown() {
-        leftMotor.set(-targetSpeed);
-        rightMotor.set(-targetSpeed);
-    }
 
-    public void stop() {
-        leftMotor.stopMotor();
-        rightMotor.stopMotor();
-    }
+    public void stopLeft() { leftMotor.stopMotor(); }
+    public void stopRight() { rightMotor.stopMotor(); }
 
     /**
      * This method is called periodically by the {@link CommandScheduler}. Useful for updating
@@ -72,5 +73,8 @@ public class ClimberSubsystem extends SubsystemBase {
         }
         if (speedTune != null)
             speedTune.update();
+
+        SmartDashboard.putNumber("CLI: LEFT POS", leftEncoder.getPosition());
+        SmartDashboard.putNumber("CLI: RIGHT POS", rightEncoder.getPosition());
     }
 }

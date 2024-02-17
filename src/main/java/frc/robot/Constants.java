@@ -52,6 +52,7 @@ public class Constants {
         public static final double SHOOT_KV = 0.03;
         public static final double SHOOT_KA = 0;
         public static final double SHOOT_RPM_TOLERANCE = 100;
+        public static final long SHOOT_END_DELAY_MS = 2000;
         public static final PIDConstantsAK SHOOT_PID = new PIDConstantsAK(0.05, 0, 0);
     }
 
