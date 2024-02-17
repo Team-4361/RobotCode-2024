@@ -46,7 +46,7 @@ public class Constants {
     /** This {@link Shooter} class represents all values regarding the {@link Robot}'s shooting mechanism. */
     public static class Shooter {
         public static final int LEFT_SHOOTER_MOTOR_ID = 10;
-        public static final int RIGHT_SHOOTER_MOTOR_ID = 11;
+        public static final int RIGHT_SHOOTER_MOTOR_ID = 16;
         public static final double SHOOT_RPM = 5600;
         public static final double SHOOT_KS = 0.1;
         public static final double SHOOT_KV = 0.03;
@@ -57,8 +57,8 @@ public class Constants {
 
     /** This {@link Indexer} class represents all values regarding the {@link Robot}'s index mechanism. */
     public static class Indexer {
-        public static final int INDEX_LEFT_MOTOR_ID = 12;
-        public static final int INDEX_RIGHT_MOTOR_ID = 13;
+        public static final int INDEX_LEFT_MOTOR_ID = 11;
+        public static final int INDEX_RIGHT_MOTOR_ID = 15;
         public static final int INDEX_SENSOR_PORT = 0;
         public static final double INDEX_SPEED = -0.4;
     }
@@ -69,7 +69,7 @@ public class Constants {
         public static final double INTAKE_KS = 0;
         public static final double INTAKE_KV = 0;
         public static final double INTAKE_KA = 0;
-        public static final int INTAKE_MOTOR_ID = 14;
+        public static final int INTAKE_MOTOR_ID = 12;
         public static final boolean INTAKE_INVERTED = false;
         public static final PIDConstantsAK INTAKE_PID = new PIDConstantsAK(0.02, 0, 0);
     }
@@ -81,7 +81,7 @@ public class Constants {
         public static final int WRIST_DEAD_BAND_MIN_US = 1500;
         public static final int WRIST_MIN_US = 1000;
 
-        public static final int WRIST_MOTOR_ID = 15;
+        public static final int WRIST_MOTOR_ID = 18;
         public static final int WRIST_SERVO_ID = 0;
         public static final double WRIST_KS = 0;
         public static final double WRIST_KV = 0;
@@ -95,8 +95,8 @@ public class Constants {
     }
 
     public static class Climber{
-        public static final int CLIMBER_LEFT_ID = 16;
-        public static final int CLIMBER_RIGHT_ID = 17;
+        public static final int CLIMBER_LEFT_ID = 13;
+        public static final int CLIMBER_RIGHT_ID = 14;
         public static final int CLIMBER_LEFT_DIO = 1;
         public static final int CLIMBER_RIGHT_DIO = 2;
         public static final double CLIMBER_SPEED = 0.5;
@@ -112,7 +112,7 @@ public class Constants {
         public static final int ARM_DEAD_BAND_MIN_US = 1500;
         public static final int ARM_MIN_US = 1000;
 
-        public static final int ARM_MOTOR_ID = 18;
+        public static final int ARM_MOTOR_ID = 17;
         public static final int ARM_SERVO_ID = 1;
         public static final double ARM_KS = 0;
         public static final double ARM_KV = 0;
@@ -242,15 +242,15 @@ public class Constants {
         );
         /** The {@link ModuleSettings} for the Back-Left module. */
         public static final ModuleSettings BL_MODULE = new ModuleSettings(
-                5,
-                6,
+                7,
+                8,
                 32,
                 0
         );
         /** The {@link ModuleSettings} for the Back-Right module. */
         public static final ModuleSettings BR_MODULE = new ModuleSettings(
-                7,
-                8,
+                5,
+                6,
                 33,
                 0
         );
