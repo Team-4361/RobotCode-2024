@@ -26,7 +26,6 @@ import static frc.robot.Constants.AlertConfig.STRING_MOTOR_OVER_TEMP;
  * @version 0.0.1
  */
 public class FRCSparkMax extends CANSparkMax implements IMotorModel {
-    private final Alert conditionAlert;
     private final IMotorModel model;
     private final DCMotorSim motorSim;
     private final GearRatio ratio;
@@ -168,32 +167,12 @@ public class FRCSparkMax extends CANSparkMax implements IMotorModel {
         this.model = model;
         this.ratio = ratio;
 
-        conditionAlert = IOManager.getAlert(STRING_MOTOR_OVER_TEMP.replace("%ID%", String.valueOf(deviceId)), AlertType.ERROR)
-                .setEnableDelay(2000)
-                .setDisableDelay(2000)
-                .setPersistent(false)
-                .setOneUse(false);
-
-        if (type == MotorType.kBrushed) {
-            IOManager.warn(this, "Motor #" + deviceId + " is brushed. No stall detection allowed.");
-            conditionAlert.setCondition(() -> getMotorTemperature() >= 60);
-            this.motorSim = null;
-            return;
-        }
-
         // Tweaks to allow the Motor to work better with PID control.
         //restoreFactoryDefaults();
-        setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus1, 500);
-        setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus2, 500);
-        setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus3, 500);
+        setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus1, 50);
+        setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus2, 50);
+        setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus3, 50);
         enableVoltageCompensation(12.0);
-
-        // The motor is brushless; use the encoder to detect velocity for stall detection
-        if (!RobotBase.isSimulation()) {
-            conditionAlert.setCondition(() -> getMotorTemperature() >= 60 ||
-                    (getOutputCurrent() >= model.getMaximumStallCurrent() - 20 && getEncoder().getVelocity() <= 10)
-            );
-        }
 
         if (RobotBase.isSimulation()) {
             IOManager.warnOnFail(setSimFreeSpeed(model.getFreeSpeedRPM()));
@@ -211,8 +190,6 @@ public class FRCSparkMax extends CANSparkMax implements IMotorModel {
             lastSimUpdateMillis = System.currentTimeMillis();
         }
     }
-
-    public boolean isStalling() { return conditionAlert.isEnabled(); }
 
     /**
      * Create a new object to control a SPARK MAX motor Controller
@@ -258,9 +235,7 @@ public class FRCSparkMax extends CANSparkMax implements IMotorModel {
     @Override
     public void set(final double speed) {
         double adjustedSpeed = MathUtil.clamp(speed, -1, 1);
-        if (conditionAlert.isEnabled())
-            super.set(0);
-        else if (RobotBase.isSimulation() && motorSim != null) {
+        if (RobotBase.isSimulation() && motorSim != null) {
             motorSim.setInputVoltage(adjustedSpeed * 12);
         } else {
             super.set(adjustedSpeed);
@@ -293,10 +268,7 @@ public class FRCSparkMax extends CANSparkMax implements IMotorModel {
     }
 
     public void set(final ControlType controlType, final double value) {
-        if (conditionAlert.isEnabled())
-            this.getPIDController().setReference(0, controlType);
-        else
-            this.getPIDController().setReference(value, controlType);
+        this.getPIDController().setReference(value, controlType);
     }
 
     /** @return The maximum <b>theoretical</b> stall current of this {@link IMotorModel} in <b>amperes.</b> */

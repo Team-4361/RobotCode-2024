@@ -15,6 +15,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.util.math.GlobalUtils;
@@ -51,6 +52,8 @@ public class SwerveModule {
 
     private Double speedSetpoint = null;
     private Rotation2d angleSetpoint = null;
+    private boolean didSyncEncoders = false;
+    private long nextSync = System.currentTimeMillis() + 5000;
 
 
     private RelativeEncoder turnEncoder;
@@ -103,17 +106,10 @@ public class SwerveModule {
                     .withSensorDirection(SensorDirectionValue.Clockwise_Positive)
                     .withMagnetOffset(settings.getOffsetDegrees() / 360));
             signal = encoder.getAbsolutePosition();
-            BaseStatusSignal.setUpdateFrequencyForAll(50, signal);
-            encoder.optimizeBusUtilization();
+            //encoder.optimizeBusUtilization();
         }
 
         update();
-        new Thread(() -> {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ignored) {}
-            synchronizeEncoders();
-        }).start();
     }
 
     public void synchronizeEncoders() {
@@ -126,6 +122,12 @@ public class SwerveModule {
     public void update() {
         driveEncoder = driveMotor.getEncoder();
         turnEncoder = turnMotor.getEncoder();
+        signal.refresh();
+
+        if (!didSyncEncoders && System.currentTimeMillis() >= nextSync && DriverStation.isEnabled()) {
+            synchronizeEncoders();
+            didSyncEncoders = true;
+        }
 
         if (driveTune != null)
             driveTune.update();
@@ -147,6 +149,19 @@ public class SwerveModule {
             }
         }
         // TODO: dashboard!!!!!!!!!!
+        String driveVelocity = name + ": rpm";
+        String drivePower = name + ": pow";
+        String turnPower = name + ": turn pow";
+        String turnPosition = name + ": turn deg";
+        String turnAbsPosition = name + ": abs turn deg";
+
+        if (SWERVE_TUNING_ENABLED) {
+            SmartDashboard.putNumber(driveVelocity, driveEncoder.getVelocity());
+            SmartDashboard.putNumber(turnPower, turnMotor.get());
+            SmartDashboard.putNumber(turnPosition, turnEncoder.getPosition());
+            SmartDashboard.putNumber(drivePower, driveMotor.get());
+            SmartDashboard.putNumber(turnAbsPosition, Rotation2d.fromDegrees(signal.getValueAsDouble()*360).minus(absOffset).getDegrees());
+        }
     }
 
     public void setState(SwerveModuleState desiredState) {

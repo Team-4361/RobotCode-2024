@@ -12,6 +12,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -106,13 +107,13 @@ public class Robot extends TimedRobot {
         if (!useNormalSticks)
             drivePresets.add(xbox); // only add the Xbox Controller if used for driving.
 
-        pdh = new PowerDistribution();
+        pdh = new PowerDistribution(34, ModuleType.kRev);
         intake = new IntakeSubsystem();
         shooter = new ShooterSubsystem();
         index = new IndexSubsystem();
-        wrist = new TrapWristSubsystem();
+        //wrist = new TrapWristSubsystem();
         climber = new ClimberSubsystem();
-        arm = new TrapArmSubsystem();
+        //arm = new TrapArmSubsystem();
 
         swerve = new SwerveDriveSubsystem();
         frontCamera = new PhotonCameraModule(
@@ -193,6 +194,7 @@ public class Robot extends TimedRobot {
 
         xbox.b().whileTrue(new IntakeNoteCommand());
         xbox.a().whileTrue(new ShootCommand());
+        leftStick.button(4).onTrue(Commands.runOnce(() -> Robot.swerve.))
         xbox.leftTrigger().whileTrue(Robot.climber.runEnd(
                 () -> Robot.climber.moveLeftUp(),
                 () -> Robot.climber.stopLeft()

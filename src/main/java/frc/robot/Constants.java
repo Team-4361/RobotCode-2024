@@ -38,7 +38,7 @@ public class Constants {
         public static final boolean INTAKE_TUNING_ENABLED = false;
         public static final boolean WRIST_TUNING_ENABLED = false;
         public static final boolean CLIMBER_TUNING_ENABLED = false;
-        public static final boolean TRAP_ARM_TUNING_ENABLED = true;
+        public static final boolean TRAP_ARM_TUNING_ENABLED = false;
         public static final boolean PHOTON_ENABLED = false;
     }
 
@@ -187,9 +187,12 @@ public class Constants {
 
             // TODO: add real entries!
 
+            /*
             Robot.arm.registerExtensionPresets(TRAP_ARM_PRESETS);
             Robot.arm.registerAnglePresets(TRAP_ARM_ANGLE_PRESETS);
             Robot.wrist.registerPresets(TRAP_WRIST_PRESETS);
+
+             */
         }
 
         /** Use this group for interfacing the trap presets!! **/
@@ -232,7 +235,7 @@ public class Constants {
                 1,
                 2,
                 30,
-                0
+                0.684
         );
         /** The {@link ModuleSettings} for the Front-Right module. */
         public static final ModuleSettings FR_MODULE = new ModuleSettings(
