@@ -53,7 +53,7 @@ public class PhotonCameraModule extends PhotonCamera {
             this.turnTune = new DashTunablePID("Photon: Turn PID", PHOTON_TURN_PID);
             this.speedTune = new DashTunableNumber("Photon: Max Speed", PHOTON_DRIVE_MAX_SPEED);
 
-            speedTune.addConsumer();
+//            speedTune.addConsumer();
             driveTune.addConsumer(driveController::setP, driveController::setI, driveController::setD);
             turnTune.addConsumer(turnController::setP, turnController::setI, turnController::setD);
         } else {

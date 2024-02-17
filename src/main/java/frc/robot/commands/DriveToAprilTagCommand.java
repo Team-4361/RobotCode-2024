@@ -63,7 +63,7 @@ public class DriveToAprilTagCommand extends Command {
             firstTarget = false;
         currentPose = storedPose.get();
 
-        Robot.swerve.driveRobotRelative(calculateSpeeds());
+        Robot.swerve.setSpeeds(calculateSpeeds());
     }
 
     private ChassisSpeeds calculateSpeeds() {

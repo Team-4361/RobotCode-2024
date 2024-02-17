@@ -2,16 +2,15 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.util.motor.MotorModel;
 import frc.robot.util.pid.PIDLinearMechanism;
 import frc.robot.util.pid.PIDRotationalMechanism;
 import frc.robot.util.pid.PIDLinearMechanism.DistanceUnit;
+import frc.robot.util.preset.PresetMap;
 
-import static frc.robot.Constants.Arm.*;
+import static frc.robot.Constants.TrapArm.*;
 import static frc.robot.Constants.Debug.TRAP_ARM_TUNING_ENABLED;
 
 /**
@@ -23,6 +22,7 @@ public class TrapArmSubsystem extends SubsystemBase {
     private final PIDLinearMechanism mechanism;
     public double extensionPosition = 0.0;
     public double extensionTarget = 0.0;
+    private double lastSpeed = 0.0;
 
     /** Constructs a new {@link PIDRotationalMechanism}. */
     public TrapArmSubsystem() {
@@ -53,16 +53,41 @@ public class TrapArmSubsystem extends SubsystemBase {
     public void periodic() {
         mechanism.update();
         extensionPosition = linearServo.getPosition() * ARM_SERVO_MAX_MM;
-
-        linearServo.setPosition(Math.max(0, extensionTarget / ARM_SERVO_MAX_MM));
         SmartDashboard.putNumber("Arm Position", extensionPosition);
     }
 
-    public void translateMotor(double speed) {
+    public void registerAnglePresets(PresetMap<Double> map) {
+        map.addListener((mapName, value) -> setAnglePosition(value));
+    }
+    public void registerExtensionPresets(PresetMap<Double> map) {
+        mechanism.registerPresets(map);
+    }
+
+    /**
+     * Sets the target linear {@link Servo} position, changing the angle of the {@link TrapArmSubsystem}.
+     * @param mm The {@link Double} value in millimeters.
+     */
+    public void setAnglePosition(double mm) {
+        extensionTarget = mm;
+        linearServo.setPosition(Math.max(0, extensionTarget / ARM_SERVO_MAX_MM));
+    }
+
+    /**
+     * Sets the extension speed of the {@link TrapArmSubsystem}.
+     * @param speed The {@link Double} value from -1.0 to +1.0
+     */
+    public void setExtensionSpeed(double speed) {
         mechanism.translateMotor(speed);
     }
 
-    public void translateAngle(double speed) {
-        linearServo.set(speed);
+    /**
+     * Sets the speed of the linear {@link Servo}.
+     * @param speed The {@link Double} value from -1.0 to +1.0
+     */
+    public void setAngleSpeed(double speed) {
+        if (speed != lastSpeed) {
+            linearServo.set(speed); // FIXME: make it act like a motor!
+            lastSpeed = speed;
+        }
     }
 }

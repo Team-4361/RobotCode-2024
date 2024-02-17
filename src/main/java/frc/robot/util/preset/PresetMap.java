@@ -174,7 +174,7 @@ public class PresetMap<T> extends LinkedHashMap<String, T> implements IPresetCon
         this.startMs = System.currentTimeMillis();
         listeners.forEach(o -> o.onPresetAdjust(getSelectedName(), get(getSelectedName())));
         if (dashboardEnabled)
-            SmartDashboard.putString(getName(), getSelectedName() + " index is " + index);
+            SmartDashboard.putString(getName() + " : Preset", getSelectedName());
         return true;
     }
 

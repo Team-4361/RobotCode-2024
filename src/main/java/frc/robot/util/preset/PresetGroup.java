@@ -63,8 +63,7 @@ public class PresetGroup extends ArrayList<IPresetContainer> implements IPresetC
 
         this.index = idx;
         for (IPresetContainer c : this) {
-            if (!c.setPreset(idx))
-                return false;
+            c.setPreset(idx);
         }
         return true;
     }

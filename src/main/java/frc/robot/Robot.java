@@ -24,10 +24,14 @@ import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveJoystick;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.DriveXboxController;
+import frc.robot.util.math.GlobalUtils;
 import frc.robot.util.preset.PresetGroup;
 
 import static frc.robot.Constants.Control.*;
 import static frc.robot.Constants.Debug.DEBUG_LOGGING_ENABLED;
+import static frc.robot.Constants.Presets.TRAP_ARM_PRESETS;
+import static frc.robot.Constants.Presets.TRAP_PRESET_GROUP;
+import static frc.robot.util.math.GlobalUtils.deadband;
 
 
 /**
@@ -47,7 +51,7 @@ public class Robot extends TimedRobot {
     public static ShooterSubsystem shooter;
     public static IntakeSubsystem intake;
     public static IndexSubsystem index;
-    public static WristSubsystem wrist;
+    public static TrapWristSubsystem wrist;
     public static ClimberSubsystem climber;
     public static TrapArmSubsystem arm;
 
@@ -104,12 +108,16 @@ public class Robot extends TimedRobot {
         intake = new IntakeSubsystem();
         shooter = new ShooterSubsystem();
         index = new IndexSubsystem();
-        wrist = new WristSubsystem();
+        wrist = new TrapWristSubsystem();
         climber = new ClimberSubsystem();
         arm = new TrapArmSubsystem();
 
         swerve = new SwerveDriveSubsystem();
-        frontCamera = new PhotonCameraModule("FrontCamera", Units.inchesToMeters(27), 0);
+        frontCamera = new PhotonCameraModule(
+                "FrontCamera",
+                Units.inchesToMeters(27),
+                0
+        );
 
         // *** IMPORTANT: Call this method at the VERY END of robotInit!!! *** //
         registerAlerts(!useNormalSticks);
@@ -152,26 +160,22 @@ public class Robot extends TimedRobot {
      */
     private void configureBindings(boolean xboxOnly) {
         if (xboxOnly) {
-            IOManager.debug(this, "Xbox-only/Simulation mode detected.");
-            /* 
+            IOManager.info(this, "Xbox-only/Simulation mode detected.");
             Robot.swerve.setDefaultCommand(Robot.swerve.runEnd(
                     () -> Robot.swerve.drive(xbox),
                     () -> Robot.swerve.lock())
             );
-            */
         } else {
-            IOManager.debug(this, "Regular mode detected.");
-            /* 
+            IOManager.info(this, "Regular mode detected.");
             Robot.swerve.setDefaultCommand(Robot.swerve.runEnd(
                     () -> Robot.swerve.drive(leftStick, rightStick),
                     () -> Robot.swerve.lock())
             );
-            */
         }
 
         if (!xboxOnly) {
             leftStick.button(10).onTrue(Commands.runOnce(() -> drivePresets.nextPreset(true)));
-           // leftStick.button(11).onTrue(swerve.resetCommand());
+            leftStick.button(11).onTrue(swerve.resetCommand());
             leftStick.trigger().whileTrue(Commands.runEnd(
                     () -> drivePresets.setPreset(2),
                     () -> drivePresets.setPreset(0)
@@ -184,6 +188,12 @@ public class Robot extends TimedRobot {
                     ), 27, 7, false
             ));
         }
+
+        xbox.b().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(1)));
+        xbox.a().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(0)));
+
+        xbox.y().onTrue(Commands.runOnce(() -> Robot.wrist.grabNote()));
+        xbox.x().onTrue(Commands.runOnce(() -> Robot.wrist.dropNote()));
     }
 
 
@@ -206,9 +216,15 @@ public class Robot extends TimedRobot {
         Robot.frontCamera.update();
         IOManager.run();
 
-        Robot.arm.translateMotor(Robot.xbox.getLeftY()/2);
-        Robot.arm.translateAngle(Robot.xbox.getRightY()/2);
         // ************************* DO NOT TOUCH ************************* //
+
+        Robot.arm.setExtensionSpeed(deadband(Robot.xbox.getLeftY())/2);
+        Robot.arm.setAngleSpeed(deadband(Robot.xbox.getRightY())/2);
+
+        Robot.wrist.translateWrist(GlobalUtils.getDualSpeed(
+                Robot.xbox.getLeftTriggerAxis(),
+                Robot.xbox.getRightTriggerAxis()
+        ));
     }
 
     @Override public void disabledInit() { CommandScheduler.getInstance().cancelAll(); }

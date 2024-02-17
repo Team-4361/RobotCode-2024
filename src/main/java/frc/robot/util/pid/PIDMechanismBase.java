@@ -6,6 +6,7 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import frc.robot.Constants;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.math.GlobalUtils;
@@ -23,14 +24,12 @@ import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
  *
  * @author Eric Gold
  */
-public abstract class PIDMechanismBase extends PresetMap<Double> {
+public abstract class PIDMechanismBase {
     private final FRCSparkMax motor;
 
     private final SimpleMotorFeedforward feedFwd;
     private final DashTunablePID pidTune;
     private final PIDController controller;
-    private final String moduleName;
-    private final boolean tuneEnabled;
 
     // All INPUT values are logged here!
     private double targetValue = 0.0;
@@ -76,44 +75,35 @@ public abstract class PIDMechanismBase extends PresetMap<Double> {
                             String moduleName,
                             String tuneName,
                             boolean rpmControl) {
-
-        super(moduleName, tuneName != null && !tuneName.isBlank());
-
-
         this.motor = new FRCSparkMax(motorId, kBrushless, model);
         this.feedFwd = new SimpleMotorFeedforward(kS, kV, kA);
         this.controller = PIDConstantsAK.generateController(constants);
         this.rpmControl = rpmControl;
 
         this.encoder = motor.getEncoder();
-        this.moduleName = moduleName;
 
         encoder.setPosition(0);
 
         if (tuneName != null && !tuneName.isBlank()) {
             pidTune = new DashTunablePID(tuneName, constants);
             pidTune.addConsumer(controller::setP, controller::setI, controller::setD);
-            tuneEnabled = true;
         } else {
-            tuneEnabled = false;
             pidTune = null;
         }
     }
 
-    public boolean isTuneEnabled() { return tuneEnabled; }
-
     /**
-     * Attempts to set the Preset to the specific Index.
-     *
-     * @param idx The Index to change the Preset to.
-     * @return True if the operation was successful; false otherwise.
+     * Sets the inversion of the underlying {@link FRCSparkMax} instance.
+     * @param inverted The value to apply.
      */
-    @Override
-    public boolean setPreset(int idx) {
-        boolean val = super.setPreset(idx);
-        targetValue = super.getSelectedValue();
-        return val;
+    public void setInverted(boolean inverted) {
+        motor.setInverted(inverted);
     }
+
+    public void registerPresets(PresetMap<Double> map) {
+        map.addListener((mapName, value) -> targetValue = value);
+    }
+
 
     /** @return If the {@link PIDMechanismBase} is at target. */
     public boolean atTarget() {
