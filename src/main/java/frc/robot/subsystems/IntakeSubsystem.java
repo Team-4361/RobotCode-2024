@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.math.GearRatio;
 import frc.robot.util.motor.MotorModel;
@@ -60,6 +61,8 @@ public class IntakeSubsystem extends SubsystemBase {
 
         if (!RobotBase.isSimulation())
             sensorActivated = sensor.get();
+
+        SmartDashboard.putBoolean("Has Note", hasNote());
     }
 
     /**

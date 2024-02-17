@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.Servo;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.util.motor.MotorModel;
@@ -50,15 +51,14 @@ public class TrapWristSubsystem extends SubsystemBase {
         mechanism.setInverted(WRIST_INVERTED);
     }
 
-    public void registerPresets(PresetMap<Double> map) {
-        mechanism.registerPresets(map);
-    }
+    public void registerPresets(PresetMap<Double> map) { mechanism.registerPresets(map); }
 
     @Override
     public void periodic() {
         extensionPosition = grabServo.getPosition() * WRIST_SERVO_MAX_MM;
         mechanism.update();
         grabServo.setPosition(Math.max(0, extensionTarget / WRIST_SERVO_MAX_MM));
+        SmartDashboard.putNumber("Wrist: EXT Pos", getExtensionPosition());
     }
 
     /**
@@ -76,4 +76,6 @@ public class TrapWristSubsystem extends SubsystemBase {
 
     /** Retracts the {@link TrapWristSubsystem} to the minimum allowed value -- grabbing the note. */
     public void grabNote() { setExtensionTarget(0); }
+
+    public double getExtensionPosition(){ return extensionPosition; }
 }

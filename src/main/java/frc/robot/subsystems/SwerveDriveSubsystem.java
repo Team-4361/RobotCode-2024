@@ -176,6 +176,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
         // Apply odometry update
         poseEstimator.update(rawGyroRotation, modulePositions);
+        SmartDashboard.putString("Robot Pose", getPose().toString());
     }
 
     /**
@@ -196,6 +197,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         for (int i=0; i<modules.length; i++) {
             modules[i].setState(states[i]);
         }
+
     }
 
     /**
