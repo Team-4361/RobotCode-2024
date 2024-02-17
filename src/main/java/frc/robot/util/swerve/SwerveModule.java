@@ -1,6 +1,5 @@
 package frc.robot.util.swerve;
 
-import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfigurator;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
@@ -14,9 +13,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.util.math.GlobalUtils;
 import frc.robot.util.motor.FRCSparkMax;
@@ -74,13 +70,15 @@ public class SwerveModule {
         this.name = name;
         this.driveController = PIDConstantsAK.generateController(DRIVE_PID);
         this.turnController = PIDConstantsAK.generateController(TURN_PID);
-        this.absOffset = Rotation2d.fromDegrees(settings.getOffsetDegrees());
+        this.absOffset = Rotation2d.fromDegrees(settings.getOffsetRotations());
         this.driveEncoder = driveMotor.getEncoder();
         this.turnEncoder = turnMotor.getEncoder();
 
         turnEncoder.setPositionConversionFactor(TURN_POSITION_FACTOR);
         driveEncoder.setPositionConversionFactor(DRIVE_POSITION_FACTOR);
         driveEncoder.setVelocityConversionFactor(DRIVE_VELOCITY_FACTOR);
+
+        turnController.enableContinuousInput(-Math.PI/2, Math.PI/2);
 
         driveEncoder.setPosition(0.0);
         turnEncoder.setPosition(0.0);
@@ -104,7 +102,7 @@ public class SwerveModule {
             cfg.apply(magnetSensorConfiguration
                     .withAbsoluteSensorRange(AbsoluteSensorRangeValue.Unsigned_0To1)
                     .withSensorDirection(SensorDirectionValue.Clockwise_Positive)
-                    .withMagnetOffset(settings.getOffsetDegrees() / 360));
+                    .withMagnetOffset(settings.getOffsetRotations()));
             signal = encoder.getAbsolutePosition();
             //encoder.optimizeBusUtilization();
         }
@@ -113,10 +111,11 @@ public class SwerveModule {
     }
 
     public void synchronizeEncoders() {
-        turnEncoder.setPosition(Rotation2d.fromDegrees(signal.getValueAsDouble()*360)
-                .minus(absOffset)
-                .getDegrees()
-        );
+        turnEncoder.setPosition(getAbsolutePosition().getDegrees());
+    }
+
+    public Rotation2d getAbsolutePosition() {
+        return Rotation2d.fromDegrees((signal.getValueAsDouble()*360)).minus(absOffset);
     }
 
     public void update() {
@@ -124,7 +123,7 @@ public class SwerveModule {
         turnEncoder = turnMotor.getEncoder();
         signal.refresh();
 
-        if (!didSyncEncoders && System.currentTimeMillis() >= nextSync && DriverStation.isEnabled()) {
+        if (!didSyncEncoders && System.currentTimeMillis() >= nextSync) {
             synchronizeEncoders();
             didSyncEncoders = true;
         }
@@ -137,7 +136,7 @@ public class SwerveModule {
         if (angleSetpoint != null) {
             turnMotor.setVoltage(
                     turnController.calculate(
-                            Units.degreesToRadians(turnEncoder.getPosition()),
+                            getAbsolutePosition().getRadians(),
                             angleSetpoint.getRadians()
                     )
             );
@@ -158,9 +157,8 @@ public class SwerveModule {
         if (SWERVE_TUNING_ENABLED) {
             SmartDashboard.putNumber(driveVelocity, driveEncoder.getVelocity());
             SmartDashboard.putNumber(turnPower, turnMotor.get());
-            SmartDashboard.putNumber(turnPosition, turnEncoder.getPosition());
             SmartDashboard.putNumber(drivePower, driveMotor.get());
-            SmartDashboard.putNumber(turnAbsPosition, Rotation2d.fromDegrees(signal.getValueAsDouble()*360).minus(absOffset).getDegrees());
+            SmartDashboard.putNumber(turnAbsPosition, getAbsolutePosition().getDegrees());
         }
     }
 
@@ -185,7 +183,7 @@ public class SwerveModule {
     public SwerveModuleState getState() {
         return new SwerveModuleState(
                 driveEncoder.getVelocity(),
-                Rotation2d.fromDegrees(turnEncoder.getPosition())
+                getAbsolutePosition()
         );
     }
 
@@ -202,7 +200,7 @@ public class SwerveModule {
     public SwerveModulePosition getPosition() {
         return new SwerveModulePosition(
                 driveEncoder.getPosition(),
-                Rotation2d.fromDegrees(signal.getValueAsDouble()*360).minus(absOffset)
+                getAbsolutePosition()
         );
     }
 

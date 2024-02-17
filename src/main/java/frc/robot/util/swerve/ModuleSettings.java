@@ -11,7 +11,7 @@ public class ModuleSettings {
     private final int turnID;
     private final int encoderID;
 
-    public double getOffsetDegrees() { return absOffset; }
+    public double getOffsetRotations() { return absOffset; }
     public int getDriveID() { return driveID; }
     public int getTurnID() { return turnID; }
     public int getEncoderID() { return encoderID; }
@@ -21,13 +21,13 @@ public class ModuleSettings {
      * @param driveID The drive ID 
      * @param turnID The turn ID
      * @param encoderID The encoder ID
-     * @param offsetDeg The offset in degrees.
+     * @param offsetRot The offset in rotationss.
      */
-    public ModuleSettings(int driveID, int turnID, int encoderID, double offsetDeg) {
+    public ModuleSettings(int driveID, int turnID, int encoderID, double offsetRot) {
         this.driveID = driveID;
         this.turnID = turnID;
         this.encoderID = encoderID;
-        this.absOffset = offsetDeg;
+        this.absOffset = offsetRot;
     }
 }
 

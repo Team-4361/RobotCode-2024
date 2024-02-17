@@ -76,10 +76,10 @@ public class FRCSparkMax extends CANSparkMax implements IMotorModel {
             @Override
             public REVLibError setPosition(double position) {
                 if (RobotBase.isSimulation() && motorSim != null) {
-                    motorSim.setState(0, 0);
+                    motorSim.setState(position, 0);
                     return REVLibError.kOk;
                 } else {
-                    return realEncoder.setPosition(0);
+                    return realEncoder.setPosition(position);
                 }
             }
 
