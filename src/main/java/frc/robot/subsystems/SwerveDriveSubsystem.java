@@ -136,6 +136,12 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                 kinematics.toChassisSpeeds(getStates()), getHeading().unaryMinus());
     }
 
+    public void syncEncoders() {
+        for (SwerveModule module : modules) {
+            module.synchronizeEncoders();
+        }
+    }
+
     /**
      * This method is called periodically by the {@link CommandScheduler}. Useful for updating
      * subsystem-specific state that you don't want to offload to a {@link Command}. Teams should try

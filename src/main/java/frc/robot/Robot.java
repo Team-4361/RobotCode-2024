@@ -194,6 +194,7 @@ public class Robot extends TimedRobot {
 
         xbox.b().whileTrue(new IntakeNoteCommand());
         xbox.a().whileTrue(new ShootCommand());
+        leftStick.button(3).onTrue(Commands.runOnce(() -> Robot.swerve.syncEncoders()));
         xbox.leftTrigger().whileTrue(Robot.climber.runEnd(
                 () -> Robot.climber.moveLeftUp(),
                 () -> Robot.climber.stopLeft()

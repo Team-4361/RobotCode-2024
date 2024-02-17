@@ -13,6 +13,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.util.math.GlobalUtils;
 import frc.robot.util.motor.FRCSparkMax;
@@ -70,7 +71,7 @@ public class SwerveModule {
         this.name = name;
         this.driveController = PIDConstantsAK.generateController(DRIVE_PID);
         this.turnController = PIDConstantsAK.generateController(TURN_PID);
-        this.absOffset = Rotation2d.fromDegrees(settings.getOffsetRotations());
+        this.absOffset = Rotation2d.fromRotations(settings.getOffsetRotations());
         this.driveEncoder = driveMotor.getEncoder();
         this.turnEncoder = turnMotor.getEncoder();
 
@@ -78,7 +79,7 @@ public class SwerveModule {
         driveEncoder.setPositionConversionFactor(DRIVE_POSITION_FACTOR);
         driveEncoder.setVelocityConversionFactor(DRIVE_VELOCITY_FACTOR);
 
-        turnController.enableContinuousInput(-Math.PI/2, Math.PI/2);
+        turnController.enableContinuousInput(-Math.PI, Math.PI);
 
         driveEncoder.setPosition(0.0);
         turnEncoder.setPosition(0.0);
@@ -118,6 +119,10 @@ public class SwerveModule {
         return Rotation2d.fromDegrees((signal.getValueAsDouble()*360)).minus(absOffset);
     }
 
+    public double getTurnDegrees() {
+        return turnEncoder.getPosition();
+    }
+
     public void update() {
         driveEncoder = driveMotor.getEncoder();
         turnEncoder = turnMotor.getEncoder();
@@ -136,7 +141,7 @@ public class SwerveModule {
         if (angleSetpoint != null) {
             turnMotor.setVoltage(
                     turnController.calculate(
-                            getAbsolutePosition().getRadians(),
+                            Units.degreesToRadians(getTurnDegrees()),
                             angleSetpoint.getRadians()
                     )
             );
@@ -158,6 +163,7 @@ public class SwerveModule {
             SmartDashboard.putNumber(driveVelocity, driveEncoder.getVelocity());
             SmartDashboard.putNumber(turnPower, turnMotor.get());
             SmartDashboard.putNumber(drivePower, driveMotor.get());
+            SmartDashboard.putNumber(turnPosition, getTurnDegrees());
             SmartDashboard.putNumber(turnAbsPosition, getAbsolutePosition().getDegrees());
         }
     }
@@ -183,7 +189,7 @@ public class SwerveModule {
     public SwerveModuleState getState() {
         return new SwerveModuleState(
                 driveEncoder.getVelocity(),
-                getAbsolutePosition()
+                Rotation2d.fromDegrees(getTurnDegrees())
         );
     }
 

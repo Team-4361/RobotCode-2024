@@ -235,7 +235,7 @@ public class Constants {
                 1,
                 2,
                 30,
-                0.002
+                0
         );
         /** The {@link ModuleSettings} for the Front-Right module. */
         public static final ModuleSettings FR_MODULE = new ModuleSettings(
