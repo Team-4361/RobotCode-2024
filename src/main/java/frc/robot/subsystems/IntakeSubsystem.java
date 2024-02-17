@@ -78,7 +78,7 @@ public class IntakeSubsystem extends SubsystemBase {
     /** Stops the {@link IndexSubsystem} from spinning. */
     public void stop() { intakeWheel.stop(); stopped = true; }
 
-    public boolean hasNote() { return sensorActivated; }
+    public boolean hasNote() { return !sensorActivated; }
 }
 
 
