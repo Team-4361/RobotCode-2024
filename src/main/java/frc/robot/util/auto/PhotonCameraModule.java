@@ -5,6 +5,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.util.pid.DashTunableNumber;
 import frc.robot.util.pid.DashTunablePID;
@@ -72,7 +73,7 @@ public class PhotonCameraModule extends PhotonCamera {
     public Optional<Pose2d> getTrackedPose() { return Optional.ofNullable(trackedPose); }
 
     public void update() {
-        if (!PHOTON_ENABLED)
+        if (!PHOTON_ENABLED || RobotBase.isSimulation())
             return;
 
         driveTune.update();

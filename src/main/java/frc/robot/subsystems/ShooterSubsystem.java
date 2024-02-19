@@ -57,6 +57,9 @@ public class ShooterSubsystem extends SubsystemBase {
         leftWheel.setTolerance(SHOOT_RPM_TOLERANCE);
         rightWheel.setTolerance(SHOOT_RPM_TOLERANCE);
 
+        leftWheel.setDashboardEnabled(SHOOTER_TUNING_ENABLED);
+        rightWheel.setDashboardEnabled(SHOOTER_TUNING_ENABLED);
+
         if (SHOOTER_TUNING_ENABLED) {
             shootTune = new DashTunableNumber("Shooter: Speed", SHOOT_RPM);
             shootTune.addConsumer(this::setTargetRPM);
@@ -76,6 +79,7 @@ public class ShooterSubsystem extends SubsystemBase {
         rightWheel.update();
         if (shootTune != null && !stopped)
             shootTune.update();
+
         SmartDashboard.putBoolean("Shooter: At Target", atTarget());
     }
 

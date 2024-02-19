@@ -16,7 +16,13 @@ public class ShootCommand extends Command {
     /**
      * The initial subroutine of a command. Called once when the command is initially scheduled.
      */
-    @Override public void initialize() { Robot.shooter.start(); }
+    @Override
+    public void initialize() {
+        endMillis = 0;
+        Robot.shooter.start();
+        Robot.index.stop();
+        Robot.intake.stop();
+    }
 
     /**
      * The main body of a command. Called repeatedly while the command is scheduled.
