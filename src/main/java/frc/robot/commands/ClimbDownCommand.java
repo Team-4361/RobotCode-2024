@@ -4,9 +4,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
 
 public class ClimbDownCommand extends Command {
-    public ClimbDownCommand() {
-        addRequirements(Robot.climber);
-    }
+    public ClimbDownCommand() { addRequirements(Robot.climber); }
 
     /**
      * The initial subroutine of a command. Called once when the command is initially scheduled.

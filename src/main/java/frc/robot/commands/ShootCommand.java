@@ -16,23 +16,18 @@ public class ShootCommand extends Command {
     /**
      * The initial subroutine of a command. Called once when the command is initially scheduled.
      */
-    @Override
-    public void initialize() {
-        // FIXME: what if sensor fails?
-    }
+    @Override public void initialize() { Robot.shooter.start(); }
 
     /**
      * The main body of a command. Called repeatedly while the command is scheduled.
      */
     @Override
     public void execute() {
-        Robot.shooter.start();
         if (Robot.shooter.atTarget()) {
             Robot.index.start();
             Robot.intake.start();
-        }
-        if (!Robot.intake.hasNote() && endMillis == 0) {
-            endMillis = System.currentTimeMillis() + SHOOT_END_DELAY_MS;
+            if (endMillis == 0)
+                endMillis = System.currentTimeMillis() + SHOOT_END_DELAY_MS;
         }
     }
 
@@ -60,6 +55,6 @@ public class ShootCommand extends Command {
      */
     @Override
     public boolean isFinished() {
-        return !Robot.intake.hasNote() && System.currentTimeMillis() >= endMillis;
+        return endMillis != 0 && System.currentTimeMillis() >= endMillis;
     }
 }

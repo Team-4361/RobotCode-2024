@@ -10,30 +10,32 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.Robot;
 import frc.robot.util.joystick.DriveHIDBase;
 import frc.robot.util.pid.DashTunablePID;
 import swervelib.SwerveDrive;
 import swervelib.SwerveModule;
 import swervelib.math.SwerveMath;
-import swervelib.parser.PIDFConfig;
-import swervelib.parser.SwerveParser;
+import swervelib.parser.*;
+import swervelib.parser.json.ModuleJson;
 import swervelib.telemetry.SwerveDriveTelemetry;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 
+import static edu.wpi.first.wpilibj.Filesystem.getDeployDirectory;
 import static frc.robot.Constants.Chassis.*;
 import static frc.robot.Constants.Debug.SWERVE_TUNING_ENABLED;
+import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.HIGH;
+import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.LOW;
 
 /**
  * This {@link SwerveDriveSubsystem} is designed to be used for controlling the {@link SwerveModule}s, and utilizing
@@ -43,12 +45,11 @@ import static frc.robot.Constants.Debug.SWERVE_TUNING_ENABLED;
  * @since 0.0.0
  * @author Eric Gold
  */
-public class SwerveDriveSubsystem extends SubsystemBase {
+public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Sendable {
     public boolean fieldOriented = true;
-    private final SwerveDrive drive;
-    private final DashTunablePID driveTune;
-    private final DashTunablePID turnTune;
-    private long nextCheck = System.currentTimeMillis();
+    private static SwerveDriveConfiguration driveConfig = null;
+    private static SwerveControllerConfiguration controllerConfig = null;
+
 
     /** @return A {@link Command} used to toggle teleoperated field-oriented. */
     public Command toggleFieldOrientedCommand() { return Commands.runOnce(() -> fieldOriented = !fieldOriented); }
@@ -66,58 +67,93 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                 });
     }
 
-    public void updateDrivePID(PIDFConfig configs) {
-        SwerveModule[] modules = drive.getModules();
-        for (SwerveModule module : modules) {
-            module.configuration.velocityPIDF = configs;
+    /**
+     * Initializes the {@link SwerveParser} and auto-generates all configuration information based on the files.
+     * @return True if the operation was successful; false otherwise.
+     */
+    public static boolean initParser() {
+        if (driveConfig != null && controllerConfig != null)
+            return true; // already complete.
+        try {
+            new SwerveParser(new File(getDeployDirectory(), "swerve"));
+
+            // Upon a successful initialization, create the drive instance using the static variables.
+            SwerveModuleConfiguration[] moduleConfigurations =
+                    new SwerveModuleConfiguration[SwerveParser.moduleJsons.length];
+
+            for (int i = 0; i < moduleConfigurations.length; ++i) {
+                ModuleJson module = SwerveParser.moduleJsons[i];
+                moduleConfigurations[i] = module.createModuleConfiguration(
+                        SwerveParser.pidfPropertiesJson.angle,
+                        SwerveParser.pidfPropertiesJson.drive,
+                        SwerveParser.physicalPropertiesJson.createPhysicalProperties(),
+                        SwerveParser.swerveDriveJson.modules[i]);
+            }
+
+            driveConfig = new SwerveDriveConfiguration(
+                    moduleConfigurations,
+                    SwerveParser.swerveDriveJson.imu.createIMU(),
+                    SwerveParser.swerveDriveJson.invertedIMU,
+                    SwerveMath.createDriveFeedforward(
+                            SwerveParser.physicalPropertiesJson.optimalVoltage,
+                            MAX_SPEED_MPS,
+                            SwerveParser.physicalPropertiesJson.wheelGripCoefficientOfFriction
+                    ),
+                    SwerveParser.physicalPropertiesJson.createPhysicalProperties());
+
+            controllerConfig = SwerveParser.controllerPropertiesJson.createControllerConfiguration(
+                    driveConfig,
+                    MAX_SPEED_MPS
+            );
+            return true;
+        } catch (IOException ex) {
+            return false;
         }
     }
 
-    public void updateTurnPID(PIDFConfig configs) {
-        SwerveModule[] modules = drive.getModules();
+    /** Gets the name of this {@link Subsystem}. */
+    @Override public String getName() { return SendableRegistry.getName(this); }
 
-        for (SwerveModule module : modules) {
-            module.configuration.anglePIDF = configs;
-        }
+    /**
+     * Initializes the {@link SendableBuilder} with information provided from this {@link Subsystem}.
+     * @param builder The {@link SendableBuilder} which is provided.
+     */
+    @Override
+    public void initSendable(SendableBuilder builder) {
+        builder.setSmartDashboardType("Subsystem");
+
+        builder.addBooleanProperty(".hasDefault", () -> getDefaultCommand() != null, null);
+        builder.addStringProperty(
+                ".default",
+                () -> getDefaultCommand() != null ? getDefaultCommand().getName() : "none",
+                null);
+        builder.addBooleanProperty(".hasCommand", () -> getCurrentCommand() != null, null);
+        builder.addStringProperty(
+                ".command",
+                () -> getCurrentCommand() != null ? getCurrentCommand().getName() : "none",
+                null);
     }
 
     /**
-     * Constructs a new {@link SwerveDriveSubsystem} with the specified modules.
+     * Constructs a new {@link SwerveDriveSubsystem} with the specified modules. The {@link #initParser()} method
+     * <b>MUST</b> be called prior to calling this constructor!
      */
     public SwerveDriveSubsystem() {
-        try {
-            drive = new SwerveParser(new File(Filesystem.getDeployDirectory(), "swerve"))
-                    .createSwerveDrive(MAX_SPEED_MPS);
-            /*
-                    SwerveMath.calculateDegreesPerSteeringRotation(12.8),
-                    SwerveMath.calculateMetersPerRotation(Units.inchesToMeters(4), 6.75)
-            );
+        super(
+                driveConfig,
+                controllerConfig,
+                MAX_SPEED_MPS
+        );
 
-             */
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        drive.setHeadingCorrection(false);
-        drive.setCosineCompensator(!SwerveDriveTelemetry.isSimulation);
-
-        if (SWERVE_TUNING_ENABLED) {
-            driveTune = new DashTunablePID("Swerve: Drive PID", DRIVE_PID);
-            turnTune = new DashTunablePID("Swerve: Turn PID", TURN_PID);
-        } else {
-            driveTune = null;
-            turnTune = null;
-        }
-
-        // Update the PID values
-        updateDrivePID(DRIVE_PID.toPIDF());
-        updateTurnPID(TURN_PID.toPIDF());
+        setHeadingCorrection(false);
+        setCosineCompensator(!SwerveDriveTelemetry.isSimulation);
+        SwerveDriveTelemetry.verbosity = SWERVE_TUNING_ENABLED ? HIGH : LOW;
 
         AutoBuilder.configureHolonomic(
                 this::getPose,
                 this::reset,
                 this::getRobotVelocity,
-                this::setSpeeds,
+                this::setChassisSpeeds,
                 new HolonomicPathFollowerConfig(
                         MAX_SPEED_MPS,
                         Math.hypot(SIDE_LENGTH_METERS/2, SIDE_LENGTH_METERS/2),
@@ -131,19 +167,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     }
 
     /**
-     * Gets the current field-relative velocity (x, y and omega) of the robot
-     *
-     * @return A ChassisSpeeds object of the current field-relative velocity
-     */
-    public ChassisSpeeds getFieldVelocity() {
-        // ChassisSpeeds has a method to convert from field-relative to robot-relative speeds,
-        // but not the reverse.  However, because this transform is a simple rotation, negating the
-        // angle
-        // given as the robot angle reverses the direction of rotation, and the conversion is reversed.
-        return drive.getFieldVelocity();
-    }
-
-    /**
      * This method is called periodically by the {@link CommandScheduler}. Useful for updating
      * subsystem-specific state that you don't want to offload to a {@link Command}. Teams should try
      * to be consistent within their own codebases about which responsibilities will be handled by
@@ -151,17 +174,11 @@ public class SwerveDriveSubsystem extends SubsystemBase {
      */
     @Override
     public void periodic() {
-        drive.updateOdometry();
-
-        SwerveModule flModule = drive.getModuleMap().get("frontleft");
-        SwerveModule frModule = drive.getModuleMap().get("frontright");
-        SwerveModule blModule = drive.getModuleMap().get("backleft");
-        SwerveModule brModule = drive.getModuleMap().get("backright");
-
-        SmartDashboard.putNumber("FL Pos", flModule.getAbsolutePosition());
-        SmartDashboard.putNumber("FR Pos", frModule.getAbsolutePosition());
-        SmartDashboard.putNumber("BL Pos", blModule.getAbsolutePosition());
-        SmartDashboard.putNumber("BR Pos", brModule.getAbsolutePosition());
+        /*
+        SwerveModule flModule = swerveDrive.getModuleMap().get("frontleft");
+        SwerveModule frModule = swerveDrive.getModuleMap().get("frontright");
+        SwerveModule blModule = swerveDrive.getModuleMap().get("backleft");
+        SwerveModule brModule = swerveDrive.getModuleMap().get("backright");
 
         if (driveTune != null && turnTune != null && System.currentTimeMillis() >= nextCheck) {
             PIDFConfig drive = new PIDFConfig(
@@ -182,25 +199,10 @@ public class SwerveDriveSubsystem extends SubsystemBase {
             turnTune.update();
             nextCheck = System.currentTimeMillis() + 1500;
         }
+         */
     }
 
-    public void setSpeeds(ChassisSpeeds speeds) {
-        drive.setChassisSpeeds(speeds);
-    }
-
-    /**
-     * Gets the current robot-relative velocity (x, y and omega) of the robot
-     *
-     * @return A ChassisSpeeds object of the current robot-relative velocity
-     */
-    public ChassisSpeeds getRobotVelocity() { return drive.getRobotVelocity(); }
-
-    /** @return The current {@link Rotation2d} heading of the {@link Robot}. */
-    public Rotation2d getHeading() { return drive.getOdometryHeading(); }
-
-    public void setStates(SwerveModuleState[] states) {
-        drive.setModuleStates(states, false);
-    }
+    public void setStates(SwerveModuleState[] states) { this.setModuleStates(states, false); }
 
     /**
      * Drives the Robot using one Joystick.
@@ -215,9 +217,9 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         ChassisSpeeds speeds = new ChassisSpeeds(xS, yS, tS);
 
         if (fieldOriented)
-            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getHeading());
+            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getOdometryHeading());
 
-        drive.drive(speeds);
+        this.drive(speeds);
     }
 
     /**
@@ -233,32 +235,16 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         ChassisSpeeds speeds = new ChassisSpeeds(xS, yS, tS);
 
         if (fieldOriented)
-            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getHeading());
+            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getOdometryHeading());
 
-        drive.drive(speeds);
-    }
-
-    public void lock() {
-        drive.lockPose();
+        this.drive(speeds);
     }
 
     public void reset(Pose2d pose) {
-        drive.zeroGyro();
-        drive.resetDriveEncoders();
-        drive.resetOdometry(pose);
+        this.zeroGyro();
+        this.resetDriveEncoders();
+        this.resetOdometry(pose);
     }
 
     public void reset() { reset(new Pose2d()); }
-    public SwerveDriveKinematics getKinematics() { return drive.kinematics; }
-
-    public SwerveModulePosition[] getPositions() {
-        return drive.getModulePositions();
-    }
-
-    public SwerveModuleState[] getStates() {
-        return drive.getStates();
-    }
-
-    public Pose2d getPose() { return drive.getPose(); }
-    public Rotation2d getRotation() { return getPose().getRotation(); }
 }

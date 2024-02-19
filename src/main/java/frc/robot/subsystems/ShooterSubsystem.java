@@ -27,7 +27,6 @@ public class ShooterSubsystem extends SubsystemBase {
 
     /**Constructs a new {@link ShooterSubsystem} using all <code>CONSTANTS</code> values. */
     public ShooterSubsystem() {
-        String tuneName = SHOOTER_TUNING_ENABLED ? "Shooter: PID" : "";
         this.leftWheel = new PIDRotationalMechanism(
                 LEFT_SHOOTER_MOTOR_ID,
                 SHOOT_PID,
@@ -36,7 +35,7 @@ public class ShooterSubsystem extends SubsystemBase {
                 SHOOT_KA,
                 MotorModel.NEO,
                 "LeftShooter",
-                tuneName,
+                SHOOTER_TUNING_ENABLED,
                 GearRatio.DIRECT_DRIVE,
                 RotationUnit.ROTATIONS,
                 true
@@ -49,7 +48,7 @@ public class ShooterSubsystem extends SubsystemBase {
                 SHOOT_KA,
                 MotorModel.NEO,
                 "RightShooter",
-                tuneName,
+                SHOOTER_TUNING_ENABLED,
                 GearRatio.DIRECT_DRIVE,
                 RotationUnit.ROTATIONS,
                 true

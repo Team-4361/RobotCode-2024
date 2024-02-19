@@ -4,6 +4,7 @@ package frc.robot.util.pid;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.util.math.GearRatio;
 import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.motor.IMotorModel;
@@ -15,16 +16,16 @@ public class PIDRotationalMechanism extends PIDMechanismBase {
     /**
      * Constructs a new {@link PIDRotationalMechanism}.
      *
-     * @param motorId    The motor ID
-     * @param constants  The {@link PIDConstantsAK} to use.
-     * @param kS         The {@link SimpleMotorFeedforward} kS constant.
-     * @param kV         The {@link SimpleMotorFeedforward} kV constant.
-     * @param kA         The {@link SimpleMotorFeedforward} kA constant.
-     * @param model      The {@link IMotorModel} of the {@link FRCSparkMax} motor.
-     * @param moduleName The {@link String} module name
-     * @param tuneName   The <b>optional</b> {@link String} tuning name.
-     * @param ratio      The {@link GearRatio} of the {@link PIDRotationalMechanism}.
-     * @param unit       The conversion unit of the {@link PIDRotationalMechanism}. <b>MUST BE CONSISTENT!</b>
+     * @param motorId       The {@link FRCSparkMax} motor ID to use.
+     * @param constants     The {@link PIDConstantsAK} to use.
+     * @param kS            The {@link SimpleMotorFeedforward} kS constant.
+     * @param kV            The {@link SimpleMotorFeedforward} kV constant.
+     * @param kA            The {@link SimpleMotorFeedforward} kA constant.
+     * @param model         The {@link IMotorModel} of the {@link FRCSparkMax} motor.
+     * @param moduleName    The {@link String} module name
+     * @param tuningEnabled If PID {@link SmartDashboard} tuning is enabled.
+     * @param ratio         The {@link GearRatio} of the {@link PIDRotationalMechanism}.
+     * @param unit          The conversion unit of the {@link PIDRotationalMechanism}. <b>MUST BE CONSISTENT!</b>
      */
     public PIDRotationalMechanism(int motorId,
                                   PIDConstantsAK constants,
@@ -33,11 +34,11 @@ public class PIDRotationalMechanism extends PIDMechanismBase {
                                   double kA,
                                   IMotorModel model,
                                   String moduleName,
-                                  String tuneName,
+                                  boolean tuningEnabled,
                                   GearRatio ratio,
                                   RotationUnit unit,
                                   boolean rpmControl) {
-        super(motorId, constants, kS, kV, kA, model, moduleName, tuneName, rpmControl);
+        super(motorId, constants, kS, kV, kA, model, moduleName, tuningEnabled, rpmControl);
         this.ratio = ratio;
         this.unit = unit;
     }

@@ -25,7 +25,6 @@ public class IntakeSubsystem extends SubsystemBase {
     private boolean stopped = true;
 
     public IntakeSubsystem() {
-        String tuneName = INTAKE_TUNING_ENABLED ? "Intake: PID" : "";
         intakeWheel = new PIDRotationalMechanism(
                 INTAKE_MOTOR_ID,
                 INTAKE_PID,
@@ -34,7 +33,7 @@ public class IntakeSubsystem extends SubsystemBase {
                 INTAKE_KA,
                 MotorModel.NEO,
                 "Intake",
-                tuneName,
+                INTAKE_TUNING_ENABLED,
                 GearRatio.DIRECT_DRIVE,
                 RotationUnit.ROTATIONS,
                 true

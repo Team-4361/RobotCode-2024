@@ -6,7 +6,9 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.motorcontrol.Spark;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 import frc.robot.util.io.IOManager;
 import frc.robot.util.math.GlobalUtils;
@@ -30,17 +32,20 @@ public abstract class PIDMechanismBase {
     private final SimpleMotorFeedforward feedFwd;
     private final DashTunablePID pidTune;
     private final PIDController controller;
+    private final String moduleName;
+    private final boolean rpmControl;
 
     // All INPUT values are logged here!
     private double targetValue = 0.0;
-    private final boolean rpmControl;
     private double currentPosition = 0.0;
-    private boolean pidEnabled = true;
-    private boolean limitBypassEnabled = false;
     private double tolerance = 0.0;
-    private boolean teleopMode = false;
+    private boolean pidEnabled = true;
     private double forwardLimit = Double.MAX_VALUE;
     private double reverseLimit = Double.MIN_VALUE;
+
+    private boolean limitBypassEnabled = false;
+    private boolean dashboardEnabled = false;
+    private boolean teleopMode = false;
 
     private Supplier<Boolean> pidEnabledSupplier = () -> true;
     private Supplier<Boolean> limitBypassSupplier = () -> true;
@@ -57,14 +62,14 @@ public abstract class PIDMechanismBase {
 
     /**
      * Constructs a new {@link PIDMechanismBase}.
-     * @param motorId    The motor ID
-     * @param constants  The {@link PIDConstantsAK} to use.
-     * @param kS         The {@link SimpleMotorFeedforward} kS constant.
-     * @param kV         The {@link SimpleMotorFeedforward} kV constant.
-     * @param kA         The {@link SimpleMotorFeedforward} kA constant.
-     * @param model      The {@link IMotorModel} of the {@link FRCSparkMax} motor.
-     * @param moduleName The {@link String} module name
-     * @param tuneName   The <b>optional</b> {@link String} tuning name.
+     * @param motorId       The motor ID to use.
+     * @param constants     The {@link PIDConstantsAK} to use.
+     * @param kS            The {@link SimpleMotorFeedforward} kS constant.
+     * @param kV            The {@link SimpleMotorFeedforward} kV constant.
+     * @param kA            The {@link SimpleMotorFeedforward} kA constant.
+     * @param model         The {@link IMotorModel} of the {@link FRCSparkMax} motor.
+     * @param moduleName    The {@link String} module name
+     * @param tuningEnabled If PID {@link SmartDashboard} tuning is enabled.
      */
     public PIDMechanismBase(int motorId,
                             PIDConstantsAK constants,
@@ -73,24 +78,37 @@ public abstract class PIDMechanismBase {
                             double kA,
                             IMotorModel model,
                             String moduleName,
-                            String tuneName,
+                            boolean tuningEnabled,
                             boolean rpmControl) {
         this.motor = new FRCSparkMax(motorId, kBrushless, model);
         this.feedFwd = new SimpleMotorFeedforward(kS, kV, kA);
         this.controller = PIDConstantsAK.generateController(constants);
         this.rpmControl = rpmControl;
-
+        this.moduleName = moduleName;
         this.encoder = motor.getEncoder();
-
         encoder.setPosition(0);
 
-        if (tuneName != null && !tuneName.isBlank()) {
-            pidTune = new DashTunablePID(tuneName, constants);
+        if (tuningEnabled) {
+            pidTune = new DashTunablePID(moduleName + ": PID", constants);
             pidTune.addConsumer(controller::setP, controller::setI, controller::setD);
         } else {
             pidTune = null;
         }
     }
+
+    /** @return The {@link String} name of the {@link PIDMechanismBase}. */
+    public String getModuleName() { return this.moduleName; }
+
+    /**
+     * Controls if the {@link PIDMechanismBase} should be logged to the {@link SmartDashboard}.
+     * @param enabled The value to use.
+     */
+    public void setDashboardEnabled(boolean enabled) {
+        this.dashboardEnabled = enabled;
+    }
+
+    /** @return If the {@link PIDMechanismBase} should be logged to the {@link SmartDashboard}. */
+    public boolean isDashboardEnabled() { return this.dashboardEnabled; }
 
     /**
      * Sets the inversion of the underlying {@link FRCSparkMax} instance.
@@ -121,6 +139,9 @@ public abstract class PIDMechanismBase {
         if (pidTune != null)
             pidTune.update();
 
+        if (RobotBase.isSimulation())
+            motor.updateSim();
+
         double velocityRPM = encoder.getVelocity();
         currentPosition = getCurrentPosition(encoder.getPosition());
 
@@ -149,6 +170,12 @@ public abstract class PIDMechanismBase {
                             + controller.calculate(positionRad, targetPositionRad)
                 );
             }
+        }
+
+        if (dashboardEnabled) {
+            SmartDashboard.putNumber(getModuleName() + "/VelocityRPM", velocityRPM);
+            SmartDashboard.putNumber(getModuleName() + "/Target", targetValue);
+            SmartDashboard.putNumber(getModuleName() + "/Tolerance", tolerance);
         }
     }
 

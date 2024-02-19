@@ -34,7 +34,7 @@ public class TrapArmSubsystem extends SubsystemBase {
                 ARM_KA,
                 MotorModel.NEO_550,
                 "Arm",
-                TRAP_ARM_TUNING_ENABLED ? "Arm: PID" : "",
+                TRAP_ARM_TUNING_ENABLED,
                 DistanceUnit.INCHES,
                 ARM_DISTANCE
         );
@@ -46,7 +46,7 @@ public class TrapArmSubsystem extends SubsystemBase {
                 ARM_DEAD_BAND_MIN_US,
                 ARM_MIN_US
         );
-        mechanism.setTuneMode(TRAP_ARM_TUNING_ENABLED);
+        mechanism.setDistanceTuningEnabled(TRAP_ARM_TUNING_ENABLED);
     }
 
     @Override

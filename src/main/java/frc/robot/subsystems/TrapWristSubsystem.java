@@ -33,7 +33,7 @@ public class TrapWristSubsystem extends SubsystemBase {
                 WRIST_KA,
                 MotorModel.NEO_550,
                 "Wrist",
-                WRIST_TUNING_ENABLED ? "Wrist: PID" : "",
+                WRIST_TUNING_ENABLED,
                 WRIST_TURN_RATIO,
                 RotationUnit.DEGREES,
                 false

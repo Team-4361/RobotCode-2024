@@ -65,7 +65,7 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void robotInit() {
-        boolean useNormalSticks = true;
+        boolean useNormalSticks = false;
         // Use a PresetGroup to keep the presets synchronized. We don't want one joystick sensitive
         // and the other one non-sensitive.
         drivePresets = new PresetGroup("Drive Presets");
@@ -111,16 +111,17 @@ public class Robot extends TimedRobot {
         intake = new IntakeSubsystem();
         shooter = new ShooterSubsystem();
         index = new IndexSubsystem();
-        //wrist = new TrapWristSubsystem();
+        wrist = new TrapWristSubsystem();
         climber = new ClimberSubsystem();
-        //arm = new TrapArmSubsystem();
-
-        swerve = new SwerveDriveSubsystem();
+        arm = new TrapArmSubsystem();
         frontCamera = new PhotonCameraModule(
                 "FrontCamera",
                 Units.inchesToMeters(27),
                 0
         );
+
+        SwerveDriveSubsystem.initParser();
+        swerve = new SwerveDriveSubsystem();
 
         // *** IMPORTANT: Call this method at the VERY END of robotInit!!! *** //
         registerAlerts(!useNormalSticks);
@@ -166,13 +167,13 @@ public class Robot extends TimedRobot {
             IOManager.info(this, "Xbox-only/Simulation mode detected.");
             Robot.swerve.setDefaultCommand(Robot.swerve.runEnd(
                     () -> Robot.swerve.drive(xbox),
-                    () -> Robot.swerve.lock())
+                    () -> Robot.swerve.lockPose())
             );
         } else {
             IOManager.info(this, "Regular mode detected.");
             Robot.swerve.setDefaultCommand(Robot.swerve.runEnd(
                     () -> Robot.swerve.drive(leftStick, rightStick),
-                    () -> Robot.swerve.lock())
+                    () -> Robot.swerve.lockPose())
             );
         }
 
@@ -183,7 +184,7 @@ public class Robot extends TimedRobot {
                     () -> drivePresets.setPreset(2),
                     () -> drivePresets.setPreset(0)
             ));
-            leftStick.button(2).whileTrue(Commands.run(() -> swerve.lock()));
+            leftStick.button(2).whileTrue(Commands.run(() -> swerve.lockPose()));
             leftStick.button(4).whileTrue(new DriveToAprilTagCommand(
                     new Pose2d(
                             new Translation2d(2, 0),
@@ -193,7 +194,7 @@ public class Robot extends TimedRobot {
         }
 
         xbox.b().whileTrue(new IntakeNoteCommand());
-        xbox.a().whileTrue(new ShootCommand());
+        xbox.a().onTrue(new ShootCommand());
         xbox.leftTrigger().whileTrue(Robot.climber.runEnd(
                 () -> Robot.climber.moveLeftUp(),
                 () -> Robot.climber.stopLeft()

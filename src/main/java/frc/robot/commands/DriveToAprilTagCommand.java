@@ -23,12 +23,12 @@ public class DriveToAprilTagCommand extends Command {
     private long initTimeout = System.currentTimeMillis() + 5000;
 
     public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, int id, boolean stopOnEnd) {
+        addRequirements(Robot.swerve);
         this.desiredPose = desiredPose;
         this.targetHeightMeters = targetHeightMeters;
         this.noTarget = false;
         this.firstTarget = false;
         this.id = id;
-        //addRequirements(Robot.swerve);
     }
 
     public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, boolean stopOnEnd) {
@@ -63,7 +63,7 @@ public class DriveToAprilTagCommand extends Command {
             firstTarget = false;
         currentPose = storedPose.get();
 
-        Robot.swerve.setSpeeds(calculateSpeeds());
+        Robot.swerve.setChassisSpeeds(calculateSpeeds());
     }
 
     private ChassisSpeeds calculateSpeeds() {
@@ -106,7 +106,7 @@ public class DriveToAprilTagCommand extends Command {
     @Override
     public void end(boolean interrupted) {
         if (DriverStation.isAutonomous()) {
-            Robot.swerve.lock();
+            Robot.swerve.lockPose();
         } else {
             Robot.swerve.setStates(new SwerveModuleState[]
                     {

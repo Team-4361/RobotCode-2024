@@ -13,7 +13,6 @@ import frc.robot.util.math.PeakMotorDistance;
 import frc.robot.util.pid.PIDConstantsAK;
 import frc.robot.util.preset.PresetGroup;
 import frc.robot.util.preset.PresetMap;
-import frc.robot.util.swerve.ModuleSettings;
 
 import java.util.function.Supplier;
 
@@ -30,9 +29,9 @@ import static edu.wpi.first.units.Units.Inches;
  */
 public class Constants {
     public static class Debug {
-        public static final boolean SWERVE_TUNING_ENABLED = true;
+        public static final boolean SWERVE_TUNING_ENABLED = false;
         public static final boolean PHOTON_TUNING_ENABLED = false;
-        public static final boolean SHOOTER_TUNING_ENABLED = false;
+        public static final boolean SHOOTER_TUNING_ENABLED = true;
         public static final boolean DEBUG_LOGGING_ENABLED = false;
         public static final boolean INDEX_TUNING_ENABLED = false;
         public static final boolean INTAKE_TUNING_ENABLED = false;
@@ -186,13 +185,9 @@ public class Constants {
             TRAP_ARM_ANGLE_PRESETS.put("One", 20.0);
 
             // TODO: add real entries!
-
-            /*
             Robot.arm.registerExtensionPresets(TRAP_ARM_PRESETS);
             Robot.arm.registerAnglePresets(TRAP_ARM_ANGLE_PRESETS);
             Robot.wrist.registerPresets(TRAP_WRIST_PRESETS);
-
-             */
         }
 
         /** Use this group for interfacing the trap presets!! **/
@@ -204,81 +199,13 @@ public class Constants {
         );
     }
 
-    /**
-     * This {@link Mk4SDSRatio} enum represents commonly used Gear Reductions on the SDS Mk4.
-     * <a href="https://cdn.shopify.com/s/files/1/0065/4308/1590/files/MK4DrivetrainFreeSpeeds_caf3d1d5-2f83-43f5-acd9-15ef4f6cc3cc_1024x1024.png">The link this class was based upon.</a>
-     */
-    public enum Mk4SDSRatio {
-        L1(8.14),
-        L2(6.75),
-        L3(6.12),
-        L4(5.14);
-
-        /** @return The starting ratio (X:1) of this setup. */
-        public double getRatio() { return this.ratio; }
-
-        private final double ratio;
-
-        /**
-         * Constructs a new {@link Mk4SDSRatio} with the parameter.
-         * @param ratio The ratio to use against 1 (X:1)
-         */
-        Mk4SDSRatio(double ratio) {
-            this.ratio = ratio;
-        }
-    }
-
-
     public static class Chassis {
-        /** The {@link ModuleSettings} for the Front-Left module. */
-        public static final ModuleSettings FL_MODULE = new ModuleSettings(
-                1,
-                2,
-                30,
-                0
-        );
-        /** The {@link ModuleSettings} for the Front-Right module. */
-        public static final ModuleSettings FR_MODULE = new ModuleSettings(
-                3,
-                4,
-                31,
-                0
-        );
-        /** The {@link ModuleSettings} for the Back-Left module. */
-        public static final ModuleSettings BL_MODULE = new ModuleSettings(
-                7,
-                8,
-                32,
-                0
-        );
-        /** The {@link ModuleSettings} for the Back-Right module. */
-        public static final ModuleSettings BR_MODULE = new ModuleSettings(
-                5,
-                6,
-                33,
-                0
-        );
-
+        // UPDATE: The configuration is now updated with YAGSL using the 'src/main/deploy/swerve' directory.
         public static final double SIDE_LENGTH_METERS = Units.inchesToMeters(30);
-        public static final double WHEEL_RADIUS_METERS = Units.inchesToMeters(4);
         public static final double MAX_SPEED_MPS = 12.5;
-        public static final double MODULE_KS = 0.10;
-        public static final double MODULE_KV = 0.13;
-        public static final double MODULE_KA = 0.00;
         public static final double PHOTON_DRIVE_MAX_SPEED = 0.5;
 
-        public static final PIDConstantsAK DRIVE_PID = new PIDConstantsAK(0.2, 0, 0);
-        public static final PIDConstantsAK TURN_PID = new PIDConstantsAK(2, 0, 0);
-        public static final PIDConstantsAK AUTO_DRIVE_PID = new PIDConstantsAK(5, 0, 0);
-        public static final PIDConstantsAK AUTO_TURN_PID = new PIDConstantsAK(0.2, 0, 0);
         public static final PIDConstantsAK PHOTON_DRIVE_PID = new PIDConstantsAK(0.01, 0, 0);
         public static final PIDConstantsAK PHOTON_TURN_PID = new PIDConstantsAK(0.01, 0, 0);
-        public static final GearRatio DRIVE_RATIO = GearRatio.from(Mk4SDSRatio.L2.ratio, 1);
-        public static final GearRatio TURN_RATIO = GearRatio.from(12.6, 1);
-
-        public static final double DRIVE_POSITION_FACTOR =
-                (WHEEL_RADIUS_METERS * 2 * Math.PI) / DRIVE_RATIO.getDivisor();
-        public static final double DRIVE_VELOCITY_FACTOR = DRIVE_POSITION_FACTOR / 60.0;
-        public static final double TURN_POSITION_FACTOR = 360.0 / TURN_RATIO.getDivisor();
     }
 }
