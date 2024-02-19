@@ -65,7 +65,7 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void robotInit() {
-        boolean useNormalSticks = false;
+        boolean useNormalSticks = true;
         // Use a PresetGroup to keep the presets synchronized. We don't want one joystick sensitive
         // and the other one non-sensitive.
         drivePresets = new PresetGroup("Drive Presets");
@@ -196,6 +196,7 @@ public class Robot extends TimedRobot {
 
         xbox.b().whileTrue(new IntakeNoteCommand());
         xbox.a().onTrue(new ShootCommand());
+
         xbox.leftTrigger().whileTrue(Robot.climber.runEnd(
                 () -> Robot.climber.moveLeftUp(),
                 () -> Robot.climber.stopLeft()
@@ -240,6 +241,8 @@ public class Robot extends TimedRobot {
         CommandScheduler.getInstance().run();
         Robot.frontCamera.update();
         IOManager.run();
+
+        //Robot.shooter.translateMotor(deadband(Robot.xbox.getLeftY()));
 
         // ************************* DO NOT TOUCH ************************* //
 //

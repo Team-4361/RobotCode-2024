@@ -7,6 +7,7 @@ import static frc.robot.Constants.Shooter.SHOOT_END_DELAY_MS;
 
 public class ShootCommand extends Command {
     private long endMillis = 0;
+    private long feedMillis = 0;
 
     /**
      * Default constructor.
@@ -19,6 +20,7 @@ public class ShootCommand extends Command {
     @Override
     public void initialize() {
         endMillis = 0;
+        feedMillis = System.currentTimeMillis() + 2000;
         Robot.shooter.start();
         Robot.index.stop();
         Robot.intake.stop();
@@ -29,7 +31,7 @@ public class ShootCommand extends Command {
      */
     @Override
     public void execute() {
-        if (Robot.shooter.atTarget()) {
+        if (System.currentTimeMillis() >= feedMillis) {
             Robot.index.start();
             Robot.intake.start();
             if (endMillis == 0)

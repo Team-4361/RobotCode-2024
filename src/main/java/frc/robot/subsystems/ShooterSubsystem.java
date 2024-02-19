@@ -1,16 +1,12 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj.motorcontrol.Spark;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
-import frc.robot.util.math.GearRatio;
+import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.motor.MotorModel;
 import frc.robot.util.pid.DashTunableNumber;
-import frc.robot.util.pid.PIDMechanismBase;
-import frc.robot.util.pid.PIDRotationalMechanism;
-import frc.robot.util.pid.PIDRotationalMechanism.RotationUnit;
 
+import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 import static frc.robot.Constants.Debug.SHOOTER_TUNING_ENABLED;
 import static frc.robot.Constants.Shooter.*;
 
@@ -19,82 +15,45 @@ import static frc.robot.Constants.Shooter.*;
  * mechanism contains two motors which need to be driven opposite to each other.
  */
 public class ShooterSubsystem extends SubsystemBase {
-    private final PIDMechanismBase leftWheel;
-    private final PIDMechanismBase rightWheel;
+    private final FRCSparkMax leftMotor;
+    private final FRCSparkMax rightMotor;
     private final DashTunableNumber shootTune;
-    private double targetRPM = SHOOT_RPM;
-    private boolean stopped = true;
+    private double targetSpeed = SHOOT_SPEED;
 
     /**Constructs a new {@link ShooterSubsystem} using all <code>CONSTANTS</code> values. */
     public ShooterSubsystem() {
-        this.leftWheel = new PIDRotationalMechanism(
-                LEFT_SHOOTER_MOTOR_ID,
-                SHOOT_PID,
-                SHOOT_KS,
-                SHOOT_KV,
-                SHOOT_KA,
-                MotorModel.NEO,
-                "LeftShooter",
-                SHOOTER_TUNING_ENABLED,
-                GearRatio.DIRECT_DRIVE,
-                RotationUnit.ROTATIONS,
-                true
-        );
-        this.rightWheel = new PIDRotationalMechanism(
-                RIGHT_SHOOTER_MOTOR_ID,
-                SHOOT_PID,
-                SHOOT_KS,
-                SHOOT_KV,
-                SHOOT_KA,
-                MotorModel.NEO,
-                "RightShooter",
-                SHOOTER_TUNING_ENABLED,
-                GearRatio.DIRECT_DRIVE,
-                RotationUnit.ROTATIONS,
-                true
-        );
-
-        leftWheel.setTolerance(SHOOT_RPM_TOLERANCE);
-        rightWheel.setTolerance(SHOOT_RPM_TOLERANCE);
-
-        leftWheel.setDashboardEnabled(SHOOTER_TUNING_ENABLED);
-        rightWheel.setDashboardEnabled(SHOOTER_TUNING_ENABLED);
-
         if (SHOOTER_TUNING_ENABLED) {
-            shootTune = new DashTunableNumber("Shooter: Speed", SHOOT_RPM);
-            shootTune.addConsumer(this::setTargetRPM);
+            shootTune = new DashTunableNumber("Shooter: Speed", SHOOT_SPEED);
+            shootTune.addConsumer(this::setTargetSpeed);
         } else {
             shootTune = null;
         }
+
+        this.leftMotor = new FRCSparkMax(SHOOT_LEFT_MOTOR_ID, kBrushless, MotorModel.NEO);
+        this.rightMotor = new FRCSparkMax(SHOOT_RIGHT_MOTOR_ID, kBrushless, MotorModel.NEO);
+
+        leftMotor.setInverted(true);
+        rightMotor.setInverted(false);
     }
 
-    public void setTargetRPM(double rpm) { this.targetRPM = rpm; }
-
-    /** @return If the {@link ShooterSubsystem} is at target. */
-    public boolean atTarget() { return leftWheel.atTarget() && rightWheel.atTarget(); }
+    public void setTargetSpeed(double speed) { this.targetSpeed = speed; }
 
     @Override
     public void periodic() {
-        leftWheel.update();
-        rightWheel.update();
-        if (shootTune != null && !stopped)
+        if (shootTune != null)
             shootTune.update();
-
-        SmartDashboard.putBoolean("Shooter: At Target", atTarget());
     }
-
-    //private final Spark LED_1 = new Spark(0);
-
 
     /**
      * Sets the target of the {@link ShooterSubsystem} to the Shoot RPM.
      */
     public void start() {
-        leftWheel.setTarget(-targetRPM);
-        rightWheel.setTarget(targetRPM);
-        stopped = targetRPM == 0;
+        leftMotor.set(targetSpeed);
+        rightMotor.set(targetSpeed);
     }
 
-    /** Stops the {@link ShooterSubsystem} from spinning. */
-    public void stop() { leftWheel.stop(); rightWheel.stop(); stopped = true; }
+    public void stop() {
+        leftMotor.stopMotor();
+        rightMotor.stopMotor();
+    }
 }

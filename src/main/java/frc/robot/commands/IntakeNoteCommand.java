@@ -6,7 +6,7 @@ import frc.robot.Robot;
 public class IntakeNoteCommand extends Command {
 
     public IntakeNoteCommand() {
-        addRequirements(Robot.intake, Robot.index);
+        addRequirements(Robot.intake);
     }
 
     /**
@@ -15,7 +15,7 @@ public class IntakeNoteCommand extends Command {
     @Override
     public void initialize() {
         Robot.intake.start();
-        Robot.index.start();
+        //Robot.index.start();
     }
 
     /**
@@ -30,7 +30,7 @@ public class IntakeNoteCommand extends Command {
     @Override
     public void end(boolean interrupted) {
         Robot.intake.stop();
-        Robot.index.stop();
+        //Robot.index.stop();
     }
 
     /**

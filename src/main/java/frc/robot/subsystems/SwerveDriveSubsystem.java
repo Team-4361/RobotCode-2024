@@ -33,7 +33,6 @@ import java.util.Optional;
 
 import static edu.wpi.first.wpilibj.Filesystem.getDeployDirectory;
 import static frc.robot.Constants.Chassis.*;
-import static frc.robot.Constants.Debug.SWERVE_TUNING_ENABLED;
 import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.HIGH;
 import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.LOW;
 
@@ -146,9 +145,9 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
         );
 
         setHeadingCorrection(false);
-        setCosineCompensator(!SwerveDriveTelemetry.isSimulation);
+        setCosineCompensator(false);
         setMotorIdleMode(true);
-        SwerveDriveTelemetry.verbosity = SWERVE_TUNING_ENABLED ? HIGH : LOW;
+        SwerveDriveTelemetry.verbosity = LOW;
 
         AutoBuilder.configureHolonomic(
                 this::getPose,

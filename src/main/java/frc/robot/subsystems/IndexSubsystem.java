@@ -29,6 +29,9 @@ public class IndexSubsystem extends SubsystemBase {
         }
         this.leftMotor = new FRCSparkMax(INDEX_LEFT_MOTOR_ID, kBrushless, MotorModel.NEO_550);
         this.rightMotor = new FRCSparkMax(INDEX_RIGHT_MOTOR_ID, kBrushless, MotorModel.NEO_550);
+
+        leftMotor.setInverted(false);
+        rightMotor.setInverted(true);
     }
 
     public void setTargetSpeed(double speed) { this.targetSpeed = speed; }

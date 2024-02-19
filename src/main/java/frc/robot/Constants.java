@@ -29,12 +29,11 @@ import static edu.wpi.first.units.Units.Inches;
  */
 public class Constants {
     public static class Debug {
-        public static final boolean SWERVE_TUNING_ENABLED = false;
         public static final boolean PHOTON_TUNING_ENABLED = false;
-        public static final boolean SHOOTER_TUNING_ENABLED = true;
+        public static final boolean SHOOTER_TUNING_ENABLED = false;
         public static final boolean DEBUG_LOGGING_ENABLED = false;
-        public static final boolean INDEX_TUNING_ENABLED = false;
-        public static final boolean INTAKE_TUNING_ENABLED = false;
+        public static final boolean INDEX_TUNING_ENABLED = true;
+        public static final boolean INTAKE_TUNING_ENABLED = true;
         public static final boolean WRIST_TUNING_ENABLED = false;
         public static final boolean CLIMBER_TUNING_ENABLED = false;
         public static final boolean TRAP_ARM_TUNING_ENABLED = false;
@@ -44,13 +43,13 @@ public class Constants {
 
     /** This {@link Shooter} class represents all values regarding the {@link Robot}'s shooting mechanism. */
     public static class Shooter {
-        public static final int LEFT_SHOOTER_MOTOR_ID = 10;
-        public static final int RIGHT_SHOOTER_MOTOR_ID = 16;
-        public static final double SHOOT_RPM = 5500;
+        public static final int SHOOT_LEFT_MOTOR_ID = 10;
+        public static final int SHOOT_RIGHT_MOTOR_ID = 16;
+        public static final double SHOOT_SPEED = 1;
         public static final double SHOOT_KS = 0.1;
-        public static final double SHOOT_KV = 0.03;
+        public static final double SHOOT_KV = 0.06;
         public static final double SHOOT_KA = 0;
-        public static final double SHOOT_RPM_TOLERANCE = 1000;
+        public static final double SHOOT_RPM_TOLERANCE = 200;
         public static final long SHOOT_END_DELAY_MS = 2000;
         public static final PIDConstantsAK SHOOT_PID = new PIDConstantsAK(0.05, 0, 0);
     }
@@ -59,18 +58,18 @@ public class Constants {
     public static class Indexer {
         public static final int INDEX_LEFT_MOTOR_ID = 11;
         public static final int INDEX_RIGHT_MOTOR_ID = 15;
-        public static final int INDEX_SENSOR_PORT = 0;
         public static final double INDEX_SPEED = -0.4;
     }
 
     /** This {@link Intake} class represents all values regarding the {@link Robot}'s in-taking mechanism. */
     public static class Intake {
-        public static final double INTAKE_RPM = 1500;
+        public static final double INTAKE_SPEED = 0.4;
         public static final double INTAKE_KS = 0;
         public static final double INTAKE_KV = 0;
         public static final double INTAKE_KA = 0;
         public static final int INTAKE_MOTOR_ID = 12;
         public static final boolean INTAKE_INVERTED = false;
+        public static final int INTAKE_SENSOR_PORT = 0;
         public static final PIDConstantsAK INTAKE_PID = new PIDConstantsAK(0.02, 0, 0);
     }
 

@@ -5,77 +5,61 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.math.GearRatio;
+import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.motor.MotorModel;
 import frc.robot.util.pid.DashTunableNumber;
 import frc.robot.util.pid.PIDMechanismBase;
 import frc.robot.util.pid.PIDRotationalMechanism;
 import frc.robot.util.pid.PIDRotationalMechanism.RotationUnit;
 
+import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
+import static frc.robot.Constants.Debug.INDEX_TUNING_ENABLED;
 import static frc.robot.Constants.Debug.INTAKE_TUNING_ENABLED;
-import static frc.robot.Constants.Indexer.INDEX_SENSOR_PORT;
+import static frc.robot.Constants.Indexer.*;
+import static frc.robot.Constants.Indexer.INDEX_RIGHT_MOTOR_ID;
 import static frc.robot.Constants.Intake.*;
 
 public class IntakeSubsystem extends SubsystemBase {
-    private final PIDMechanismBase intakeWheel;
+    private final FRCSparkMax motor;
     private final DashTunableNumber intakeTune;
     private final DigitalInput sensor;
-
-    private boolean sensorActivated = false;
-    private double targetRPM = INTAKE_RPM;
-    private boolean stopped = true;
+    private double targetSpeed = INTAKE_SPEED;
+    private boolean sensorActivated;
 
     public IntakeSubsystem() {
-        intakeWheel = new PIDRotationalMechanism(
-                INTAKE_MOTOR_ID,
-                INTAKE_PID,
-                INTAKE_KS,
-                INTAKE_KV,
-                INTAKE_KA,
-                MotorModel.NEO,
-                "Intake",
-                INTAKE_TUNING_ENABLED,
-                GearRatio.DIRECT_DRIVE,
-                RotationUnit.ROTATIONS,
-                true
-        );
-        sensor = new DigitalInput(INDEX_SENSOR_PORT);
         if (INTAKE_TUNING_ENABLED) {
-            intakeTune = new DashTunableNumber("Intake: Speed", INTAKE_RPM);
-            intakeTune.addConsumer(this::setTargetRPM);
+            intakeTune = new DashTunableNumber("Intake: Speed", INTAKE_SPEED);
+            intakeTune.addConsumer(this::setTargetSpeed);
         } else {
             intakeTune = null;
         }
+        this.sensor = new DigitalInput(INTAKE_SENSOR_PORT);
+        this.motor = new FRCSparkMax(INTAKE_MOTOR_ID, kBrushless, MotorModel.NEO_550);
     }
 
-    public void setTargetRPM(double rpm) { this.targetRPM = rpm; }
-
-    /** @return If the {@link IndexSubsystem} is at target. */
-    public boolean atTarget() { return intakeWheel.atTarget(); }
+    public void setTargetSpeed(double speed) { this.targetSpeed = speed; }
 
     @Override
     public void periodic() {
-        intakeWheel.update();
-        if (intakeTune != null && !stopped)
+        if (intakeTune != null)
             intakeTune.update();
 
-        if (!RobotBase.isSimulation())
-            sensorActivated = sensor.get();
+        if (!RobotBase.isSimulation()) {
+            sensorActivated = true;
+        }
+            //sensorActivated = sensor.get();
 
         SmartDashboard.putBoolean("Has Note", hasNote());
     }
 
-    /**
-     * Sets the target of the {@link IndexSubsystem}.
-     */
-    public void setTarget(double rpm) { intakeWheel.setTarget(INTAKE_INVERTED ? -rpm: rpm); }
-
     public void start() {
-        intakeWheel.setTarget(targetRPM);
-        stopped = targetRPM == 0;
+        motor.set(targetSpeed);
     }
 
     /** Stops the {@link IndexSubsystem} from spinning. */
-    public void stop() { intakeWheel.stop(); stopped = true; }
+    public void stop() {
+        motor.stopMotor();
+    }
 
     public boolean hasNote() { return !sensorActivated; }
 }
