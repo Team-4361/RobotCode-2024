@@ -147,6 +147,7 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
 
         setHeadingCorrection(false);
         setCosineCompensator(!SwerveDriveTelemetry.isSimulation);
+        setMotorIdleMode(true);
         SwerveDriveTelemetry.verbosity = SWERVE_TUNING_ENABLED ? HIGH : LOW;
 
         AutoBuilder.configureHolonomic(
@@ -164,42 +165,6 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
                 },
                 this
         );
-    }
-
-    /**
-     * This method is called periodically by the {@link CommandScheduler}. Useful for updating
-     * subsystem-specific state that you don't want to offload to a {@link Command}. Teams should try
-     * to be consistent within their own codebases about which responsibilities will be handled by
-     * Commands, and which will be handled here.
-     */
-    @Override
-    public void periodic() {
-        /*
-        SwerveModule flModule = swerveDrive.getModuleMap().get("frontleft");
-        SwerveModule frModule = swerveDrive.getModuleMap().get("frontright");
-        SwerveModule blModule = swerveDrive.getModuleMap().get("backleft");
-        SwerveModule brModule = swerveDrive.getModuleMap().get("backright");
-
-        if (driveTune != null && turnTune != null && System.currentTimeMillis() >= nextCheck) {
-            PIDFConfig drive = new PIDFConfig(
-                    driveTune.getP(),
-                    driveTune.getI(),
-                    driveTune.getD()
-            );
-            updateDrivePID(drive);
-
-            PIDFConfig turn = new PIDFConfig(
-                    turnTune.getP(),
-                    turnTune.getI(),
-                    turnTune.getD()
-            );
-            updateTurnPID(turn);
-
-            driveTune.update();
-            turnTune.update();
-            nextCheck = System.currentTimeMillis() + 1500;
-        }
-         */
     }
 
     public void setStates(SwerveModuleState[] states) { this.setModuleStates(states, false); }

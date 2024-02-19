@@ -180,6 +180,7 @@ public class Robot extends TimedRobot {
         if (!xboxOnly) {
             leftStick.button(10).onTrue(Commands.runOnce(() -> drivePresets.nextPreset(true)));
             leftStick.button(11).onTrue(swerve.resetCommand());
+            leftStick.button(12).onTrue(swerve.toggleFieldOrientedCommand());
             leftStick.trigger().whileTrue(Commands.runEnd(
                     () -> drivePresets.setPreset(2),
                     () -> drivePresets.setPreset(0)
