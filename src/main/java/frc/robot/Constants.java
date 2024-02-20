@@ -35,7 +35,7 @@ public class Constants {
         public static final boolean INDEX_TUNING_ENABLED = true;
         public static final boolean INTAKE_TUNING_ENABLED = true;
         public static final boolean WRIST_TUNING_ENABLED = false;
-        public static final boolean CLIMBER_TUNING_ENABLED = false;
+        public static final boolean CLIMBER_TUNING_ENABLED = true;
         public static final boolean TRAP_ARM_TUNING_ENABLED = false;
         public static final boolean PHOTON_ENABLED = false;
     }
