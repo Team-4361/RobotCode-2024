@@ -13,13 +13,18 @@ import frc.robot.util.math.GlobalUtils;
 
 import java.util.Optional;
 
+import static frc.robot.Constants.Chassis.MAX_SPEED_MPS;
+import static frc.robot.Constants.Chassis.PHOTON_TURN_MAX_SPEED;
+
 public class DriveToAprilTagCommand extends Command {
     private final Pose2d desiredPose;
     private final double targetHeightMeters;
     private final int id;
 
     private Pose2d currentPose;
-    private boolean noTarget, firstTarget, stopOnEnd;
+    private boolean noTarget;
+    private boolean firstTarget;
+    private final boolean stopOnEnd;
     private long initTimeout = System.currentTimeMillis() + 5000;
 
     public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, int id, boolean stopOnEnd) {
@@ -28,6 +33,7 @@ public class DriveToAprilTagCommand extends Command {
         this.targetHeightMeters = targetHeightMeters;
         this.noTarget = false;
         this.firstTarget = false;
+        this.stopOnEnd = stopOnEnd;
         this.id = id;
     }
 
@@ -67,10 +73,8 @@ public class DriveToAprilTagCommand extends Command {
     }
 
     private ChassisSpeeds calculateSpeeds() {
-        /* TODO: FIX!
         PIDController driveController = Robot.frontCamera.getDriveController();
         PIDController turnController = Robot.frontCamera.getTurnController();
-
 
         //double mX = PHOTON_DRIVE_MAX_SPEED.getValue();
         double mX = 0.5; // FIXME: change!
@@ -81,17 +85,14 @@ public class DriveToAprilTagCommand extends Command {
                     currentPose.getRotation().getRadians(),
                     desiredPose.getRotation().getRadians()
                 ),
-                -PHOTON_TURN_MAX_SPEED.getValue(),
-                PHOTON_TURN_MAX_SPEED.getValue()
+                -PHOTON_TURN_MAX_SPEED,
+                PHOTON_TURN_MAX_SPEED
         );
         return ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(
-                jX * CHASSIS_MODE.getMaxSpeed(),
-                jY * CHASSIS_MODE.getMaxSpeed(),
-                jO * CHASSIS_MODE.getMaxSpeed()
-        ), Robot.swerve.getHeading());
-
-         */
-        return new ChassisSpeeds(0, 0, 0);
+                jX * MAX_SPEED_MPS,
+                jY * MAX_SPEED_MPS,
+                jO * MAX_SPEED_MPS
+        ), Robot.swerve.getOdometryHeading());
     }
 
     /**

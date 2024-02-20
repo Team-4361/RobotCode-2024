@@ -2,8 +2,8 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 1.899192863133929,
-      "y": 6.791863943440117
+      "x": 1.0,
+      "y": 5.662347439802794
     },
     "rotation": 0
   },
@@ -14,7 +14,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Straight"
+            "pathName": "Go Straight And Turn"
           }
         }
       ]

@@ -5,6 +5,7 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -198,28 +199,25 @@ public class Robot extends TimedRobot {
         xbox.a().onTrue(new ShootCommand());
 
         xbox.leftTrigger().whileTrue(Robot.climber.runEnd(
-                () -> Robot.climber.moveLeftUp(),
-                () -> Robot.climber.stopLeft()
-        ));
-        xbox.rightTrigger().whileTrue(Robot.climber.runEnd(
-                () -> Robot.climber.moveRightUp(),
-                () -> Robot.climber.stopRight()
+                () -> {
+                    Robot.climber.moveLeftUp();
+                    Robot.climber.moveRightUp();
+                },
+                () -> {
+                    Robot.climber.stopLeft();
+                    Robot.climber.stopRight();
+                }
         ));
         xbox.leftBumper().whileTrue(Robot.climber.runEnd(
-                () -> Robot.climber.moveLeftDown(),
-                () -> Robot.climber.stopLeft()
+                () -> {
+                    Robot.climber.moveLeftDown();
+                    Robot.climber.moveRightDown();
+                },
+                () -> {
+                    Robot.climber.stopLeft();
+                    Robot.climber.stopRight();
+                }
         ));
-        xbox.rightBumper().whileTrue(Robot.climber.runEnd(
-                () -> Robot.climber.moveRightDown(),
-                () -> Robot.climber.stopRight()
-        ));
-
-//
-//        xbox.b().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(1)));
-//        xbox.a().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(0)));
-//
-//        xbox.y().onTrue(Commands.runOnce(() -> Robot.wrist.grabNote()));
-//        xbox.x().onTrue(Commands.runOnce(() -> Robot.wrist.dropNote()));
     }
 
 
@@ -241,18 +239,11 @@ public class Robot extends TimedRobot {
         CommandScheduler.getInstance().run();
         Robot.frontCamera.update();
         IOManager.run();
+    }
 
-        //Robot.shooter.translateMotor(deadband(Robot.xbox.getLeftY()));
-
-        // ************************* DO NOT TOUCH ************************* //
-//
-//        Robot.arm.setExtensionSpeed(deadband(Robot.xbox.getLeftY())/2);
-//        Robot.arm.setAngleSpeed(deadband(Robot.xbox.getRightY())/2);
-//
-//        Robot.wrist.translateWrist(GlobalUtils.getDualSpeed(
-//                Robot.xbox.getLeftTriggerAxis(),
-//                Robot.xbox.getRightTriggerAxis()
-//        ));
+    @Override
+    public void autonomousInit() {
+        new PathPlannerAuto("New Auto").schedule();
     }
 
     @Override public void disabledInit() { CommandScheduler.getInstance().cancelAll(); }

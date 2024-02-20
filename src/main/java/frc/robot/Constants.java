@@ -203,6 +203,7 @@ public class Constants {
         public static final double SIDE_LENGTH_METERS = Units.inchesToMeters(30);
         public static final double MAX_SPEED_MPS = 12.5;
         public static final double PHOTON_DRIVE_MAX_SPEED = 0.5;
+        public static final double PHOTON_TURN_MAX_SPEED = 0.2;
 
         public static final PIDConstantsAK PHOTON_DRIVE_PID = new PIDConstantsAK(0.01, 0, 0);
         public static final PIDConstantsAK PHOTON_TURN_PID = new PIDConstantsAK(0.01, 0, 0);

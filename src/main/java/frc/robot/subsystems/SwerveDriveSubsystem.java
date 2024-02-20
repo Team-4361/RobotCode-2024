@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -66,6 +67,26 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
                         new SwerveModuleState(0, Rotation2d.fromDegrees(0))
                 });
     }
+
+    /**
+     * Use PathPlanner Path finding to go to a point on the field.
+     *
+     * @param pose Target {@link Pose2d} to go to.
+     * @return PathFinding command
+     */
+    public Command driveToPose(Pose2d pose) {
+        PathConstraints constraints = new PathConstraints(
+                getMaximumVelocity(), 4.0,
+                getMaximumAngularVelocity(), Units.degreesToRadians(720));
+
+        return AutoBuilder.pathfindToPose(
+                pose,
+                constraints,
+                0.0,
+                0.0
+        );
+    }
+
 
     /**
      * Initializes the {@link SwerveParser} and auto-generates all configuration information based on the files.
