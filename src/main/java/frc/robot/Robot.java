@@ -198,7 +198,7 @@ public class Robot extends TimedRobot {
         xbox.b().whileTrue(new IntakeNoteCommand());
         xbox.a().onTrue(new ShootCommand());
 
-        xbox.leftTrigger().whileTrue(Robot.climber.runEnd(
+        xbox.rightTrigger().whileTrue(Robot.climber.runEnd(
                 () -> {
                     Robot.climber.moveLeftUp();
                     Robot.climber.moveRightUp();
@@ -208,7 +208,7 @@ public class Robot extends TimedRobot {
                     Robot.climber.stopRight();
                 }
         ));
-        xbox.leftBumper().whileTrue(Robot.climber.runEnd(
+        xbox.leftTrigger().whileTrue(Robot.climber.runEnd(
                 () -> {
                     Robot.climber.moveLeftDown();
                     Robot.climber.moveRightDown();
