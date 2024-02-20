@@ -10,6 +10,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.util.sendable.SendableRegistry;
@@ -75,6 +76,16 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
             return true; // already complete.
         try {
             new SwerveParser(new File(getDeployDirectory(), "swerve"));
+
+            SwerveParser.physicalPropertiesJson.conversionFactor.drive = SwerveMath.calculateMetersPerRotation(
+                    Units.inchesToMeters(4),
+                    6.75,
+                    1
+            );
+            SwerveParser.physicalPropertiesJson.conversionFactor.angle = SwerveMath.calculateDegreesPerSteeringRotation(
+                    12.8,
+                    1
+            );
 
             // Upon a successful initialization, create the drive instance using the static variables.
             SwerveModuleConfiguration[] moduleConfigurations =
