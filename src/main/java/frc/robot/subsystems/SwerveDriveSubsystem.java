@@ -179,6 +179,14 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
 
     public void setStates(SwerveModuleState[] states) { this.setModuleStates(states, false); }
 
+    @Override
+    public void periodic() {
+        SmartDashboard.putNumber("FL Turn", getModuleMap().get("frontleft").getAbsolutePosition());
+        SmartDashboard.putNumber("FR Turn", getModuleMap().get("frontright").getAbsolutePosition());
+        SmartDashboard.putNumber("BL Turn", getModuleMap().get("backleft").getAbsolutePosition());
+        SmartDashboard.putNumber("BR Turn", getModuleMap().get("backright").getAbsolutePosition());
+    }
+
     /**
      * Drives the Robot using one Joystick.
      * @param stick The {@link DriveHIDBase} to use.
