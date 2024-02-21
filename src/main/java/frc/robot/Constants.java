@@ -29,13 +29,13 @@ import static edu.wpi.first.units.Units.Inches;
  */
 public class Constants {
     public static class Debug {
-        public static final boolean PHOTON_TUNING_ENABLED = false;
+        public static final boolean PHOTON_TUNING_ENABLED = true;
         public static final boolean SHOOTER_TUNING_ENABLED = false;
         public static final boolean DEBUG_LOGGING_ENABLED = false;
-        public static final boolean INDEX_TUNING_ENABLED = true;
+        public static final boolean INDEX_TUNING_ENABLED = false;
         public static final boolean INTAKE_TUNING_ENABLED = true;
         public static final boolean WRIST_TUNING_ENABLED = false;
-        public static final boolean CLIMBER_TUNING_ENABLED = true;
+        public static final boolean CLIMBER_TUNING_ENABLED = false;
         public static final boolean TRAP_ARM_TUNING_ENABLED = false;
         public static final boolean PHOTON_ENABLED = false;
     }

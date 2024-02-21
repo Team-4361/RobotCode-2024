@@ -131,6 +131,7 @@ public class Robot extends TimedRobot {
         // ******************************************************************* //
 
         NamedCommands.registerCommand("ShootCommand", new ShootCommand());
+        NamedCommands.registerCommand("IntakeCommand", new IntakeNoteCommand());
     }
 
     private void registerAlerts(boolean xboxOnly) {
@@ -241,6 +242,7 @@ public class Robot extends TimedRobot {
                 () -> Robot.climber.moveRightDown(),
                 () -> Robot.climber.stopRight()
         ));
+
     }
 
 
@@ -266,7 +268,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
-        new PathPlannerAuto("New Auto").schedule();
+        new PathPlannerAuto("Shoot Auto").schedule();
     }
 
     @Override public void disabledInit() { CommandScheduler.getInstance().cancelAll(); }
