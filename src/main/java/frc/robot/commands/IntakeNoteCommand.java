@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
 
 public class IntakeNoteCommand extends Command {
+    private long endMillis = 0;
 
     public IntakeNoteCommand() {
         addRequirements(Robot.intake);
@@ -15,7 +16,14 @@ public class IntakeNoteCommand extends Command {
     @Override
     public void initialize() {
         Robot.intake.start();
-        //Robot.index.start();
+        endMillis = 0;
+    }
+
+    @Override
+    public void execute() {
+        if (Robot.intake.hasNote() && endMillis == 0) {
+            endMillis = System.currentTimeMillis() + 250;
+        }
     }
 
     /**
@@ -30,7 +38,6 @@ public class IntakeNoteCommand extends Command {
     @Override
     public void end(boolean interrupted) {
         Robot.intake.stop();
-        //Robot.index.stop();
     }
 
     /**
@@ -41,6 +48,6 @@ public class IntakeNoteCommand extends Command {
      */
     @Override
     public boolean isFinished() {
-        return Robot.intake.hasNote();
+        return endMillis != 0 && System.currentTimeMillis() >= endMillis;
     }
 }

@@ -45,10 +45,9 @@ public class IntakeSubsystem extends SubsystemBase {
             intakeTune.update();
 
         if (!RobotBase.isSimulation()) {
-            sensorActivated = true;
+            sensorActivated = sensor.get();
         }
-            //sensorActivated = sensor.get();
-
+        
         SmartDashboard.putBoolean("Has Note", hasNote());
     }
 
