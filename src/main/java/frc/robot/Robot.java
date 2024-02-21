@@ -5,6 +5,7 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -128,6 +129,8 @@ public class Robot extends TimedRobot {
         registerAlerts(!useNormalSticks);
         configureBindings(!useNormalSticks);
         // ******************************************************************* //
+
+        NamedCommands.registerCommand("ShootCommand", new ShootCommand());
     }
 
     private void registerAlerts(boolean xboxOnly) {

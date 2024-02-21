@@ -35,6 +35,13 @@ public class PhotonCameraModule extends PhotonCamera {
     private Pose2d trackedPose = new Pose2d();
     private long lastFoundMillis = System.currentTimeMillis();
     private int aprilTagID = 0;
+    private double maxDriveSpeed = PHOTON_DRIVE_MAX_SPEED;
+
+    public double getMaxDriveSpeed() { return maxDriveSpeed; }
+
+    public void setMaxDriveSpeed(double speed) {
+        this.maxDriveSpeed = speed;
+    }
 
     public PIDController getDriveController() { return this.driveController; }
     public PIDController getTurnController() { return this.turnController; }
@@ -54,7 +61,7 @@ public class PhotonCameraModule extends PhotonCamera {
             this.turnTune = new DashTunablePID("Photon: Turn PID", PHOTON_TURN_PID);
             this.speedTune = new DashTunableNumber("Photon: Max Speed", PHOTON_DRIVE_MAX_SPEED);
 
-//            speedTune.addConsumer();
+            speedTune.addConsumer(this::setMaxDriveSpeed);
             driveTune.addConsumer(driveController::setP, driveController::setI, driveController::setD);
             turnTune.addConsumer(turnController::setP, turnController::setI, turnController::setD);
         } else {
