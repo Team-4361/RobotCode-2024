@@ -29,8 +29,8 @@ import static edu.wpi.first.units.Units.Inches;
  */
 public class Constants {
     public static class Debug {
-        public static final boolean PHOTON_TUNING_ENABLED = true;
-        public static final boolean SHOOTER_TUNING_ENABLED = false;
+        public static final boolean PHOTON_TUNING_ENABLED = false;
+        public static final boolean SHOOTER_TUNING_ENABLED = true;
         public static final boolean DEBUG_LOGGING_ENABLED = false;
         public static final boolean INDEX_TUNING_ENABLED = false;
         public static final boolean INTAKE_TUNING_ENABLED = true;
@@ -38,6 +38,7 @@ public class Constants {
         public static final boolean CLIMBER_TUNING_ENABLED = false;
         public static final boolean TRAP_ARM_TUNING_ENABLED = false;
         public static final boolean PHOTON_ENABLED = false;
+        public static final boolean SWERVE_TUNING_ENABLED = false;
     }
 
 
@@ -45,12 +46,12 @@ public class Constants {
     public static class Shooter {
         public static final int SHOOT_LEFT_MOTOR_ID = 10;
         public static final int SHOOT_RIGHT_MOTOR_ID = 16;
-        public static final double SHOOT_SPEED = 1;
+        public static final double SHOOT_SPEED = 0.9;
         public static final double SHOOT_KS = 0.1;
         public static final double SHOOT_KV = 0.06;
         public static final double SHOOT_KA = 0;
         public static final double SHOOT_RPM_TOLERANCE = 200;
-        public static final long SHOOT_END_DELAY_MS = 2000;
+        public static final long SHOOT_END_DELAY_MS = 750;
         public static final PIDConstantsAK SHOOT_PID = new PIDConstantsAK(0.05, 0, 0);
     }
 

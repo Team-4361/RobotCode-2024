@@ -18,15 +18,20 @@ public class ShooterSubsystem extends SubsystemBase {
     private final FRCSparkMax leftMotor;
     private final FRCSparkMax rightMotor;
     private final DashTunableNumber shootTune;
+    private final DashTunableNumber delayTune;
     private double targetSpeed = SHOOT_SPEED;
+    private long delayMs = SHOOT_END_DELAY_MS;
 
     /**Constructs a new {@link ShooterSubsystem} using all <code>CONSTANTS</code> values. */
     public ShooterSubsystem() {
         if (SHOOTER_TUNING_ENABLED) {
             shootTune = new DashTunableNumber("Shooter: Speed", SHOOT_SPEED);
+            delayTune = new DashTunableNumber("Shooter: Delay", SHOOT_END_DELAY_MS);
             shootTune.addConsumer(this::setTargetSpeed);
+            delayTune.addConsumer(this::setDelayMS);
         } else {
             shootTune = null;
+            delayTune = null;
         }
 
         this.leftMotor = new FRCSparkMax(SHOOT_LEFT_MOTOR_ID, kBrushless, MotorModel.NEO);
@@ -36,6 +41,9 @@ public class ShooterSubsystem extends SubsystemBase {
         rightMotor.setInverted(false);
     }
 
+    public long getDelayMS() { return this.delayMs; }
+
+    public void setDelayMS(double delayMs) { this.delayMs = (long)delayMs; }
     public void setTargetSpeed(double speed) { this.targetSpeed = speed; }
 
     @Override

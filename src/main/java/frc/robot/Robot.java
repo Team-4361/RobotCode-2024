@@ -5,8 +5,11 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -15,6 +18,9 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -59,6 +65,7 @@ public class Robot extends TimedRobot {
     public static TrapWristSubsystem wrist;
     public static ClimberSubsystem climber;
     public static TrapArmSubsystem arm;
+    private SendableChooser<Command> autoChooser;
 
 
     /**
@@ -132,6 +139,11 @@ public class Robot extends TimedRobot {
 
         NamedCommands.registerCommand("ShootCommand", new ShootCommand());
         NamedCommands.registerCommand("IntakeCommand", new IntakeNoteCommand());
+
+        autoChooser = AutoBuilder.buildAutoChooser();
+        SmartDashboard.putData(autoChooser);
+
+        CameraServer.startAutomaticCapture();
     }
 
     private void registerAlerts(boolean xboxOnly) {
@@ -202,30 +214,6 @@ public class Robot extends TimedRobot {
         xbox.b().whileTrue(new IntakeNoteCommand());
         xbox.a().onTrue(new ShootCommand());
 
-        /*
-        xbox.rightTrigger().whileTrue(Robot.climber.runEnd(
-                () -> {
-                    Robot.climber.moveLeftUp();
-                    Robot.climber.moveRightUp();
-                },
-                () -> {
-                    Robot.climber.stopLeft();
-                    Robot.climber.stopRight();
-                }
-        ));
-        xbox.leftTrigger().whileTrue(Robot.climber.runEnd(
-                () -> {
-                    Robot.climber.moveLeftDown();
-                    Robot.climber.moveRightDown();
-                },
-                () -> {
-                    Robot.climber.stopLeft();
-                    Robot.climber.stopRight();
-                }
-        ));
-
-         */
-
         xbox.leftTrigger().whileTrue(Robot.climber.runEnd(
                 () -> Robot.climber.moveLeftUp(),
                 () -> Robot.climber.stopLeft()
@@ -268,10 +256,14 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
-        new PathPlannerAuto("Shoot Auto").schedule();
+        autoChooser.getSelected().schedule();
     }
 
     @Override public void disabledInit() { CommandScheduler.getInstance().cancelAll(); }
     @Override public void testInit() { CommandScheduler.getInstance().cancelAll(); }
-    @Override public void teleopInit() { CommandScheduler.getInstance().cancelAll(); }
+
+    @Override
+    public void teleopInit() {
+        CommandScheduler.getInstance().cancelAll();
+    }
 }

@@ -20,7 +20,7 @@ public class ShootCommand extends Command {
     @Override
     public void initialize() {
         endMillis = 0;
-        feedMillis = System.currentTimeMillis() + 2000;
+        feedMillis = System.currentTimeMillis() + Robot.shooter.getDelayMS();
         Robot.shooter.start();
         Robot.index.stop();
         Robot.intake.stop();

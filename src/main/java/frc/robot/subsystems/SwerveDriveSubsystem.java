@@ -35,8 +35,10 @@ import java.util.Optional;
 
 import static edu.wpi.first.wpilibj.Filesystem.getDeployDirectory;
 import static frc.robot.Constants.Chassis.*;
+import static frc.robot.Constants.Debug.SWERVE_TUNING_ENABLED;
 import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.HIGH;
 import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.LOW;
+import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.MACHINE;
 
 /**
  * This {@link SwerveDriveSubsystem} is designed to be used for controlling the {@link SwerveModule}s, and utilizing
@@ -179,7 +181,7 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
         setHeadingCorrection(false);
         setCosineCompensator(false);
         setMotorIdleMode(true);
-        SwerveDriveTelemetry.verbosity = LOW;
+        SwerveDriveTelemetry.verbosity = MACHINE;
 
         AutoBuilder.configureHolonomic(
                 this::getPose,
@@ -202,10 +204,12 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("FL Turn", getModuleMap().get("frontleft").getAbsolutePosition());
-        SmartDashboard.putNumber("FR Turn", getModuleMap().get("frontright").getAbsolutePosition());
-        SmartDashboard.putNumber("BL Turn", getModuleMap().get("backleft").getAbsolutePosition());
-        SmartDashboard.putNumber("BR Turn", getModuleMap().get("backright").getAbsolutePosition());
+        if (SWERVE_TUNING_ENABLED) {
+            SmartDashboard.putNumber("FL Turn", getModuleMap().get("frontleft").getAbsolutePosition());
+            SmartDashboard.putNumber("FR Turn", getModuleMap().get("frontright").getAbsolutePosition());
+            SmartDashboard.putNumber("BL Turn", getModuleMap().get("backleft").getAbsolutePosition());
+            SmartDashboard.putNumber("BR Turn", getModuleMap().get("backright").getAbsolutePosition());
+        }
     }
 
     /**

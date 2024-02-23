@@ -48,7 +48,7 @@ public class IntakeSubsystem extends SubsystemBase {
             sensorActivated = sensor.get();
         }
         
-        SmartDashboard.putBoolean("Has Note", hasNote());
+        SmartDashboard.putBoolean("Intake: Has Note", hasNote());
     }
 
     public void start() {

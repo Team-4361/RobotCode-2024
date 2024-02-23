@@ -55,7 +55,6 @@ public class ClimberSubsystem extends SubsystemBase {
     public void moveLeftDown() { leftMotor.set(-targetSpeed); }
     public void moveRightDown() { rightMotor.set(-targetSpeed); }
 
-
     public void stopLeft() { leftMotor.stopMotor(); }
     public void stopRight() { rightMotor.stopMotor(); }
 
@@ -74,7 +73,6 @@ public class ClimberSubsystem extends SubsystemBase {
         if (speedTune != null)
             speedTune.update();
 
-        SmartDashboard.putNumber("CLI: LEFT POS", leftEncoder.getPosition());
-        SmartDashboard.putNumber("CLI: RIGHT POS", rightEncoder.getPosition());
+        SmartDashboard.putBoolean("Climber: Left Activated", leftSensor.get());
     }
 }
