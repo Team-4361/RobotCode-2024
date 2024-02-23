@@ -8,7 +8,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Stage Left Start"
+            "pathName": "Right Stage Start"
           }
         },
         {
@@ -27,6 +27,18 @@
           "type": "named",
           "data": {
             "name": "IntakeCommand"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Straight Backwards"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ShootCommand"
           }
         }
       ]
