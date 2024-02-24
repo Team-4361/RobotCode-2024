@@ -26,12 +26,6 @@ public class PIDConstantsAK {
         return new PIDController(constants.kP, constants.kI, constants.kD);
     }
 
-    public PIDFConfig toPIDF() {
-        return new PIDFConfig(
-                kP, kI, kD
-        );
-    }
-
     public void initController(Consumer<Double> p, Consumer<Double> i, Consumer<Double> d) {
         p.accept(kP);
         i.accept(kI);

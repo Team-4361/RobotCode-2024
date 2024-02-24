@@ -58,7 +58,8 @@ public class TrapWristSubsystem extends SubsystemBase {
         extensionPosition = grabServo.getPosition() * WRIST_SERVO_MAX_MM;
         mechanism.update();
         grabServo.setPosition(Math.max(0, extensionTarget / WRIST_SERVO_MAX_MM));
-        SmartDashboard.putNumber("Wrist: EXT Pos", getExtensionPosition());
+        if (WRIST_TUNING_ENABLED)
+            SmartDashboard.putNumber("Wrist: EXT Pos", getExtensionPosition());
     }
 
     /**

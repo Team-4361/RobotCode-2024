@@ -7,17 +7,15 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
-
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -30,19 +28,16 @@ import frc.robot.commands.IntakeNoteCommand;
 import frc.robot.commands.ShootCommand;
 import frc.robot.subsystems.*;
 import frc.robot.util.auto.PhotonCameraModule;
-import frc.robot.util.io.AlertType;
-import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveJoystick;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.DriveXboxController;
-import frc.robot.util.math.GlobalUtils;
 import frc.robot.util.preset.PresetGroup;
+import swervelib.telemetry.Alert;
+import swervelib.telemetry.Alert.AlertType;
 
 import static frc.robot.Constants.Control.*;
-import static frc.robot.Constants.Debug.DEBUG_LOGGING_ENABLED;
-import static frc.robot.Constants.Presets.TRAP_ARM_PRESETS;
-import static frc.robot.Constants.Presets.TRAP_PRESET_GROUP;
-import static frc.robot.util.math.GlobalUtils.deadband;
+import static frc.robot.Constants.Debug.*;
+import static swervelib.telemetry.Alert.AlertType.WARNING;
 
 
 /**
@@ -65,7 +60,11 @@ public class Robot extends TimedRobot {
     public static TrapWristSubsystem wrist;
     public static ClimberSubsystem climber;
     public static TrapArmSubsystem arm;
+
     private SendableChooser<Command> autoChooser;
+    private final Alert lowVoltageAlert = new Alert("Idle Voltage Low", AlertType.WARNING);
+    private final Alert slowModeAlert = new Alert("Slow Mode Activated", AlertType.INFO);
+    private long nextUpdateMillis = System.currentTimeMillis();
 
 
     /**
@@ -87,8 +86,8 @@ public class Robot extends TimedRobot {
                     false,          // Drive Y inverted?
                     false,          // Twist Axis Inverted?
                     DEAD_ZONE,      // Dead-band
-                    DRIVE_MODES[0], // Primary Drive Mode
-                    DRIVE_MODES     // Secondary Drive Modes
+                    DriveMode.SMOOTH_MAP,
+                    DriveMode.SLOW_MODE
             );
 
             rightStick = new DriveJoystick(
@@ -97,8 +96,8 @@ public class Robot extends TimedRobot {
                     false,          // Drive Y inverted?
                     false,          // Twist Axis Inverted?
                     DEAD_ZONE,      // Dead-band
-                    DRIVE_MODES[0], // Primary Drive Mode
-                    DRIVE_MODES     // Secondary Drive Modes
+                    DriveMode.SMOOTH_MAP,
+                    DriveMode.SLOW_MODE
             );
 
             drivePresets.add(leftStick);
@@ -133,7 +132,6 @@ public class Robot extends TimedRobot {
         swerve = new SwerveDriveSubsystem();
 
         // *** IMPORTANT: Call this method at the VERY END of robotInit!!! *** //
-        registerAlerts(!useNormalSticks);
         configureBindings(!useNormalSticks);
         // ******************************************************************* //
 
@@ -141,33 +139,24 @@ public class Robot extends TimedRobot {
         NamedCommands.registerCommand("IntakeCommand", new IntakeNoteCommand());
 
         autoChooser = AutoBuilder.buildAutoChooser();
-        SmartDashboard.putData(autoChooser);
+        SmartDashboard.putData("Auto Chooser", autoChooser);
 
-        CameraServer.startAutomaticCapture();
-    }
-
-    private void registerAlerts(boolean xboxOnly) {
-        IOManager.getAlert("Idle Voltage Low", AlertType.WARNING)
-                .setCondition(() -> Robot.pdh.getVoltage() < 12 && Robot.pdh.getTotalCurrent() <= 2.5);
-
-        DriverStation.silenceJoystickConnectionWarning(true);
-        IOManager.getAlert("Joystick Not Connected", AlertType.ERROR)
-                .setCondition(() ->
-                        !DriverStation.isJoystickConnected(0)
-                                || !DriverStation.isJoystickConnected(1)
-                                || !DriverStation.isJoystickConnected(2));
-
-        IOManager.getAlert("Debug mode enabled", AlertType.INFO)
-                .setCondition(() -> DEBUG_LOGGING_ENABLED)
-                .setPersistent(true);
-
-        if (!xboxOnly) {
-            IOManager.getAlert("Slow mode enabled", AlertType.INFO)
-                    .setCondition(() ->
-                            leftStick.getPresetName().equalsIgnoreCase("Slow Mode") ||
-                                    rightStick.getPresetName().equalsIgnoreCase("Slow Mode"))
-                    .setPersistent(false);
+        try {
+            UsbCamera camera = CameraServer.startAutomaticCapture();
+            camera.setResolution(360, 240);
+        } catch (Exception ex) {
+            new Alert("Failed to configure operator camera!", AlertType.ERROR).set(true);
         }
+
+        if (PHOTON_TUNING_ENABLED)   { new Alert("Photon Tuning Enabled",  WARNING).set(true); }
+        if (SHOOTER_TUNING_ENABLED)  { new Alert("Shooter Tuning Enabled", WARNING).set(true); }
+        if (DEBUG_LOGGING_ENABLED)   { new Alert("Debug Logging Enabled",  WARNING).set(true); }
+        if (INDEX_TUNING_ENABLED)    { new Alert("Index Tuning Enabled",   WARNING).set(true); }
+        if (INTAKE_TUNING_ENABLED)   { new Alert("Intake Tuning Enabled",  WARNING).set(true); }
+        if (WRIST_TUNING_ENABLED)    { new Alert("Wrist Tuning Enabled",   WARNING).set(true); }
+        if (CLIMBER_TUNING_ENABLED)  { new Alert("Climber Tuning Enabled", WARNING).set(true); }
+        if (TRAP_ARM_TUNING_ENABLED) { new Alert("Arm Tuning Enabled",     WARNING).set(true); }
+        if (SWERVE_TUNING_ENABLED)   { new Alert("Swerve Tuning Enabled",  WARNING).set(true); }
     }
 
     /**
@@ -181,13 +170,13 @@ public class Robot extends TimedRobot {
      */
     private void configureBindings(boolean xboxOnly) {
         if (xboxOnly) {
-            IOManager.info(this, "Xbox-only/Simulation mode detected.");
+            System.out.println("Xbox-only/Simulation mode detected.");
             Robot.swerve.setDefaultCommand(Robot.swerve.runEnd(
                     () -> Robot.swerve.drive(xbox),
                     () -> Robot.swerve.lockPose())
             );
         } else {
-            IOManager.info(this, "Regular mode detected.");
+            System.out.println("Regular mode detected.");
             Robot.swerve.setDefaultCommand(Robot.swerve.runEnd(
                     () -> Robot.swerve.drive(leftStick, rightStick),
                     () -> Robot.swerve.lockPose())
@@ -230,7 +219,6 @@ public class Robot extends TimedRobot {
                 () -> Robot.climber.moveRightDown(),
                 () -> Robot.climber.stopRight()
         ));
-
     }
 
 
@@ -251,19 +239,16 @@ public class Robot extends TimedRobot {
         // block in order for anything in the Command-based framework to work.
         CommandScheduler.getInstance().run();
         Robot.frontCamera.update();
-        IOManager.run();
+
+        if (System.currentTimeMillis() >= nextUpdateMillis) {
+            lowVoltageAlert.set(Robot.pdh.getVoltage() <= 11.0 && Robot.pdh.getTotalCurrent() >= 2.0);
+            slowModeAlert.set(Robot.leftStick.getPresetName().equals("Slow Mode"));
+            nextUpdateMillis = System.currentTimeMillis() + 2000;
+        }
     }
 
-    @Override
-    public void autonomousInit() {
-        autoChooser.getSelected().schedule();
-    }
-
+    @Override public void autonomousInit() { autoChooser.getSelected().schedule(); }
     @Override public void disabledInit() { CommandScheduler.getInstance().cancelAll(); }
     @Override public void testInit() { CommandScheduler.getInstance().cancelAll(); }
-
-    @Override
-    public void teleopInit() {
-        CommandScheduler.getInstance().cancelAll();
-    }
+    @Override public void teleopInit() { CommandScheduler.getInstance().cancelAll(); }
 }

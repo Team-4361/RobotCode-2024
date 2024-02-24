@@ -50,6 +50,8 @@ public class ShooterSubsystem extends SubsystemBase {
     public void periodic() {
         if (shootTune != null)
             shootTune.update();
+        if (delayTune != null)
+            delayTune.update();
     }
 
     /**

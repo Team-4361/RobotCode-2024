@@ -53,7 +53,6 @@ public class TrapArmSubsystem extends SubsystemBase {
     public void periodic() {
         mechanism.update();
         extensionPosition = linearServo.getPosition() * ARM_SERVO_MAX_MM;
-        SmartDashboard.putNumber("Arm Position", extensionPosition);
     }
 
     public void registerAnglePresets(PresetMap<Double> map) {

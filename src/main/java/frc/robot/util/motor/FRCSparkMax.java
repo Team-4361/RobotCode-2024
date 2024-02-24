@@ -9,13 +9,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
-import frc.robot.Constants;
-import frc.robot.util.io.Alert;
-import frc.robot.util.io.AlertType;
-import frc.robot.util.io.IOManager;
 import frc.robot.util.math.GearRatio;
-
-import static frc.robot.Constants.AlertConfig.STRING_MOTOR_OVER_TEMP;
 
 /**
  * This class enables a safe interaction with {@link CANSparkMax} motors; temperature control and watchdogs
@@ -175,9 +169,6 @@ public class FRCSparkMax extends CANSparkMax implements IMotorModel {
         enableVoltageCompensation(12.0);
 
         if (RobotBase.isSimulation()) {
-            IOManager.warnOnFail(setSimFreeSpeed(model.getFreeSpeedRPM()));
-            IOManager.warnOnFail(setSimStallTorque(model.getStallTorqueNM()));
-
             motorSim = new DCMotorSim(model.getMotorInstance(1), ratio.getDivisor(), 0.025);
             lastSimUpdateMillis = System.currentTimeMillis();
         } else { motorSim = null; }
