@@ -47,6 +47,11 @@ public class ClimberSubsystem extends SubsystemBase {
         }
     }
 
+    public void reset() {
+        leftEncoder.setPosition(0);
+        rightEncoder.setPosition(0);
+    }
+
     public boolean isLeftRetracted() { return leftSensor.get(); }
     public boolean isRightRetracted() { return rightSensor.get(); }
 
@@ -73,7 +78,9 @@ public class ClimberSubsystem extends SubsystemBase {
         if (speedTune != null)
             speedTune.update();
 
-        SmartDashboard.putBoolean("Climber: Left Activated", leftSensor.get());
-        SmartDashboard.putBoolean("Climber: Right Activated", rightSensor.get());
+       // SmartDashboard.putBoolean("Climber: Left Activated", leftSensor.get());
+       // SmartDashboard.putBoolean("Climber: Right Activated", rightSensor.get());
+       SmartDashboard.putNumber("Climber: Left Position", leftEncoder.getPosition());
+       SmartDashboard.putNumber("Climber: Right Position", rightEncoder.getPosition());
     }
 }

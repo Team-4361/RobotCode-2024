@@ -236,7 +236,7 @@ public class Robot extends TimedRobot {
 
         if (!xboxOnly) {
             leftStick.button(10).onTrue(Commands.runOnce(() -> drivePresets.nextPreset(true)));
-            leftStick.button(11).onTrue(swerve.resetCommand());
+            leftStick.button(11).onTrue(swerve.resetCommand().andThen(() -> Robot.climber.reset()));
             leftStick.button(12).onTrue(swerve.toggleFieldOrientedCommand());
             leftStick.trigger().whileTrue(Commands.runEnd(
                     () -> drivePresets.setPreset(1),
@@ -254,19 +254,19 @@ public class Robot extends TimedRobot {
         xbox.b().whileTrue(new IntakeNoteCommand());
         xbox.a().onTrue(new ShootCommand());
 
-        xbox.leftTrigger().whileTrue(Robot.climber.runEnd(
+        xbox.leftTrigger().whileTrue(Commands.runEnd(
                 () -> Robot.climber.moveLeftUp(),
                 () -> Robot.climber.stopLeft()
         ));
-        xbox.rightTrigger().whileTrue(Robot.climber.runEnd(
+        xbox.rightTrigger().whileTrue(Commands.runEnd(
                 () -> Robot.climber.moveRightUp(),
                 () -> Robot.climber.stopRight()
         ));
-        xbox.leftBumper().whileTrue(Robot.climber.runEnd(
+        xbox.leftBumper().whileTrue(Commands.runEnd(
                 () -> Robot.climber.moveLeftDown(),
                 () -> Robot.climber.stopLeft()
         ));
-        xbox.rightBumper().whileTrue(Robot.climber.runEnd(
+        xbox.rightBumper().whileTrue(Commands.runEnd(
                 () -> Robot.climber.moveRightDown(),
                 () -> Robot.climber.stopRight()
         ));
