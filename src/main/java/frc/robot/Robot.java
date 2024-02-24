@@ -97,15 +97,15 @@ public class Robot extends TimedRobot {
                             }
                             Imgproc.line(
                                     mat,
-                                    new Point((width/2.0)-125-(thickness*4), height),
-                                    new Point((width/2.0)-(thickness*4), height-100),
+                                    new Point((width/2.0)-125-(thickness*5), height),
+                                    new Point((width/2.0)-(thickness*5), height-100),
                                     new Scalar(255, 255, 0),
                                     (int)thickness
                             );
                             Imgproc.line(
                                     mat,
-                                    new Point((width/2.0)+125-(thickness*4), height),
-                                    new Point((width/2.0)-(thickness*4), height-100),
+                                    new Point((width/2.0)+125-(thickness*5), height),
+                                    new Point((width/2.0)-(thickness*5), height-100),
                                     new Scalar(255, 255, 0),
                                     (int)thickness
                             );

@@ -41,7 +41,7 @@
               "Visuals/Counter clockwise": false
             }
           },
-          "9,0": {
+          "2,3": {
             "size": [
               1,
               1
@@ -54,7 +54,7 @@
               "_showGlyph": false
             }
           },
-          "9,1": {
+          "3,3": {
             "size": [
               1,
               1
@@ -63,19 +63,6 @@
               "_type": "Alerts",
               "_source0": "network_table:///SmartDashboard/Motors",
               "_title": "Motors",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
-          "9,2": {
-            "size": [
-              1,
-              1
-            ],
-            "content": {
-              "_type": "Alerts",
-              "_source0": "network_table:///SmartDashboard/Swerve Drive",
-              "_title": "Swerve Drive",
               "_glyph": 148,
               "_showGlyph": false
             }
@@ -138,27 +125,6 @@
               "Colors/Color when false": "#8B0000FF"
             }
           },
-          "4,0": {
-            "size": [
-              5,
-              3
-            ],
-            "content": {
-              "_type": "Camera Stream",
-              "_source0": "camera_server://USB Camera 0",
-              "_title": "USB Camera 0",
-              "_glyph": 148,
-              "_showGlyph": false,
-              "Crosshair/Show crosshair": true,
-              "Crosshair/Crosshair color": "#FFFFFFFF",
-              "Controls/Show controls": false,
-              "Controls/Rotation": "NONE",
-              "compression": -1.0,
-              "fps": -1,
-              "imageWidth": 0,
-              "imageHeight": 0
-            }
-          },
           "0,3": {
             "size": [
               1,
@@ -183,6 +149,27 @@
               "_title": "JSON",
               "_glyph": 148,
               "_showGlyph": false
+            }
+          },
+          "4,0": {
+            "size": [
+              6,
+              3
+            ],
+            "content": {
+              "_type": "Camera Stream",
+              "_source0": "camera_server://Front Camera",
+              "_title": "Front Camera",
+              "_glyph": 148,
+              "_showGlyph": false,
+              "Crosshair/Show crosshair": true,
+              "Crosshair/Crosshair color": "#FFFFFFFF",
+              "Controls/Show controls": false,
+              "Controls/Rotation": "NONE",
+              "compression": -1.0,
+              "fps": -1,
+              "imageWidth": 0,
+              "imageHeight": 0
             }
           }
         }
