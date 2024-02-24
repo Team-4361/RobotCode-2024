@@ -37,8 +37,7 @@ import static edu.wpi.first.wpilibj.Filesystem.getDeployDirectory;
 import static frc.robot.Constants.Chassis.MAX_SPEED_MPS;
 import static frc.robot.Constants.Chassis.SIDE_LENGTH_METERS;
 import static frc.robot.Constants.Debug.SWERVE_TUNING_ENABLED;
-import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.MACHINE;
-import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.NONE;
+import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.*;
 
 /**
  * This {@link SwerveDriveSubsystem} is designed to be used for controlling the {@link SwerveModule}s, and utilizing
@@ -181,7 +180,7 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
         setHeadingCorrection(false);
         setCosineCompensator(false);
         setMotorIdleMode(true);
-        SwerveDriveTelemetry.verbosity = NONE;
+        SwerveDriveTelemetry.verbosity = SWERVE_TUNING_ENABLED ? HIGH : NONE;
 
         AutoBuilder.configureHolonomic(
                 this::getPose,
