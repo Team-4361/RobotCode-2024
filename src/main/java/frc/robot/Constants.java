@@ -29,7 +29,7 @@ public class Constants {
         public static final boolean CLIMBER_TUNING_ENABLED = false;
         public static final boolean TRAP_ARM_TUNING_ENABLED = false;
         public static final boolean PHOTON_ENABLED = false;
-        public static final boolean SWERVE_TUNING_ENABLED = false;
+        public static final boolean SWERVE_TUNING_ENABLED = true;
     }
 
 

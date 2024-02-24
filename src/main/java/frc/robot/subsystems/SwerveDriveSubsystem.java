@@ -7,6 +7,7 @@ import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
@@ -202,13 +203,22 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
     public void setStates(SwerveModuleState[] states) { this.setModuleStates(states, false); }
 
     @Override
+    public Pose2d getPose() {
+        Pose2d current = super.getPose();
+        Translation2d translation = current.getTranslation();
+        return new Pose2d(new Translation2d(-translation.getX(), -translation.getY()), current.getRotation());
+    }
+
+    @Override
     public void periodic() {
         if (SWERVE_TUNING_ENABLED) {
             SmartDashboard.putNumber("FL Turn", getModuleMap().get("frontleft").getAbsolutePosition());
             SmartDashboard.putNumber("FR Turn", getModuleMap().get("frontright").getAbsolutePosition());
             SmartDashboard.putNumber("BL Turn", getModuleMap().get("backleft").getAbsolutePosition());
             SmartDashboard.putNumber("BR Turn", getModuleMap().get("backright").getAbsolutePosition());
+            SmartDashboard.putString("Pose", getPose().toString());
         }
+        
     }
 
     /**
@@ -224,7 +234,7 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
         ChassisSpeeds speeds = new ChassisSpeeds(xS, yS, tS);
 
         if (fieldOriented)
-            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getOdometryHeading());
+            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getYaw());
 
         this.drive(speeds);
     }
@@ -248,7 +258,6 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
     }
 
     public void reset(Pose2d pose) {
-        this.zeroGyro();
         this.resetDriveEncoders();
         this.resetOdometry(pose);
     }
