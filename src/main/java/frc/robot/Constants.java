@@ -1,25 +1,13 @@
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DriverStation;
-import frc.robot.util.joystick.DriveMode;
-import frc.robot.util.joystick.IDriveMode;
 import frc.robot.util.math.GearRatio;
 import frc.robot.util.math.PeakMotorDistance;
 import frc.robot.util.pid.PIDConstantsAK;
 import frc.robot.util.preset.PresetGroup;
 import frc.robot.util.preset.PresetMap;
-import swervelib.telemetry.Alert;
-
-import java.util.function.Supplier;
 
 import static edu.wpi.first.units.Units.Inches;
-import static swervelib.telemetry.Alert.AlertType.INFO;
-import static swervelib.telemetry.Alert.AlertType.WARNING;
 
 /**
  * This {@link Constants} class is an easy-to-use place for fixed value storage (ex. motor/controller IDs,
@@ -87,7 +75,7 @@ public class Constants {
         public static final PIDConstantsAK WRIST_PID = new PIDConstantsAK(0.02, 0, 0);
     }
 
-    public static class Climber{
+    public static class Climber {
         public static final int CLIMBER_LEFT_ID = 13;
         public static final int CLIMBER_RIGHT_ID = 14;
         public static final int CLIMBER_LEFT_DIO = 1;
@@ -125,6 +113,12 @@ public class Constants {
 
         /** The default dead-zone value to use on Controllers. */
         public static final double DEAD_ZONE = 0.05;
+    }
+
+    public static class ShooterCamera {
+        public static final String SHOOT_CAMERA_NAME = "Shooter Camera";
+        public static final double SHOOT_CAMERA_HEIGHT_METERS = Units.inchesToMeters(27);
+        public static final double SHOOT_CAMERA_PITCH_DEGREES = 20;
     }
 
     public static class Presets {

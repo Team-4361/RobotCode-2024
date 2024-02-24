@@ -30,7 +30,6 @@ import frc.robot.commands.DriveToAprilTagCommand;
 import frc.robot.commands.IntakeNoteCommand;
 import frc.robot.commands.ShootCommand;
 import frc.robot.subsystems.*;
-import frc.robot.util.auto.AprilTagName;
 import frc.robot.util.auto.PhotonCameraModule;
 import frc.robot.util.joystick.DriveJoystick;
 import frc.robot.util.joystick.DriveMode;
@@ -45,6 +44,7 @@ import swervelib.telemetry.Alert.AlertType;
 
 import static frc.robot.Constants.Control.*;
 import static frc.robot.Constants.Debug.*;
+import static frc.robot.Constants.ShooterCamera.*;
 import static swervelib.telemetry.Alert.AlertType.WARNING;
 
 
@@ -61,7 +61,7 @@ public class Robot extends TimedRobot {
     public static DriveJoystick rightStick;
     public static SwerveDriveSubsystem swerve;
     public static PresetGroup drivePresets;
-    public static PhotonCameraModule frontCamera;
+    public static PhotonCameraModule shooterCamera;
     public static ShooterSubsystem shooter;
     public static IntakeSubsystem intake;
     public static IndexSubsystem index;
@@ -177,10 +177,10 @@ public class Robot extends TimedRobot {
         wrist = new TrapWristSubsystem();
         climber = new ClimberSubsystem();
         arm = new TrapArmSubsystem();
-        frontCamera = new PhotonCameraModule(
-                "FrontCamera",
-                Units.inchesToMeters(27),
-                0
+        shooterCamera = new PhotonCameraModule(
+                SHOOT_CAMERA_NAME,
+                SHOOT_CAMERA_HEIGHT_METERS,
+                SHOOT_CAMERA_PITCH_DEGREES
         );
 
         if (!RobotBase.isSimulation())
@@ -239,7 +239,7 @@ public class Robot extends TimedRobot {
             leftStick.button(11).onTrue(swerve.resetCommand());
             leftStick.button(12).onTrue(swerve.toggleFieldOrientedCommand());
             leftStick.trigger().whileTrue(Commands.runEnd(
-                    () -> drivePresets.setPreset(2),
+                    () -> drivePresets.setPreset(1),
                     () -> drivePresets.setPreset(0)
             ));
             leftStick.button(2).whileTrue(Commands.run(() -> swerve.lockPose()));
@@ -289,7 +289,7 @@ public class Robot extends TimedRobot {
         // and running subsystem periodic() methods.  This must be called from the robot's periodic
         // block in order for anything in the Command-based framework to work.
         CommandScheduler.getInstance().run();
-        Robot.frontCamera.update();
+        Robot.shooterCamera.update();
 
         if (System.currentTimeMillis() >= nextUpdateMillis) {
             lowVoltageAlert.set(Robot.pdh.getVoltage() <= 11.0 && Robot.pdh.getTotalCurrent() >= 2.0);

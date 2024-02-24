@@ -43,7 +43,7 @@ public class DriveToAprilTagCommand extends Command {
 
     @Override
     public void initialize() {
-        Robot.frontCamera.setTargetHeight(targetHeightMeters);
+        Robot.shooterCamera.setTargetHeight(targetHeightMeters);
 
         initTimeout = System.currentTimeMillis() + 5000;
         noTarget = false;
@@ -55,8 +55,8 @@ public class DriveToAprilTagCommand extends Command {
      */
     @Override
     public void execute() {
-        Optional<Pose2d> storedPose = Robot.frontCamera.getTrackedPose();
-        if (storedPose.isEmpty() || (id > 0 && Robot.frontCamera.getAprilTagID() != id)) {
+        Optional<Pose2d> storedPose = Robot.shooterCamera.getTrackedPose();
+        if (storedPose.isEmpty() || (id > 0 && Robot.shooterCamera.getAprilTagID() != id)) {
             Robot.swerve.stop();
             if (!firstTarget && System.currentTimeMillis() > initTimeout) {
                 noTarget = true;
@@ -73,11 +73,11 @@ public class DriveToAprilTagCommand extends Command {
     }
 
     private ChassisSpeeds calculateSpeeds() {
-        PIDController driveController = Robot.frontCamera.getDriveController();
-        PIDController turnController = Robot.frontCamera.getTurnController();
+        PIDController driveController = Robot.shooterCamera.getDriveController();
+        PIDController turnController = Robot.shooterCamera.getTurnController();
 
         //double mX = PHOTON_DRIVE_MAX_SPEED.getValue();
-        double mX = Robot.frontCamera.getMaxDriveSpeed();
+        double mX = Robot.shooterCamera.getMaxDriveSpeed();
         double jX = MathUtil.clamp(driveController.calculate(currentPose.getX(), desiredPose.getX()), -mX, mX);
         double jY = MathUtil.clamp(driveController.calculate(currentPose.getY(), desiredPose.getY()),-mX,mX);
         double jO = MathUtil.clamp(
