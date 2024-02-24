@@ -102,11 +102,17 @@ public class PhotonCameraModule extends PhotonCamera {
                     Rotation2d.fromDegrees(targetTransform.getRotation().getAngle())
             );
             lastFoundMillis = System.currentTimeMillis();
-            SmartDashboard.putString("Photon Pose", trackedPose.toString());
+
+            Optional<AprilTagName> name = AprilTagName.fromID(aprilTagID);
+            if (name.isPresent()) {
+                SmartDashboard.putString("Found Tag", name.toString());
+            } else {
+                SmartDashboard.putString("Found Tag", "NONE");
+            }
         } else {
             if (System.currentTimeMillis() >= lastFoundMillis+500) {
                 trackedPose = null;
-                SmartDashboard.putString("Photon Pose", "NONE");
+                SmartDashboard.putString("Found Tag", "NONE");
             }
         }
     }

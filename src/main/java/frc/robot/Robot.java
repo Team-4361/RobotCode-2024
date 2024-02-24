@@ -27,6 +27,7 @@ import frc.robot.commands.DriveToAprilTagCommand;
 import frc.robot.commands.IntakeNoteCommand;
 import frc.robot.commands.ShootCommand;
 import frc.robot.subsystems.*;
+import frc.robot.util.auto.AprilTagName;
 import frc.robot.util.auto.PhotonCameraModule;
 import frc.robot.util.joystick.DriveJoystick;
 import frc.robot.util.joystick.DriveMode;
