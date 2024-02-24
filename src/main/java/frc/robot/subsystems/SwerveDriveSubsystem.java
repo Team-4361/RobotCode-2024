@@ -8,24 +8,24 @@ import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.*;
-import frc.robot.Robot;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.util.joystick.DriveHIDBase;
-import frc.robot.util.pid.DashTunablePID;
 import swervelib.SwerveDrive;
 import swervelib.SwerveModule;
 import swervelib.math.SwerveMath;
-import swervelib.parser.*;
+import swervelib.parser.SwerveControllerConfiguration;
+import swervelib.parser.SwerveDriveConfiguration;
+import swervelib.parser.SwerveModuleConfiguration;
+import swervelib.parser.SwerveParser;
 import swervelib.parser.json.ModuleJson;
 import swervelib.telemetry.SwerveDriveTelemetry;
 
@@ -34,11 +34,11 @@ import java.io.IOException;
 import java.util.Optional;
 
 import static edu.wpi.first.wpilibj.Filesystem.getDeployDirectory;
-import static frc.robot.Constants.Chassis.*;
+import static frc.robot.Constants.Chassis.MAX_SPEED_MPS;
+import static frc.robot.Constants.Chassis.SIDE_LENGTH_METERS;
 import static frc.robot.Constants.Debug.SWERVE_TUNING_ENABLED;
-import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.HIGH;
-import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.LOW;
 import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.MACHINE;
+import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.NONE;
 
 /**
  * This {@link SwerveDriveSubsystem} is designed to be used for controlling the {@link SwerveModule}s, and utilizing
@@ -181,7 +181,7 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
         setHeadingCorrection(false);
         setCosineCompensator(false);
         setMotorIdleMode(true);
-        SwerveDriveTelemetry.verbosity = MACHINE;
+        SwerveDriveTelemetry.verbosity = NONE;
 
         AutoBuilder.configureHolonomic(
                 this::getPose,

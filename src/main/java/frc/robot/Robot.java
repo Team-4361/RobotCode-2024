@@ -8,6 +8,8 @@ package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.CvSink;
+import edu.wpi.first.cscore.CvSource;
 import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -15,6 +17,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -33,6 +36,10 @@ import frc.robot.util.joystick.DriveJoystick;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.DriveXboxController;
 import frc.robot.util.preset.PresetGroup;
+import org.opencv.core.Mat;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
 import swervelib.telemetry.Alert;
 import swervelib.telemetry.Alert.AlertType;
 
@@ -67,6 +74,53 @@ public class Robot extends TimedRobot {
     private final Alert slowModeAlert = new Alert("Slow Mode Activated", AlertType.INFO);
     private long nextUpdateMillis = System.currentTimeMillis();
 
+    private void startDriverCamera() {
+        int width = 360;
+        int height = 240;
+        Thread camThread = new Thread(
+                () -> {
+                    try {
+                        UsbCamera camera = CameraServer.startAutomaticCapture();
+                        if (!RobotBase.isSimulation()) {
+                            camera.setResolution(width, height);
+                        }
+
+                        CvSink cvSink = CameraServer.getVideo();
+                        CvSource outputStream = CameraServer.putVideo("Front Camera", width, height);
+                        Mat mat = new Mat();
+                        double thickness = 4.0;
+
+                        while (!Thread.currentThread().isInterrupted()) {
+                            if (cvSink.grabFrame(mat) == 0) {
+                                outputStream.notifyError(cvSink.getError());
+                                continue;
+                            }
+                            Imgproc.line(
+                                    mat,
+                                    new Point((width/2.0)-125-(thickness*4), height),
+                                    new Point((width/2.0)-(thickness*4), height-100),
+                                    new Scalar(255, 255, 0),
+                                    (int)thickness
+                            );
+                            Imgproc.line(
+                                    mat,
+                                    new Point((width/2.0)+125-(thickness*4), height),
+                                    new Point((width/2.0)-(thickness*4), height-100),
+                                    new Scalar(255, 255, 0),
+                                    (int)thickness
+                            );
+                            outputStream.putFrame(mat);
+                        }
+
+                    } catch (Exception ex) {
+                        new Alert("Failed to configure operator camera!", AlertType.ERROR).set(true);
+                        Thread.currentThread().interrupt();
+                    }
+                }
+        );
+        camThread.setDaemon(true);
+        camThread.start();
+    }
 
     /**
      * This method is run when the robot is first started up and should be used for any
@@ -129,6 +183,9 @@ public class Robot extends TimedRobot {
                 0
         );
 
+        if (!RobotBase.isSimulation())
+            startDriverCamera();
+
         SwerveDriveSubsystem.initParser();
         swerve = new SwerveDriveSubsystem();
 
@@ -141,13 +198,6 @@ public class Robot extends TimedRobot {
 
         autoChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData("Auto Chooser", autoChooser);
-
-        try {
-            UsbCamera camera = CameraServer.startAutomaticCapture();
-            camera.setResolution(360, 240);
-        } catch (Exception ex) {
-            new Alert("Failed to configure operator camera!", AlertType.ERROR).set(true);
-        }
 
         if (PHOTON_TUNING_ENABLED)   { new Alert("Photon Tuning Enabled",  WARNING).set(true); }
         if (SHOOTER_TUNING_ENABLED)  { new Alert("Shooter Tuning Enabled", WARNING).set(true); }
