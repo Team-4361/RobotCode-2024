@@ -21,7 +21,6 @@ import java.util.function.Supplier;
 public class PresetMap<T> extends LinkedHashMap<String, T> implements IPresetContainer {
     private final String name;
     private final ArrayList<IPresetListener<T>> listeners;
-
     private Supplier<Boolean> completeSupplier;
     private boolean dashboardEnabled;
     private long completeDelayMs;
@@ -80,13 +79,11 @@ public class PresetMap<T> extends LinkedHashMap<String, T> implements IPresetCon
     /**
      * Sets if the {@link PresetMap} should be logged to {@link SmartDashboard}.
      * @param value The {@link Boolean} value to use.
-     * @return      The current {@link PresetMap} with the modification.
      */
-    @SuppressWarnings("UnusedReturnValue")
-    public PresetMap<T> setDashboardEnabled(boolean value) {
+    public void setDashboardEnabled(boolean value) {
         this.dashboardEnabled = value;
-        if (value) SmartDashboard.putString(getName(), getSelectedName());
-        return this;
+        if (value)
+            SmartDashboard.putString(getName(), getSelectedName());
     }
 
     /**
@@ -177,7 +174,7 @@ public class PresetMap<T> extends LinkedHashMap<String, T> implements IPresetCon
         this.startMs = System.currentTimeMillis();
         listeners.forEach(o -> o.onPresetAdjust(getSelectedName(), get(getSelectedName())));
         if (dashboardEnabled)
-            SmartDashboard.putString(getName(), getSelectedName() + " index is " + index);
+            SmartDashboard.putString(getName() + " : Preset", getSelectedName());
         return true;
     }
 
@@ -195,6 +192,11 @@ public class PresetMap<T> extends LinkedHashMap<String, T> implements IPresetCon
             idx++;
         }
         return false;
+    }
+
+    public void setPresets(LinkedHashMap<String, T> map) {
+        clear();
+        putAll(map);
     }
 
     /** @return The name of the currently selected Preset */

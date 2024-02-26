@@ -2,29 +2,43 @@ package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.*;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Robot;
-import frc.robot.util.io.AlertType;
-import frc.robot.util.io.IOManager;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.util.joystick.DriveHIDBase;
-import frc.robot.util.swerve.SwerveModule;
+import swervelib.SwerveDrive;
+import swervelib.SwerveModule;
+import swervelib.math.SwerveMath;
+import swervelib.parser.SwerveControllerConfiguration;
+import swervelib.parser.SwerveDriveConfiguration;
+import swervelib.parser.SwerveModuleConfiguration;
+import swervelib.parser.SwerveParser;
+import swervelib.parser.json.ModuleJson;
+import swervelib.telemetry.SwerveDriveTelemetry;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Optional;
 
-import static frc.robot.Constants.AlertConfig.STRING_GYRO_CALIBRATING;
-import static frc.robot.Constants.Chassis.*;
-import static frc.robot.Constants.LooperConfig.*;
+import static edu.wpi.first.wpilibj.Filesystem.getDeployDirectory;
+import static frc.robot.Constants.Chassis.MAX_SPEED_MPS;
+import static frc.robot.Constants.Chassis.SIDE_LENGTH_METERS;
+import static frc.robot.Constants.Debug.SWERVE_TUNING_ENABLED;
+import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.*;
 
 /**
  * This {@link SwerveDriveSubsystem} is designed to be used for controlling the {@link SwerveModule}s, and utilizing
@@ -34,29 +48,14 @@ import static frc.robot.Constants.LooperConfig.*;
  * @since 0.0.0
  * @author Eric Gold
  */
-public class SwerveDriveSubsystem extends SubsystemBase {
-    private final SwerveDriveKinematics kinematics;
-    private final SwerveDriveOdometry odometry;
-    private final SwerveModule frontLeft;
-    private final SwerveModule frontRight;
-    private final SwerveModule backLeft;
-    private final SwerveModule backRight;
-    private final AHRS gyro;
+public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Sendable {
+    public boolean fieldOriented = true;
+    private static SwerveDriveConfiguration driveConfig = null;
+    private static SwerveControllerConfiguration controllerConfig = null;
 
-    // Used for keeping the gyro angle at zero when the floor
-    // is not PERFECTLY flat. A YAW OFFSET is not required due to integrated
-    // functionality in the gyroscope.
-    private double rollOffset;
-    private double pitchOffset;
-
-    public static boolean fieldOriented = true;
-    public static boolean closedLoop = false;
 
     /** @return A {@link Command} used to toggle teleoperated field-oriented. */
     public Command toggleFieldOrientedCommand() { return Commands.runOnce(() -> fieldOriented = !fieldOriented); }
-
-    /** @return A {@link Command} used to toggle teleoperated closed-loop. */
-    public Command toggleClosedLoopCommand() { return Commands.runOnce(() -> closedLoop = !closedLoop); }
 
     public Command resetCommand() { return Commands.runOnce(this::reset); }
 
@@ -68,54 +67,130 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                         new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
                         new SwerveModuleState(0, Rotation2d.fromDegrees(0)),
                         new SwerveModuleState(0, Rotation2d.fromDegrees(0))
-                }, false);
+                });
     }
 
     /**
-     * Constructs a new {@link SwerveDriveSubsystem} with the specified modules.
-     * @param frontLeft  The front left {@link SwerveModule} to use.
-     * @param frontRight The front right {@link SwerveModule} to use.
-     * @param backLeft   The back left {@link SwerveModule} to use.
-     * @param backRight  The back right {@link SwerveModule} to use.
+     * Use PathPlanner Path finding to go to a point on the field.
+     *
+     * @param pose Target {@link Pose2d} to go to.
+     * @return PathFinding command
      */
-    public SwerveDriveSubsystem(SwerveModule frontLeft,
-                                SwerveModule frontRight,
-                                SwerveModule backLeft,
-                                SwerveModule backRight) {
-        this.frontLeft = frontLeft;
-        this.frontRight = frontRight;
-        this.backLeft = backLeft;
-        this.backRight = backRight;
-        this.pitchOffset = 0;
-        this.rollOffset = 0;
+    public Command driveToPose(Pose2d pose) {
+        PathConstraints constraints = new PathConstraints(
+                getMaximumVelocity(), 4.0,
+                getMaximumAngularVelocity(), Units.degreesToRadians(720));
 
-        this.gyro = new AHRS(SPI.Port.kMXP);
-        this.gyro.reset();
-
-        // Define the distances relative to the center of the robot. +X is forward and +Y is left.
-        this.kinematics = new SwerveDriveKinematics(
-                new Translation2d(SWERVE_CHASSIS_SIDE_LENGTH / 2, SWERVE_CHASSIS_SIDE_LENGTH / 2),  // FL
-                new Translation2d(SWERVE_CHASSIS_SIDE_LENGTH / 2, -SWERVE_CHASSIS_SIDE_LENGTH / 2), // FR
-                new Translation2d(-SWERVE_CHASSIS_SIDE_LENGTH / 2, SWERVE_CHASSIS_SIDE_LENGTH / 2), // BL
-                new Translation2d(-SWERVE_CHASSIS_SIDE_LENGTH / 2, -SWERVE_CHASSIS_SIDE_LENGTH / 2) // BR
+        return AutoBuilder.pathfindToPose(
+                pose,
+                constraints,
+                0.0,
+                0.0
         );
-        this.odometry = new SwerveDriveOdometry(kinematics, getHeading(), getPositions());
-        IOManager.getAlert(STRING_GYRO_CALIBRATING, AlertType.WARNING)
-                .setCondition(gyro::isCalibrating)
-                .setPersistent(false)
-                .setDisableDelay(2000)
-                .setOneUse(false);
+    }
+
+
+    /**
+     * Initializes the {@link SwerveParser} and auto-generates all configuration information based on the files.
+     * @return True if the operation was successful; false otherwise.
+     */
+    public static boolean initParser() {
+        if (driveConfig != null && controllerConfig != null)
+            return true; // already complete.
+        try {
+            new SwerveParser(new File(getDeployDirectory(), "swerve"));
+
+            SwerveParser.physicalPropertiesJson.conversionFactor.drive = SwerveMath.calculateMetersPerRotation(
+                    Units.inchesToMeters(4),
+                    6.75,
+                    1
+            );
+            SwerveParser.physicalPropertiesJson.conversionFactor.angle = SwerveMath.calculateDegreesPerSteeringRotation(
+                    12.8,
+                    1
+            );
+
+            // Upon a successful initialization, create the drive instance using the static variables.
+            SwerveModuleConfiguration[] moduleConfigurations =
+                    new SwerveModuleConfiguration[SwerveParser.moduleJsons.length];
+
+            for (int i = 0; i < moduleConfigurations.length; ++i) {
+                ModuleJson module = SwerveParser.moduleJsons[i];
+                moduleConfigurations[i] = module.createModuleConfiguration(
+                        SwerveParser.pidfPropertiesJson.angle,
+                        SwerveParser.pidfPropertiesJson.drive,
+                        SwerveParser.physicalPropertiesJson.createPhysicalProperties(),
+                        SwerveParser.swerveDriveJson.modules[i]);
+            }
+
+            driveConfig = new SwerveDriveConfiguration(
+                    moduleConfigurations,
+                    SwerveParser.swerveDriveJson.imu.createIMU(),
+                    SwerveParser.swerveDriveJson.invertedIMU,
+                    SwerveMath.createDriveFeedforward(
+                            SwerveParser.physicalPropertiesJson.optimalVoltage,
+                            MAX_SPEED_MPS,
+                            SwerveParser.physicalPropertiesJson.wheelGripCoefficientOfFriction
+                    ),
+                    SwerveParser.physicalPropertiesJson.createPhysicalProperties());
+
+            controllerConfig = SwerveParser.controllerPropertiesJson.createControllerConfiguration(
+                    driveConfig,
+                    MAX_SPEED_MPS
+            );
+            return true;
+        } catch (IOException ex) {
+            return false;
+        }
+    }
+
+    /** Gets the name of this {@link Subsystem}. */
+    @Override public String getName() { return SendableRegistry.getName(this); }
+
+    /**
+     * Initializes the {@link SendableBuilder} with information provided from this {@link Subsystem}.
+     * @param builder The {@link SendableBuilder} which is provided.
+     */
+    @Override
+    public void initSendable(SendableBuilder builder) {
+        builder.setSmartDashboardType("Subsystem");
+
+        builder.addBooleanProperty(".hasDefault", () -> getDefaultCommand() != null, null);
+        builder.addStringProperty(
+                ".default",
+                () -> getDefaultCommand() != null ? getDefaultCommand().getName() : "none",
+                null);
+        builder.addBooleanProperty(".hasCommand", () -> getCurrentCommand() != null, null);
+        builder.addStringProperty(
+                ".command",
+                () -> getCurrentCommand() != null ? getCurrentCommand().getName() : "none",
+                null);
+    }
+
+    /**
+     * Constructs a new {@link SwerveDriveSubsystem} with the specified modules. The {@link #initParser()} method
+     * <b>MUST</b> be called prior to calling this constructor!
+     */
+    public SwerveDriveSubsystem() {
+        super(
+                driveConfig,
+                controllerConfig,
+                MAX_SPEED_MPS
+        );
+
+        setHeadingCorrection(false);
+        setCosineCompensator(false);
+        setMotorIdleMode(true);
+        SwerveDriveTelemetry.verbosity = SWERVE_TUNING_ENABLED ? HIGH : NONE;
 
         AutoBuilder.configureHolonomic(
                 this::getPose,
                 this::reset,
                 this::getRobotVelocity,
-                this::drive,
+                this::setChassisSpeeds,
                 new HolonomicPathFollowerConfig(
-                        AUTO_DRIVE_PID_CONFIG,
-                        AUTO_TURN_PID_CONFIG,
                         MAX_SPEED_MPS,
-                        SWERVE_CHASSIS_SIDE_LENGTH/2,
+                        Math.hypot(SIDE_LENGTH_METERS/2, SIDE_LENGTH_METERS/2),
                         new ReplanningConfig()
                 ), () -> {
                     Optional<DriverStation.Alliance> alliance = DriverStation.getAlliance();
@@ -123,70 +198,27 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                 },
                 this
         );
-
-        //FRCSparkMax.burnAllFlash();
-
-        IOManager.addPeriodicIfExists(STRING_ODOMETRY_NAME, () -> odometry.update(getHeading(), getPositions()));
-        IOManager.addPeriodicIfExists(STRING_DASHBOARD_NAME, () -> {
-            SmartDashboard.putString("Odometry", getPose().toString());
-            frontLeft.updateDashboard();
-            frontRight.updateDashboard();
-            backLeft.updateDashboard();
-            backRight.updateDashboard();
-        });
     }
 
-    /**
-     * Gets the current field-relative velocity (x, y and omega) of the robot
-     *
-     * @return A ChassisSpeeds object of the current field-relative velocity
-     */
-    public ChassisSpeeds getFieldVelocity() {
-        // ChassisSpeeds has a method to convert from field-relative to robot-relative speeds,
-        // but not the reverse.  However, because this transform is a simple rotation, negating the
-        // angle
-        // given as the robot angle reverses the direction of rotation, and the conversion is reversed.
-        return ChassisSpeeds.fromFieldRelativeSpeeds(
-                kinematics.toChassisSpeeds(getStates()), getHeading().unaryMinus());
+    public void setStates(SwerveModuleState[] states) { this.setModuleStates(states, false); }
+
+    @Override
+    public Pose2d getPose() {
+        Pose2d current = super.getPose();
+        Translation2d translation = current.getTranslation();
+        return new Pose2d(new Translation2d(-translation.getX(), -translation.getY()), current.getRotation());
     }
 
-    /**
-     * Gets the current robot-relative velocity (x, y and omega) of the robot
-     *
-     * @return A ChassisSpeeds object of the current robot-relative velocity
-     */
-    public ChassisSpeeds getRobotVelocity() {
-        return kinematics.toChassisSpeeds(getStates());
-    }
-
-    /** @return The current roll of the {@link Robot} in <b>degrees</b>. */
-    public double getRoll() { return gyro.getRoll() - rollOffset; }
-
-    /** @return The current pitch of the {@link Robot} in <b>degrees</b>. */
-    public double getPitch() { return gyro.getPitch() - pitchOffset; }
-
-    /** @return The current yaw of the {@link Robot} in <b>degrees</b> (0-360) */
-    public double getYaw() { return gyro.getAngle() % 360; }
-
-    public Rotation2d getHeading() { return gyro.getRotation2d(); }
-
-    public void setStates(SwerveModuleState[] states, boolean isClosedLoop) {
-        SwerveDriveKinematics.desaturateWheelSpeeds(states, MAX_SPEED_MPS);
-
-        frontLeft.setState(states[0], isClosedLoop);
-        frontRight.setState(states[1], isClosedLoop);
-        backLeft.setState(states[2], isClosedLoop);
-        backRight.setState(states[3], isClosedLoop);
-    }
-
-    /** The registered {@link SwerveModuleState} list. */
-    public SwerveModuleState[] getStates() {
-        return new SwerveModuleState[]{
-                frontLeft.getState(),
-                frontRight.getState(),
-                backLeft.getState(),
-                backRight.getState()
-        };
+    @Override
+    public void periodic() {
+        if (SWERVE_TUNING_ENABLED) {
+            SmartDashboard.putNumber("FL Turn", getModuleMap().get("frontleft").getAbsolutePosition());
+            SmartDashboard.putNumber("FR Turn", getModuleMap().get("frontright").getAbsolutePosition());
+            SmartDashboard.putNumber("BL Turn", getModuleMap().get("backleft").getAbsolutePosition());
+            SmartDashboard.putNumber("BR Turn", getModuleMap().get("backright").getAbsolutePosition());
+            SmartDashboard.putString("Pose", getPose().toString());
+        }
+        
     }
 
     /**
@@ -202,11 +234,16 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         ChassisSpeeds speeds = new ChassisSpeeds(xS, yS, tS);
 
         if (fieldOriented)
-            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getHeading());
+            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getYaw());
 
-        driveRobotRelative(speeds, closedLoop);
+        this.drive(speeds);
     }
 
+    /**
+     * Drives the Robot using two Joysticks (one for XY, one for Twist)
+     * @param xyStick The {@link DriveHIDBase} to use for XY translation.
+     * @param twistStick The {@link DriveHIDBase} to use for Twist.
+     */
     public void drive(DriveHIDBase xyStick, DriveHIDBase twistStick) {
         double xS = xyStick.getRobotX() * MAX_SPEED_MPS;
         double yS = xyStick.getRobotY() * MAX_SPEED_MPS;
@@ -215,49 +252,15 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         ChassisSpeeds speeds = new ChassisSpeeds(xS, yS, tS);
 
         if (fieldOriented)
-            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getHeading());
+            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getOdometryHeading());
 
-        driveRobotRelative(speeds, closedLoop);
-    }
-
-    public void drive(ChassisSpeeds speeds) {
-        setStates(kinematics.toSwerveModuleStates(speeds), false);
-    }
-
-    public void driveRobotRelative(ChassisSpeeds speeds, boolean isClosedLoop) {
-        setStates(kinematics.toSwerveModuleStates(speeds), isClosedLoop);
-    }
-
-    public void lock() {
-        setStates(new SwerveModuleState[]{
-                new SwerveModuleState(0, Rotation2d.fromDegrees(90)),
-                new SwerveModuleState(0, Rotation2d.fromDegrees(90)),
-                new SwerveModuleState(0, Rotation2d.fromDegrees(90)),
-                new SwerveModuleState(0, Rotation2d.fromDegrees(90))
-        }, false);
+        this.drive(speeds);
     }
 
     public void reset(Pose2d pose) {
-        rollOffset = gyro.getRoll();
-        pitchOffset = gyro.getPitch();
-        gyro.reset();
-        odometry.resetPosition(gyro.getRotation2d(), getPositions(), pose);
+        this.resetDriveEncoders();
+        this.resetOdometry(pose);
     }
 
     public void reset() { reset(new Pose2d()); }
-
-    public SwerveModule getFrontLeft() { return frontLeft; }
-    public SwerveModule getFrontRight() { return frontRight; }
-    public SwerveModule getBackLeft() { return backLeft; }
-    public SwerveModule getBackRight() { return backRight; }
-    public SwerveDriveKinematics getKinematics() { return kinematics; }
-    public SwerveModulePosition[] getPositions() {
-        return new SwerveModulePosition[]{
-                frontLeft.getPosition(),
-                frontRight.getPosition(),
-                backLeft.getPosition(),
-                backRight.getPosition()
-        };
-    }
-    public Pose2d getPose() { return odometry.getPoseMeters(); }
 }

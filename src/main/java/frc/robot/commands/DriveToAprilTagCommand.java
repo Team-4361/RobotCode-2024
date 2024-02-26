@@ -9,21 +9,22 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
-import frc.robot.util.math.ExtendedMath;
+import frc.robot.util.math.GlobalUtils;
 
 import java.util.Optional;
 
 import static frc.robot.Constants.Chassis.MAX_SPEED_MPS;
-import static frc.robot.Constants.Control.PHOTON_DRIVE_MAX_SPEED;
-import static frc.robot.Constants.Control.PHOTON_TURN_MAX_SPEED;
+import static frc.robot.Constants.Chassis.PHOTON_TURN_MAX_SPEED;
 
 public class DriveToAprilTagCommand extends Command {
     private final Pose2d desiredPose;
-    private final int id;
     private final double targetHeightMeters;
+    private final int id;
 
     private Pose2d currentPose;
-    private boolean noTarget, firstTarget, stopOnEnd;
+    private boolean noTarget;
+    private boolean firstTarget;
+    private final boolean stopOnEnd;
     private long initTimeout = System.currentTimeMillis() + 5000;
 
     public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, int id, boolean stopOnEnd) {
@@ -32,8 +33,8 @@ public class DriveToAprilTagCommand extends Command {
         this.targetHeightMeters = targetHeightMeters;
         this.noTarget = false;
         this.firstTarget = false;
+        this.stopOnEnd = stopOnEnd;
         this.id = id;
-        addRequirements(Robot.swerve);
     }
 
     public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, boolean stopOnEnd) {
@@ -42,7 +43,7 @@ public class DriveToAprilTagCommand extends Command {
 
     @Override
     public void initialize() {
-        Robot.camera.setTargetHeight(targetHeightMeters);
+        Robot.shooterCamera.setTargetHeight(targetHeightMeters);
 
         initTimeout = System.currentTimeMillis() + 5000;
         noTarget = false;
@@ -54,8 +55,8 @@ public class DriveToAprilTagCommand extends Command {
      */
     @Override
     public void execute() {
-        Optional<Pose2d> storedPose = Robot.camera.getTrackedPose();
-        if (storedPose.isEmpty() || (id > 0 && Robot.camera.getAprilTagID() != id)) {
+        Optional<Pose2d> storedPose = Robot.shooterCamera.getTrackedPose();
+        if (storedPose.isEmpty() || (id > 0 && Robot.shooterCamera.getAprilTagID() != id)) {
             Robot.swerve.stop();
             if (!firstTarget && System.currentTimeMillis() > initTimeout) {
                 noTarget = true;
@@ -68,14 +69,15 @@ public class DriveToAprilTagCommand extends Command {
             firstTarget = false;
         currentPose = storedPose.get();
 
-        Robot.swerve.driveRobotRelative(calculateSpeeds(), false);
+        Robot.swerve.setChassisSpeeds(calculateSpeeds());
     }
 
     private ChassisSpeeds calculateSpeeds() {
-        PIDController driveController = Robot.camera.getDriveController();
-        PIDController turnController = Robot.camera.getTurnController();
+        PIDController driveController = Robot.shooterCamera.getDriveController();
+        PIDController turnController = Robot.shooterCamera.getTurnController();
 
-        double mX = PHOTON_DRIVE_MAX_SPEED.getValue();
+        //double mX = PHOTON_DRIVE_MAX_SPEED.getValue();
+        double mX = Robot.shooterCamera.getMaxDriveSpeed();
         double jX = MathUtil.clamp(driveController.calculate(currentPose.getX(), desiredPose.getX()), -mX, mX);
         double jY = MathUtil.clamp(driveController.calculate(currentPose.getY(), desiredPose.getY()),-mX,mX);
         double jO = MathUtil.clamp(
@@ -83,14 +85,14 @@ public class DriveToAprilTagCommand extends Command {
                     currentPose.getRotation().getRadians(),
                     desiredPose.getRotation().getRadians()
                 ),
-                -PHOTON_TURN_MAX_SPEED.getValue(),
-                PHOTON_TURN_MAX_SPEED.getValue()
+                -PHOTON_TURN_MAX_SPEED,
+                PHOTON_TURN_MAX_SPEED
         );
         return ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(
                 jX * MAX_SPEED_MPS,
                 jY * MAX_SPEED_MPS,
                 jO * MAX_SPEED_MPS
-        ), Robot.swerve.getHeading());
+        ), Robot.swerve.getOdometryHeading());
     }
 
     /**
@@ -105,7 +107,7 @@ public class DriveToAprilTagCommand extends Command {
     @Override
     public void end(boolean interrupted) {
         if (DriverStation.isAutonomous()) {
-            Robot.swerve.lock();
+            Robot.swerve.lockPose();
         } else {
             Robot.swerve.setStates(new SwerveModuleState[]
                     {
@@ -113,7 +115,7 @@ public class DriveToAprilTagCommand extends Command {
                             new SwerveModuleState(0, new Rotation2d(0)),
                             new SwerveModuleState(0, new Rotation2d(0)),
                             new SwerveModuleState(0, new Rotation2d(0))
-                    }, false);
+                    });
         }
     }
 
@@ -128,8 +130,8 @@ public class DriveToAprilTagCommand extends Command {
         if (stopOnEnd) {
             return noTarget ||
                     (
-                            ExtendedMath.inTolerance(desiredPose.getX(), currentPose.getX(), 0.1)
-                                    && ExtendedMath.inTolerance(desiredPose.getY(), currentPose.getY(), 0.1)
+                            GlobalUtils.inTolerance(desiredPose.getX(), currentPose.getX(), 0.1)
+                                    && GlobalUtils.inTolerance(desiredPose.getY(), currentPose.getY(), 0.1)
                     );
         } else {
             return false;

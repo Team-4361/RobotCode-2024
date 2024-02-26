@@ -39,6 +39,11 @@
 # Compiled class file
 *.class
 
+# Simulation files
+simgui.json
+simgui-ds.json
+simgui-window.json
+
 # Log file
 *.log
 
@@ -165,6 +170,11 @@ bin/
 *.iws
 .idea/
 out/
+
+# SimGUI JSON
+simgui-ds.json
+simgui-window.json
+simgui.json
 
 # Allow Shuffleboard Plugins
 !plugins/*

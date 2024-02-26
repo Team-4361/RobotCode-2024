@@ -3,12 +3,12 @@ package frc.robot.util.joystick;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import frc.robot.Constants;
-import frc.robot.util.math.ExtendedMath;
+import frc.robot.util.math.GlobalUtils;
 import frc.robot.util.preset.IPresetContainer;
 
 import java.util.ArrayList;
 
-import static frc.robot.Constants.Control.DEADBAND;
+import static frc.robot.Constants.Control.DEAD_ZONE;
 
 /**
  * This {@link DriveHIDBase} class is designed to be a foundation for Drive Controllers. Unlike
@@ -73,14 +73,14 @@ public abstract class DriveHIDBase extends CommandGenericHID implements IPresetC
 
     /**
      * Constructs a {@link DriveHIDBase} with all Inversion set to <b>false</b> and deadband set to
-     * {@link Constants.Control#DEADBAND}.
+     * {@link Constants.Control#DEAD_ZONE}.
      *
      * @param port          The USB port ID the HID is connected to.
      * @param primaryMode   The {@link IDriveMode}s to use by default.
      * @param extraModes    Optional additional {@link IDriveMode}s to recognize and switch to.
      */
     public DriveHIDBase(int port, IDriveMode primaryMode, IDriveMode... extraModes) {
-        this(port, false, false, false, DEADBAND, primaryMode, extraModes);
+        this(port, false, false, false, DEAD_ZONE, primaryMode, extraModes);
     }
 
     /**
@@ -225,21 +225,21 @@ public abstract class DriveHIDBase extends CommandGenericHID implements IPresetC
     /** @return The X-axis (-1.0 to +1.0) using the robot-coordinate system. (+X forward, +Y left) */
     public double getRobotX() {
         double val = xInverted ? -getRawRobotX() : getRawRobotX();
-        double rX = ExtendedMath.deadband(modes.get(index).getX(val), deadband);
+        double rX = GlobalUtils.deadband(modes.get(index).getX(val), deadband);
         return rateLimitCalculate(rX, xLimit);
     }
 
     /** @return The Y-axis (-1.0 to +1.0) using the robot-coordinate system. (+X forward, +Y left) */
     public double getRobotY() {
         double val = yInverted ? -getRawRobotY() : getRawRobotY();
-        double rY = ExtendedMath.deadband(modes.get(index).getY(val), deadband);
+        double rY = GlobalUtils.deadband(modes.get(index).getY(val), deadband);
         return rateLimitCalculate(rY, yLimit);
     }
 
     /** @return The Twist-axis (-1.0 to +1.0) using the robot-coordinate system. (+X forward, +Y left) */
     public double getRobotTwist() {
         double val = twistInverted ? -getRawRobotTwist() : getRawRobotTwist();
-        double rT = ExtendedMath.deadband(modes.get(index).getTwist(val), deadband);
+        double rT = GlobalUtils.deadband(modes.get(index).getTwist(val), deadband);
         return rateLimitCalculate(rT, tLimit);
     }
 }

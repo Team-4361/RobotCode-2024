@@ -12,6 +12,9 @@ public class GearRatio {
     private double gearOne;
     private double gearTwo;
 
+    /** A direct drive {@link GearRatio} (1:1 ratio). */
+    public static GearRatio DIRECT_DRIVE = GearRatio.from(1, 1);
+
     /**
      * Constructs a new {@link GearRatio} with a pre-determined Ratio.
      * @param ratio The {@link String}-equivalent ratio (ex. <code>1:5</code> or <code>0.5:2</code>)
@@ -59,6 +62,9 @@ public class GearRatio {
     /** @return The second gear (driven gear) of the ratio. */
     public double getFollowerAngle() { return this.gearTwo; }
 
+    /** @return The {@link Double} divisor (lead / follower) of the {@link GearRatio}. */
+    public double getDivisor() { return gearOne / gearTwo; }
+
     /**
      * Combines two {@link GearRatio}s together by <b>multiplying</b> their ratios into a new instance.
      * @param other The {@link GearRatio} to combine.
@@ -75,7 +81,7 @@ public class GearRatio {
      * @return The {@link Rotation2d} angle.
      */
     public Rotation2d getFollowerAngle(Rotation2d leadRotations) {
-        return Rotation2d.fromRotations(ExtendedMath.round(leadRotations.getRotations() * (gearTwo / gearOne)));
+        return Rotation2d.fromRotations(GlobalUtils.round(leadRotations.getRotations() * (gearTwo / gearOne)));
     }
 
     /**
@@ -83,7 +89,7 @@ public class GearRatio {
      * @return The number of rotations from the Follower Gear.
      */
     public double getFollowerRotations(double leadRotations) {
-        return ExtendedMath.round(leadRotations * (gearTwo / gearOne));
+        return GlobalUtils.round(leadRotations * (gearTwo / gearOne));
     }
 
     /**
@@ -91,7 +97,7 @@ public class GearRatio {
      * @return The {@link Rotation2d} angle.
      */
     public Rotation2d getLeadAngle(Rotation2d followerRotations) {
-        return Rotation2d.fromRotations(ExtendedMath.round(followerRotations.getRotations() * (gearOne / gearTwo)));
+        return Rotation2d.fromRotations(GlobalUtils.round(followerRotations.getRotations() * (gearOne / gearTwo)));
     }
 
     /**
@@ -99,7 +105,7 @@ public class GearRatio {
      * @return The number of rotations from the Leader Gear.
      */
     public double getLeadRotations(double followerRotations) {
-        return ExtendedMath.round(followerRotations * (gearOne / gearTwo));
+        return GlobalUtils.round(followerRotations * (gearOne / gearTwo));
     }
 
     /**

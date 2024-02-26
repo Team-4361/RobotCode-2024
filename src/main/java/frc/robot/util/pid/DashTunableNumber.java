@@ -61,7 +61,9 @@ public class DashTunableNumber {
         if (System.currentTimeMillis() < nextMillis)
             return;
 
-        value = SmartDashboard.getNumber(dashString, value);
+        double temp = SmartDashboard.getNumber(dashString, value);
+        if (temp != value)
+            value = temp; // prevent constant re-assignment when not required.
         consumers.forEach(o -> o.accept(value));
         nextMillis = System.currentTimeMillis() + 1000;
     }
