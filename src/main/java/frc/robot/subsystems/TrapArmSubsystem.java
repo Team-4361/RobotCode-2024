@@ -1,41 +1,41 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.Servo;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Subsystem;
-import frc.robot.Constants;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.util.motor.MotorModel;
+import frc.robot.util.pid.PIDLinearMechanism;
+import frc.robot.util.pid.PIDLinearMechanism.DistanceUnit;
 import frc.robot.util.pid.PIDRotationalMechanism;
-import org.littletonrobotics.junction.LogTable;
-import org.littletonrobotics.junction.inputs.LoggableInputs;
+import frc.robot.util.preset.PresetMap;
 
 import static frc.robot.Constants.Debug.TRAP_ARM_TUNING_ENABLED;
-import static frc.robot.Constants.Arm.*;
+import static frc.robot.Constants.TrapArm.*;
 
-/** *UPDATE SUMMARY*
+/**
  * This {@link TrapArmSubsystem} is designed to control the {@link Robot}'s arm. It has an Actuonix L16-50-35-6R
  * Linear Servo for grabbing, and a 63:1 NEO-550 motor used for extending.
  */
-public class TrapArmSubsystem extends PIDRotationalMechanism implements LoggableInputs, Subsystem {
+public class TrapArmSubsystem extends SubsystemBase {
     private final Servo linearServo;
+    private final PIDLinearMechanism mechanism;
     public double extensionPosition = 0.0;
     public double extensionTarget = 0.0;
+    private double lastSpeed = 0.0;
 
     /** Constructs a new {@link PIDRotationalMechanism}. */
     public TrapArmSubsystem() {
-        super(
+        this.mechanism = new PIDLinearMechanism(
                 ARM_MOTOR_ID,
                 ARM_PID,
                 ARM_KS,
                 ARM_KV,
                 ARM_KA,
                 MotorModel.NEO_550,
-                "Wrist",
-                TRAP_ARM_TUNING_ENABLED ? "Wrist: PID" : "",
-                ARM_TURN_RATIO,
-                RotationUnit.DEGREES,
-                false
+                "Arm",
+                TRAP_ARM_TUNING_ENABLED,
+                DistanceUnit.INCHES,
+                ARM_DISTANCE
         );
         this.linearServo = new Servo(ARM_SERVO_ID);
         linearServo.setBoundsMicroseconds(
@@ -45,50 +45,47 @@ public class TrapArmSubsystem extends PIDRotationalMechanism implements Loggable
                 ARM_DEAD_BAND_MIN_US,
                 ARM_MIN_US
         );
-        CommandScheduler.getInstance().registerSubsystem(this);
+        mechanism.setDistanceTuningEnabled(TRAP_ARM_TUNING_ENABLED);
     }
 
     @Override
     public void periodic() {
-        Constants.runIfNotReplay(() -> extensionPosition = linearServo.getPosition() * ARM_SERVO_MAX_MM);
-        super.update();
+        mechanism.update();
+        extensionPosition = linearServo.getPosition() * ARM_SERVO_MAX_MM;
+    }
 
-        linearServo.setPosition(Math.max(0, extensionTarget /ARM_SERVO_MAX_MM));
+    public void registerAnglePresets(PresetMap<Double> map) {
+        map.addListener((mapName, value) -> setAnglePosition(value));
+    }
+    public void registerExtensionPresets(PresetMap<Double> map) {
+        mechanism.registerPresets(map);
     }
 
     /**
-     * Updates a LogTable with the data to log.
-     * @param table The {@link LogTable} which is provided.
+     * Sets the target linear {@link Servo} position, changing the angle of the {@link TrapArmSubsystem}.
+     * @param mm The {@link Double} value in millimeters.
      */
-    @Override
-    public void toLog(LogTable table) {
-        super.toLog(table);
-        table.put("ExtensionMM", extensionPosition);
-        table.put("TargetMM", extensionTarget);
+    public void setAnglePosition(double mm) {
+        extensionTarget = mm;
+        linearServo.setPosition(Math.max(0, extensionTarget / ARM_SERVO_MAX_MM));
     }
 
     /**
-     * Sets the extension target of the {@link TrapArmSubsystem}.
-     * @param mm The extension target in <b>millimeters</b>.
+     * Sets the extension speed of the {@link TrapArmSubsystem}.
+     * @param speed The {@link Double} value from -1.0 to +1.0
      */
-    public void setExtensionTarget(double mm) {
-        Constants.runIfNotReplay(() -> this.extensionTarget = mm);
+    public void setExtensionSpeed(double speed) {
+        mechanism.translateMotor(speed);
     }
 
-    /** Extends the {@link TrapArmSubsystem} to the maximum allowed value. */
-    public void extendWrist() { setExtensionTarget(ARM_SERVO_MAX_MM); }
-
-    /** Retracts the {@link TrapArmSubsystem} to the minimum allowed value. */
-    public void retractWrist() { setExtensionTarget(0); }
-
     /**
-     * Updates data based on a LogTable.
-     * @param table The {@link LogTable} which is provided.
+     * Sets the speed of the linear {@link Servo}.
+     * @param speed The {@link Double} value from -1.0 to +1.0
      */
-    @Override
-    public void fromLog(LogTable table) {
-        super.fromLog(table);
-        this.extensionPosition = table.get("ExtensionMM", this.extensionPosition);
-        this.extensionTarget = table.get("TargetMM", this.extensionTarget);
+    public void setAngleSpeed(double speed) {
+        if (speed != lastSpeed) {
+            linearServo.set(speed); // FIXME: make it act like a motor!
+            lastSpeed = speed;
+        }
     }
 }

@@ -18,7 +18,7 @@ public class DriveMode {
     public static final IDriveMode SLOW_MODE = new IDriveMode() {
         @Override public double getX(double x) { return SMOOTH_MAP.getX(x)/2; }
         @Override public double getY(double y) { return SMOOTH_MAP.getY(y)/2; }
-        @Override public double getTwist(double twist) { return SMOOTH_MAP.getTwist(twist)/2;}
+        @Override public double getTwist(double twist) { return SMOOTH_MAP.getTwist(twist)/4;}
         @Override public String getName() { return "Slow Mode"; }
     };
 }

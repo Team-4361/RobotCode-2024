@@ -3,20 +3,16 @@ package frc.robot.util.pid;
 import com.pathplanner.lib.util.PIDConstants;
 import com.revrobotics.SparkPIDController;
 import edu.wpi.first.math.controller.PIDController;
-import frc.robot.Constants;
-import frc.robot.Constants.OperationMode;
+import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.Robot;
+import swervelib.parser.PIDFConfig;
 
 import java.util.function.Consumer;
 
-import static frc.robot.Constants.Control.OP_MODE;
-
 /**
- * This {@link PIDConstantsAK} class is designed to easily switch PID values with various
- * {@link OperationMode}s of the {@link Robot}.
+ * This {@link PIDConstantsAK} class is designed to easily switch PID values with various modes.
  */
 public class PIDConstantsAK {
-
     public final double kP;
     public final double kI;
     public final double kD;
@@ -63,39 +59,9 @@ public class PIDConstantsAK {
             double realKP,   double realKI,   double realKD,
             double simKP,    double simKI,    double simKD
     ) {
-        switch (OP_MODE) {
-            case REAL: {
-                kP = realKP;
-                kI = realKI;
-                kD = realKD;
-                break;
-            }
-            case SIM: {
-                kP = simKP;
-                kI = simKI;
-                kD = simKD;
-                break;
-            }
-            default: {
-                kP = 0;
-                kI = 0;
-                kD = 0;
-                break;
-            }
-        }
-    }
-
-    /**
-     * Constructs a new {@link PIDConstantsAK} with the following parameters.
-     *
-     * @param realConstants   The {@link PIDConstants} instance used for <code>REAL</code> mode.
-     * @param simConstants    The {@link PIDConstants} instance used for <code>SIM</code> mode.
-     */
-    public PIDConstantsAK(PIDConstants realConstants, PIDConstants simConstants) {
-        this(
-                realConstants.kP, realConstants.kI, realConstants.kD,
-                simConstants.kP, simConstants.kI, simConstants.kD
-        );
+        kP = RobotBase.isSimulation() ? simKP : realKP;
+        kI = RobotBase.isSimulation() ? simKI : realKI;
+        kD = RobotBase.isSimulation() ? simKD : realKD;
     }
 
     /**
@@ -110,10 +76,6 @@ public class PIDConstantsAK {
         this.kD = kD;
     }
 
-    /** @return The applicable {@link PIDConstants} based on the {@link OperationMode}. */
-    public PIDConstants get() {
-        if (Constants.isReplay())
-            return new PIDConstants(0, 0, 0);
-        return new PIDConstants(kP, kI, kD);
-    }
+    /** @return The applicable {@link PIDConstants} based on the {@link Robot}. */
+    public PIDConstants get() { return new PIDConstants(kP, kI, kD); }
 }

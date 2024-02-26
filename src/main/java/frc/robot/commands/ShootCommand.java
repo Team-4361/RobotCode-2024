@@ -3,12 +3,27 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
 
+import static frc.robot.Constants.Shooter.SHOOT_END_DELAY_MS;
+
 public class ShootCommand extends Command {
+    private long endMillis = 0;
+    private long feedMillis = 0;
+
     /**
      * Default constructor.
      */
-    public ShootCommand() {
-        addRequirements(Robot.shooter);
+    public ShootCommand() { addRequirements(Robot.shooter, Robot.index, Robot.intake); }
+
+    /**
+     * The initial subroutine of a command. Called once when the command is initially scheduled.
+     */
+    @Override
+    public void initialize() {
+        endMillis = 0;
+        feedMillis = System.currentTimeMillis() + Robot.shooter.getDelayMS();
+        Robot.shooter.start();
+        Robot.index.stop();
+        Robot.intake.stop();
     }
 
     /**
@@ -16,7 +31,12 @@ public class ShootCommand extends Command {
      */
     @Override
     public void execute() {
-        Robot.shooter.start();
+        if (System.currentTimeMillis() >= feedMillis) {
+            Robot.index.start();
+            Robot.intake.start();
+            if (endMillis == 0)
+                endMillis = System.currentTimeMillis() + SHOOT_END_DELAY_MS;
+        }
     }
 
     /**
@@ -31,5 +51,18 @@ public class ShootCommand extends Command {
     @Override
     public void end(boolean interrupted) {
         Robot.shooter.stop();
+        Robot.index.stop();
+        Robot.intake.stop();
+    }
+
+    /**
+     * Whether the command has finished. Once a command finishes, the scheduler will call its end()
+     * method and un-schedule it.
+     *
+     * @return whether the command has finished.
+     */
+    @Override
+    public boolean isFinished() {
+        return endMillis != 0 && System.currentTimeMillis() >= endMillis;
     }
 }

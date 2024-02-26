@@ -171,6 +171,11 @@ bin/
 .idea/
 out/
 
+# SimGUI JSON
+simgui-ds.json
+simgui-window.json
+simgui.json
+
 # Allow Shuffleboard Plugins
 !plugins/*
 

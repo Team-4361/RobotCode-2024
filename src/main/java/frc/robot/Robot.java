@@ -5,43 +5,47 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.CvSink;
+import edu.wpi.first.cscore.CvSource;
 import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StringSubscriber;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.DriveToAprilTagCommand;
+import frc.robot.commands.IntakeNoteCommand;
+import frc.robot.commands.ShootCommand;
 import frc.robot.subsystems.*;
 import frc.robot.util.auto.PhotonCameraModule;
-import frc.robot.util.io.AlertType;
-import frc.robot.util.io.IOManager;
 import frc.robot.util.joystick.DriveJoystick;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.DriveXboxController;
 import frc.robot.util.preset.PresetGroup;
-import frc.robot.util.preset.PresetMode;
-import org.littletonrobotics.junction.LoggedRobot;
-import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.networktables.NT4Publisher;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.BiConsumer;
+import org.opencv.core.Mat;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
+import swervelib.telemetry.Alert;
+import swervelib.telemetry.Alert.AlertType;
 
 import static frc.robot.Constants.Control.*;
-import static frc.robot.Constants.Debug.DEBUG_LOGGING_ENABLED;
+import static frc.robot.Constants.Debug.*;
+import static frc.robot.Constants.ShooterCamera.*;
+import static swervelib.telemetry.Alert.AlertType.WARNING;
 
 
 /**
@@ -50,20 +54,73 @@ import static frc.robot.Constants.Debug.DEBUG_LOGGING_ENABLED;
  * the package after creating this project, you must also update the build.gradle file in the
  * project.
  */
-public class Robot extends LoggedRobot {
+public class Robot extends TimedRobot {
     public static PowerDistribution pdh;
     public static DriveXboxController xbox;
     public static DriveJoystick leftStick;
     public static DriveJoystick rightStick;
     public static SwerveDriveSubsystem swerve;
     public static PresetGroup drivePresets;
-    public static PhotonCameraModule frontCamera;
+    public static PhotonCameraModule shooterCamera;
     public static ShooterSubsystem shooter;
     public static IntakeSubsystem intake;
     public static IndexSubsystem index;
-    public static WristSubsystem wrist;
+    public static TrapWristSubsystem wrist;
     public static ClimberSubsystem climber;
+    public static TrapArmSubsystem arm;
 
+    private SendableChooser<Command> autoChooser;
+    private final Alert lowVoltageAlert = new Alert("Idle Voltage Low", AlertType.WARNING);
+    private final Alert slowModeAlert = new Alert("Slow Mode Activated", AlertType.INFO);
+    private long nextUpdateMillis = System.currentTimeMillis();
+
+    private void startDriverCamera() {
+        int width = 360;
+        int height = 240;
+        Thread camThread = new Thread(
+                () -> {
+                    try {
+                        UsbCamera camera = CameraServer.startAutomaticCapture();
+                        if (!RobotBase.isSimulation()) {
+                            camera.setResolution(width, height);
+                        }
+
+                        CvSink cvSink = CameraServer.getVideo();
+                        CvSource outputStream = CameraServer.putVideo("Front Camera", width, height);
+                        Mat mat = new Mat();
+                        double thickness = 4.0;
+
+                        while (!Thread.currentThread().isInterrupted()) {
+                            if (cvSink.grabFrame(mat) == 0) {
+                                outputStream.notifyError(cvSink.getError());
+                                continue;
+                            }
+                            Imgproc.line(
+                                    mat,
+                                    new Point((width/2.0)-125-(thickness*5), height),
+                                    new Point((width/2.0)-(thickness*5), height-100),
+                                    new Scalar(255, 255, 0),
+                                    (int)thickness
+                            );
+                            Imgproc.line(
+                                    mat,
+                                    new Point((width/2.0)+125-(thickness*5), height),
+                                    new Point((width/2.0)-(thickness*5), height-100),
+                                    new Scalar(255, 255, 0),
+                                    (int)thickness
+                            );
+                            outputStream.putFrame(mat);
+                        }
+
+                    } catch (Exception ex) {
+                        new Alert("Failed to configure operator camera!", AlertType.ERROR).set(true);
+                        Thread.currentThread().interrupt();
+                    }
+                }
+        );
+        camThread.setDaemon(true);
+        camThread.start();
+    }
 
     /**
      * This method is run when the robot is first started up and should be used for any
@@ -71,12 +128,10 @@ public class Robot extends LoggedRobot {
      */
     @Override
     public void robotInit() {
-        initLogger(); // DO NOT TOUCH!
-
         boolean useNormalSticks = true;
         // Use a PresetGroup to keep the presets synchronized. We don't want one joystick sensitive
         // and the other one non-sensitive.
-        drivePresets = new PresetGroup("Drive Presets", PresetMode.PARALLEL);
+        drivePresets = new PresetGroup("Drive Presets");
 
         //noinspection ConstantValue
         if (useNormalSticks) {
@@ -86,8 +141,8 @@ public class Robot extends LoggedRobot {
                     false,          // Drive Y inverted?
                     false,          // Twist Axis Inverted?
                     DEAD_ZONE,      // Dead-band
-                    DRIVE_MODES[0], // Primary Drive Mode
-                    DRIVE_MODES     // Secondary Drive Modes
+                    DriveMode.SMOOTH_MAP,
+                    DriveMode.SLOW_MODE
             );
 
             rightStick = new DriveJoystick(
@@ -96,8 +151,8 @@ public class Robot extends LoggedRobot {
                     false,          // Drive Y inverted?
                     false,          // Twist Axis Inverted?
                     DEAD_ZONE,      // Dead-band
-                    DRIVE_MODES[0], // Primary Drive Mode
-                    DRIVE_MODES     // Secondary Drive Modes
+                    DriveMode.SMOOTH_MAP,
+                    DriveMode.SLOW_MODE
             );
 
             drivePresets.add(leftStick);
@@ -115,87 +170,44 @@ public class Robot extends LoggedRobot {
         if (!useNormalSticks)
             drivePresets.add(xbox); // only add the Xbox Controller if used for driving.
 
-        pdh = new PowerDistribution();
+        pdh = new PowerDistribution(34, ModuleType.kRev);
         intake = new IntakeSubsystem();
         shooter = new ShooterSubsystem();
         index = new IndexSubsystem();
-        wrist = new WristSubsystem();
+        wrist = new TrapWristSubsystem();
         climber = new ClimberSubsystem();
+        arm = new TrapArmSubsystem();
+        shooterCamera = new PhotonCameraModule(
+                SHOOT_CAMERA_NAME,
+                SHOOT_CAMERA_HEIGHT_METERS,
+                SHOOT_CAMERA_PITCH_DEGREES
+        );
 
+        if (!RobotBase.isSimulation())
+            startDriverCamera();
+
+        SwerveDriveSubsystem.initParser();
         swerve = new SwerveDriveSubsystem();
-        frontCamera = new PhotonCameraModule("FrontCamera", Units.inchesToMeters(27), 0);
-
-        BiConsumer<Command, Boolean> logCommandFunction = getCommandActivity();
-        CommandScheduler.getInstance().onCommandInitialize(c -> logCommandFunction.accept(c, true));
-        CommandScheduler.getInstance().onCommandFinish(c -> logCommandFunction.accept(c, false));
-        CommandScheduler.getInstance().onCommandInterrupt(c -> logCommandFunction.accept(c, false));
 
         // *** IMPORTANT: Call this method at the VERY END of robotInit!!! *** //
-        registerAlerts(!useNormalSticks);
         configureBindings(!useNormalSticks);
         // ******************************************************************* //
-    }
 
-    /** NOTE: This method <b>MUST</b> be called at the very beginning! */
-    private void initLogger() {
-        boolean isLogSupported = false;
-        try (StringSubscriber sc = NetworkTableInstance.getDefault()
-                .getTable("Robot")
-                .getStringTopic("SystemType")
-                .subscribe("")) {
-            if (sc.get().equals("RoboRIO2"))
-                isLogSupported = true;
-        } catch (Exception ignored) {}
+        NamedCommands.registerCommand("ShootCommand", new ShootCommand());
+        NamedCommands.registerCommand("IntakeCommand", new IntakeNoteCommand());
 
-        Logger.recordMetadata("Project Name", BuildConstants.MAVEN_NAME);
-        Logger.recordMetadata("Build Date", BuildConstants.BUILD_DATE);
-        Logger.recordMetadata("Git SHA", BuildConstants.GIT_SHA);
-        Logger.recordMetadata("Git Date", BuildConstants.GIT_DATE);
-        Logger.recordMetadata("Git Branch", BuildConstants.GIT_BRANCH);
-        Logger.recordMetadata("RoboRIO Version", isLogSupported ? "2" : "1");
+        autoChooser = AutoBuilder.buildAutoChooser();
+        SmartDashboard.putData("Auto Chooser", autoChooser);
 
-        //noinspection RedundantSuppression
-        switch (BuildConstants.DIRTY) {
-            //noinspection DataFlowIssue
-            case 0:
-                Logger.recordMetadata("Git Status", "All changes committed");
-                break;
-            //noinspection DataFlowIssue
-            case 1:
-                Logger.recordMetadata("Git Status", "Un-committed changes");
-                break;
-            //noinspection DataFlowIssue
-            default:
-                Logger.recordMetadata("Git Status", "Unknown");
-                break;
-        }
-
-        Logger.addDataReceiver(new NT4Publisher());
-        Logger.start(); // start logging!
-    }
-
-    private void registerAlerts(boolean xboxOnly) {
-        IOManager.getAlert("Idle Voltage Low", AlertType.WARNING)
-                .setCondition(() -> Robot.pdh.getVoltage() < 12 && Robot.pdh.getTotalCurrent() <= 2.5);
-
-        DriverStation.silenceJoystickConnectionWarning(true);
-        IOManager.getAlert("Joystick Not Connected", AlertType.ERROR)
-                .setCondition(() ->
-                        !DriverStation.isJoystickConnected(0)
-                                || !DriverStation.isJoystickConnected(1)
-                                || !DriverStation.isJoystickConnected(2));
-
-        IOManager.getAlert("Debug mode enabled", AlertType.INFO)
-                .setCondition(() -> DEBUG_LOGGING_ENABLED)
-                .setPersistent(true);
-
-        if (!xboxOnly) {
-            IOManager.getAlert("Slow mode enabled", AlertType.INFO)
-                    .setCondition(() ->
-                            leftStick.getPresetName().equalsIgnoreCase("Slow Mode") ||
-                                    rightStick.getPresetName().equalsIgnoreCase("Slow Mode"))
-                    .setPersistent(false);
-        }
+        if (PHOTON_TUNING_ENABLED)   { new Alert("Photon Tuning Enabled",  WARNING).set(true); }
+        if (SHOOTER_TUNING_ENABLED)  { new Alert("Shooter Tuning Enabled", WARNING).set(true); }
+        if (DEBUG_LOGGING_ENABLED)   { new Alert("Debug Logging Enabled",  WARNING).set(true); }
+        if (INDEX_TUNING_ENABLED)    { new Alert("Index Tuning Enabled",   WARNING).set(true); }
+        if (INTAKE_TUNING_ENABLED)   { new Alert("Intake Tuning Enabled",  WARNING).set(true); }
+        if (WRIST_TUNING_ENABLED)    { new Alert("Wrist Tuning Enabled",   WARNING).set(true); }
+        if (CLIMBER_TUNING_ENABLED)  { new Alert("Climber Tuning Enabled", WARNING).set(true); }
+        if (TRAP_ARM_TUNING_ENABLED) { new Alert("Arm Tuning Enabled",     WARNING).set(true); }
+        if (SWERVE_TUNING_ENABLED)   { new Alert("Swerve Tuning Enabled",  WARNING).set(true); }
     }
 
     /**
@@ -209,28 +221,28 @@ public class Robot extends LoggedRobot {
      */
     private void configureBindings(boolean xboxOnly) {
         if (xboxOnly) {
-            IOManager.debug(this, "Xbox-only/Simulation mode detected.");
+            System.out.println("Xbox-only/Simulation mode detected.");
             Robot.swerve.setDefaultCommand(Robot.swerve.runEnd(
                     () -> Robot.swerve.drive(xbox),
-                    () -> Robot.swerve.lock())
+                    () -> Robot.swerve.lockPose())
             );
         } else {
-            IOManager.debug(this, "Regular mode detected.");
+            System.out.println("Regular mode detected.");
             Robot.swerve.setDefaultCommand(Robot.swerve.runEnd(
                     () -> Robot.swerve.drive(leftStick, rightStick),
-                    () -> Robot.swerve.lock())
+                    () -> Robot.swerve.lockPose())
             );
         }
 
         if (!xboxOnly) {
-           // xbox.a().onTrue(new IntakeCommand(INTAKE_SPEED));
             leftStick.button(10).onTrue(Commands.runOnce(() -> drivePresets.nextPreset(true)));
-            leftStick.button(11).onTrue(swerve.resetCommand());
+            leftStick.button(11).onTrue(swerve.resetCommand().andThen(() -> Robot.climber.reset()));
+            leftStick.button(12).onTrue(swerve.toggleFieldOrientedCommand());
             leftStick.trigger().whileTrue(Commands.runEnd(
-                    () -> drivePresets.setPreset(2),
+                    () -> drivePresets.setPreset(1),
                     () -> drivePresets.setPreset(0)
             ));
-            leftStick.button(2).whileTrue(Commands.run(() -> swerve.lock()));
+            leftStick.button(2).whileTrue(Commands.run(() -> swerve.lockPose()));
             leftStick.button(4).whileTrue(new DriveToAprilTagCommand(
                     new Pose2d(
                             new Translation2d(2, 0),
@@ -239,37 +251,27 @@ public class Robot extends LoggedRobot {
             ));
         }
 
-        xbox.a().whileTrue(Commands.runEnd(
-                () -> Robot.shooter.start(),
-                () -> Robot.shooter.stop()
-        ));
+        xbox.b().whileTrue(new IntakeNoteCommand());
+        xbox.a().onTrue(new ShootCommand());
 
-        xbox.y().whileTrue(Commands.runEnd(
-                () -> Robot.intake.start(),
-                () -> Robot.intake.stop()
+        xbox.leftTrigger().whileTrue(Commands.runEnd(
+                () -> Robot.climber.moveLeftUp(),
+                () -> Robot.climber.stopLeft()
         ));
-
-        xbox.b().whileTrue(Commands.runEnd(
-                () -> Robot.index.start(),
-                () -> Robot.index.stop()
+        xbox.rightTrigger().whileTrue(Commands.runEnd(
+                () -> Robot.climber.moveRightUp(),
+                () -> Robot.climber.stopRight()
         ));
-
-       // xbox.leftBumper().onTrue(Commands.runOnce(() -> Robot.climber.setPreset(0)));
-        //xbox.rightBumper().onTrue(Commands.runOnce(() -> Robot.climber.setPreset(1)));
+        xbox.leftBumper().whileTrue(Commands.runEnd(
+                () -> Robot.climber.moveLeftDown(),
+                () -> Robot.climber.stopLeft()
+        ));
+        xbox.rightBumper().whileTrue(Commands.runEnd(
+                () -> Robot.climber.moveRightDown(),
+                () -> Robot.climber.stopRight()
+        ));
     }
 
-
-    private static BiConsumer<Command, Boolean> getCommandActivity() {
-        Map<String, Integer> commandCounts = new HashMap<>();
-        return (Command command, Boolean active) -> {
-            String name = command.getName();
-            int count = commandCounts.getOrDefault(name, 0) + (active ? 1 : -1);
-            commandCounts.put(name, count);
-            Logger.recordOutput(
-                            "CommandsUnique/" + name + "_" + Integer.toHexString(command.hashCode()), active);
-            Logger.recordOutput("CommandsAll/" + name, count > 0);
-        };
-    }
 
     /**
      * This method is called every 20 ms, no matter the mode. Use this for items like diagnostics
@@ -287,17 +289,17 @@ public class Robot extends LoggedRobot {
         // and running subsystem periodic() methods.  This must be called from the robot's periodic
         // block in order for anything in the Command-based framework to work.
         CommandScheduler.getInstance().run();
-        IOManager.run();
-        // ************************* DO NOT TOUCH ************************* //
+        Robot.shooterCamera.update();
+
+        if (System.currentTimeMillis() >= nextUpdateMillis) {
+            lowVoltageAlert.set(Robot.pdh.getVoltage() <= 11.0 && Robot.pdh.getTotalCurrent() >= 2.0);
+            slowModeAlert.set(Robot.leftStick.getPresetName().equals("Slow Mode"));
+            nextUpdateMillis = System.currentTimeMillis() + 2000;
+        }
     }
 
+    @Override public void autonomousInit() { autoChooser.getSelected().schedule(); }
     @Override public void disabledInit() { CommandScheduler.getInstance().cancelAll(); }
     @Override public void testInit() { CommandScheduler.getInstance().cancelAll(); }
-    @Override public void teleopInit() {
-        CommandScheduler.getInstance().cancelAll();
-    }
-
-    @Override
-    public void teleopPeriodic() {
-    }
+    @Override public void teleopInit() { CommandScheduler.getInstance().cancelAll(); }
 }

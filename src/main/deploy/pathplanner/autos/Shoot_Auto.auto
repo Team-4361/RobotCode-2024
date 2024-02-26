@@ -1,0 +1,44 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 1.3740584827141216,
+      "y": 5.5636463879562825
+    },
+    "rotation": 0
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "named",
+          "data": {
+            "name": "ShootCommand"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Go Straight And Turn"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "IntakeCommand"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "folder": null,
+  "choreoAuto": false
+}

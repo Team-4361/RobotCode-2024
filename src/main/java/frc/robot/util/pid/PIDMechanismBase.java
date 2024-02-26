@@ -6,15 +6,12 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
-import frc.robot.Constants;
-import frc.robot.util.io.IOManager;
+import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.util.math.GlobalUtils;
 import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.motor.IMotorModel;
 import frc.robot.util.preset.PresetMap;
-import org.littletonrobotics.junction.LogTable;
-import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.inputs.LoggableInputs;
 
 import java.util.function.Supplier;
 
@@ -26,27 +23,26 @@ import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
  *
  * @author Eric Gold
  */
-public abstract class PIDMechanismBase extends PresetMap<Double> implements LoggableInputs {
+public abstract class PIDMechanismBase {
     private final FRCSparkMax motor;
 
     private final SimpleMotorFeedforward feedFwd;
+    private final DashTunablePID pidTune;
     private final PIDController controller;
     private final String moduleName;
-    private final boolean tuneEnabled;
+    private final boolean rpmControl;
 
     // All INPUT values are logged here!
     private double targetValue = 0.0;
-    private final boolean rpmControl;
-    private double velocityRPM = 0.0;
-    private double appliedVolts = 0.0;
-    private double currentAmps = 0.0;
     private double currentPosition = 0.0;
-    private boolean pidEnabled = true;
-    private boolean limitBypassEnabled = false;
     private double tolerance = 0.0;
-    private boolean teleopMode = false;
+    private boolean pidEnabled = true;
     private double forwardLimit = Double.MAX_VALUE;
     private double reverseLimit = Double.MIN_VALUE;
+
+    private boolean limitBypassEnabled = false;
+    private boolean dashboardEnabled = false;
+    private boolean teleopMode = false;
 
     private Supplier<Boolean> pidEnabledSupplier = () -> true;
     private Supplier<Boolean> limitBypassSupplier = () -> true;
@@ -63,14 +59,14 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
 
     /**
      * Constructs a new {@link PIDMechanismBase}.
-     * @param motorId    The motor ID
-     * @param constants  The {@link PIDConstantsAK} to use.
-     * @param kS         The {@link SimpleMotorFeedforward} kS constant.
-     * @param kV         The {@link SimpleMotorFeedforward} kV constant.
-     * @param kA         The {@link SimpleMotorFeedforward} kA constant.
-     * @param model      The {@link IMotorModel} of the {@link FRCSparkMax} motor.
-     * @param moduleName The {@link String} module name
-     * @param tuneName   The <b>optional</b> {@link String} tuning name.
+     * @param motorId       The motor ID to use.
+     * @param constants     The {@link PIDConstantsAK} to use.
+     * @param kS            The {@link SimpleMotorFeedforward} kS constant.
+     * @param kV            The {@link SimpleMotorFeedforward} kV constant.
+     * @param kA            The {@link SimpleMotorFeedforward} kA constant.
+     * @param model         The {@link IMotorModel} of the {@link FRCSparkMax} motor.
+     * @param moduleName    The {@link String} module name
+     * @param tuningEnabled If PID {@link SmartDashboard} tuning is enabled.
      */
     public PIDMechanismBase(int motorId,
                             PIDConstantsAK constants,
@@ -79,44 +75,50 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
                             double kA,
                             IMotorModel model,
                             String moduleName,
-                            String tuneName,
+                            boolean tuningEnabled,
                             boolean rpmControl) {
-
-        super(moduleName, tuneName != null && !tuneName.isBlank());
-
-
         this.motor = new FRCSparkMax(motorId, kBrushless, model);
         this.feedFwd = new SimpleMotorFeedforward(kS, kV, kA);
         this.controller = PIDConstantsAK.generateController(constants);
         this.rpmControl = rpmControl;
-
-        this.encoder = motor.getEncoder();
         this.moduleName = moduleName;
-
+        this.encoder = motor.getEncoder();
         encoder.setPosition(0);
 
-        if (tuneName != null && !tuneName.isBlank()) {
-            IOManager.initPIDTune(tuneName, controller);
-            tuneEnabled = true;
+        if (tuningEnabled) {
+            pidTune = new DashTunablePID(moduleName + ": PID", constants);
+            pidTune.addConsumer(controller::setP, controller::setI, controller::setD);
         } else {
-            tuneEnabled = false;
+            pidTune = null;
         }
     }
 
-    public boolean isTuneEnabled() { return tuneEnabled; }
+    /** @return The {@link String} name of the {@link PIDMechanismBase}. */
+    public String getModuleName() { return this.moduleName; }
 
     /**
-     * Attempts to set the Preset to the specific Index.
-     *
-     * @param idx The Index to change the Preset to.
-     * @return True if the operation was successful; false otherwise.
+     * Controls if the {@link PIDMechanismBase} should be logged to the {@link SmartDashboard}.
+     * @param enabled The value to use.
      */
-    @Override
-    public boolean setPreset(int idx) {
-        boolean val = super.setPreset(idx);
-        targetValue = super.getSelectedValue();
-        return val;
+    public void setDashboardEnabled(boolean enabled) {
+        this.dashboardEnabled = enabled;
     }
+
+    /** @return If the {@link PIDMechanismBase} should be logged to the {@link SmartDashboard}. */
+    public boolean isDashboardEnabled() { return this.dashboardEnabled; }
+
+    /**
+     * Sets the inversion of the underlying {@link FRCSparkMax} instance.
+     * @param inverted The value to apply.
+     */
+    public void setInverted(boolean inverted) {
+        motor.setInverted(inverted);
+    }
+
+    public void registerPresets(PresetMap<Double> map) {
+        map.addListener((mapName, value) -> targetValue = value);
+    }
+
 
     /** @return If the {@link PIDMechanismBase} is at target. */
     public boolean atTarget() {
@@ -131,21 +133,23 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
     public void update() {
         encoder = motor.getEncoder();
 
-        velocityRPM = encoder.getVelocity();
+        if (pidTune != null)
+            pidTune.update();
+
+        if (RobotBase.isSimulation())
+            motor.updateSim();
+
+        double velocityRPM = encoder.getVelocity();
         currentPosition = getCurrentPosition(encoder.getPosition());
-        appliedVolts = motor.getAppliedVoltage();
-        currentAmps = motor.getOutputCurrent();
 
         // It is required to pull the direct values of these suppliers since AdvantageKit CANNOT log suppliers
         // correctly.
         pidEnabled = pidEnabledSupplier.get();
         limitBypassEnabled = limitBypassSupplier.get();
 
-        Logger.processInputs(moduleName, this);
-
         if ((targetValue == 0 && rpmControl) || atTarget()) {
             motor.setVoltage(0);
-        } else if (!Constants.isReplay() && pidEnabled && !teleopMode) {
+        } else if (pidEnabled && !teleopMode) {
             double velocityRadPerSec = Units.rotationsPerMinuteToRadiansPerSecond(velocityRPM);
             if (rpmControl) {
                 double targetVelocityRadPerSec = Units.rotationsPerMinuteToRadiansPerSecond(targetValue);
@@ -165,7 +169,11 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
             }
         }
 
-        Logger.recordOutput(moduleName + "/TargetReached", atTarget());
+        if (dashboardEnabled) {
+            SmartDashboard.putNumber(getModuleName() + "/VelocityRPM", velocityRPM);
+            SmartDashboard.putNumber(getModuleName() + "/Target", targetValue);
+            SmartDashboard.putNumber(getModuleName() + "/Tolerance", tolerance);
+        }
     }
 
     /**
@@ -256,36 +264,6 @@ public abstract class PIDMechanismBase extends PresetMap<Double> implements Logg
 
             motor.set(getLimitAdjustedPower(power));
         }
-    }
-
-    /**
-     * Updates a LogTable with the data to log.
-     * @param table The {@link LogTable} which is provided.
-     */
-    @Override
-    public void toLog(LogTable table) {
-        table.put("TargetValue", this.targetValue);
-        table.put("VelocityRPM", this.velocityRPM);
-        table.put("CurrentValue", this.currentPosition);
-        table.put("LimitBypassed", this.limitBypassEnabled);
-        table.put("ManualControl", this.teleopMode);
-        table.put("ForwardLimit", this.forwardLimit);
-        table.put("ReverseLimit", this.reverseLimit);
-    }
-
-    /**
-     * Updates data based on a LogTable.
-     * @param table The {@link LogTable} which is provided.
-     */
-    @Override
-    public void fromLog(LogTable table) {
-        this.targetValue         = table.get("TargetValue", this.targetValue);
-        this.velocityRPM         = table.get("VelocityRPM", this.velocityRPM);
-        this.currentPosition     = table.get("CurrentValue", this.currentPosition);
-        this.limitBypassEnabled  = table.get("LimitBypassed", this.limitBypassEnabled);
-        this.teleopMode          = table.get("ManualControl", this.teleopMode);
-        this.forwardLimit        = table.get("ForwardLimit", this.forwardLimit);
-        this.reverseLimit        = table.get("ReverseLimit", this.reverseLimit);
     }
 
     /**

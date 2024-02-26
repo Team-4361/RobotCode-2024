@@ -3,6 +3,7 @@ package frc.robot.util.math;
 import com.ctre.phoenix6.hardware.CANcoder;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import java.time.Duration;
 import java.util.List;
@@ -16,7 +17,15 @@ import java.util.Random;
  * @since 0.0.0
  */
 public class GlobalUtils {
-    private static final Random rand = new Random();
+    public static final Random rand = new Random();
+
+    public static double getDualSpeed(double negativeAxis, double positiveAxis) {
+        negativeAxis = deadband(negativeAxis);
+        positiveAxis = deadband(positiveAxis);
+        if (negativeAxis > 0) { return -negativeAxis; }
+        if (positiveAxis > 0) { return positiveAxis; }
+        return 0;
+    }
 
     /**
      * @param val Value that is rounded to the second decimal place.

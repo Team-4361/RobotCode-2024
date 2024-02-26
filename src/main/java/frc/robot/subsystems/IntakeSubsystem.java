@@ -1,118 +1,57 @@
 package frc.robot.subsystems;
 
-import com.revrobotics.ColorSensorV3;
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
-import frc.robot.util.math.GearRatio;
+import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.motor.MotorModel;
 import frc.robot.util.pid.DashTunableNumber;
-import frc.robot.util.pid.PIDMechanismBase;
-import frc.robot.util.pid.PIDRotationalMechanism;
-import frc.robot.util.pid.PIDRotationalMechanism.RotationUnit;
-import org.littletonrobotics.junction.LogTable;
-import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.inputs.LoggableInputs;
+
+import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 import static frc.robot.Constants.Debug.INTAKE_TUNING_ENABLED;
-import static frc.robot.Constants.Indexer.INDEX_SENSOR_PORT;
 import static frc.robot.Constants.Intake.*;
 
-/**This {@link IntakeSubsystem} is designed to enable the robot to intake notes. Mechanism is made up of
- * a NEO that spins two rods of wheels. Rods connected by gear system. A {@link DigitalInput} is used to detect if a
- * note is present.
- */
-
-public class IntakeSubsystem extends SubsystemBase{
-    private final PIDMechanismBase intakeWheel;
-    private final DigitalInput sensor;
-    private boolean sensorActivated = false;
+public class IntakeSubsystem extends SubsystemBase {
+    private final FRCSparkMax motor;
     private final DashTunableNumber intakeTune;
-    private double targetRPM = INTAKE_RPM;
-    private boolean stopped = true;
-
+    private final DigitalInput sensor;
+    private double targetSpeed = INTAKE_SPEED;
+    private boolean sensorActivated;
 
     public IntakeSubsystem() {
-        String tuneName = INTAKE_TUNING_ENABLED ? "Intake: PID" : "";
-        intakeWheel = new PIDRotationalMechanism(
-                INTAKE_MOTOR_ID,
-                INTAKE_PID,
-                INTAKE_KS,
-                INTAKE_KV,
-                INTAKE_KA,
-                MotorModel.NEO,
-                "Intake",
-                tuneName,
-                GearRatio.DIRECT_DRIVE,
-                RotationUnit.ROTATIONS,
-                true
-        );
-      
-        sensor = new DigitalInput(INDEX_SENSOR_PORT);
-   
         if (INTAKE_TUNING_ENABLED) {
-            intakeTune = new DashTunableNumber("Intake: Speed", INTAKE_RPM);
-            intakeTune.addConsumer(this::setTargetRPM);
+            intakeTune = new DashTunableNumber("Intake: Speed", INTAKE_SPEED);
+            intakeTune.addConsumer(this::setTargetSpeed);
         } else {
             intakeTune = null;
         }
+        this.sensor = new DigitalInput(INTAKE_SENSOR_PORT);
+        this.motor = new FRCSparkMax(INTAKE_MOTOR_ID, kBrushless, MotorModel.NEO_550);
     }
 
-
-
-    public void setTargetRPM(double rpm) { this.targetRPM = rpm; }
-
-    /** @return If the {@link IntakeSubsystem} is at target. */
-    public boolean atTarget() { return intakeWheel.atTarget(); }
+    public void setTargetSpeed(double speed) { this.targetSpeed = speed; }
 
     @Override
     public void periodic() {
-        intakeWheel.update();
-        if (intakeTune != null && !stopped)
+        if (intakeTune != null)
             intakeTune.update();
 
-        Logger.processInputs("Index", this);
-    }
+        if (!RobotBase.isSimulation()) {
+            sensorActivated = sensor.get();
+        }
 
-    /**
-     * Sets the target of the {@link IntakeSubsystem}.
-     */
-    public void setTarget(double rpm) { intakeWheel.setTarget(INTAKE_INVERTED ? -rpm: rpm); }
+        SmartDashboard.putBoolean("Intake: Has Note", hasNote());
+    }
 
     public void start() {
-        intakeWheel.setTarget(targetRPM);
-        stopped = targetRPM == 0;
+        motor.set(targetSpeed);
     }
 
-    /** Stops the {@link IntakeSubsystem} from spinning. */
-    public void stop() { intakeWheel.stop(); stopped = true; }
-
-
-    public boolean hasNote() { return sensorActivated; }
-
-    /**
-     * Updates a LogTable with the data to log.
-     *
-     * @param table The {@link LogTable} which is provided.
-     */
-    @Override
-    public void toLog(LogTable table) {
-        table.put("SensorActivated", sensorActivated);
+    /** Stops the {@link IndexSubsystem} from spinning. */
+    public void stop() {
+        motor.stopMotor();
     }
 
-    /**
-     * Updates data based on a LogTable.
-     *
-     * @param table The {@link LogTable} which is provided.
-     */
-    @Override
-    public void fromLog(LogTable table) {
-        this.sensorActivated = table.get("SensorActivated", sensorActivated);
-      
-    }
+    public boolean hasNote() { return !sensorActivated; }
 }
-
-
-
-
