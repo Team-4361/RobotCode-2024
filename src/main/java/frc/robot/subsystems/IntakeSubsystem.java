@@ -4,19 +4,12 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.util.math.GearRatio;
 import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.motor.MotorModel;
 import frc.robot.util.pid.DashTunableNumber;
-import frc.robot.util.pid.PIDMechanismBase;
-import frc.robot.util.pid.PIDRotationalMechanism;
-import frc.robot.util.pid.PIDRotationalMechanism.RotationUnit;
 
 import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
-import static frc.robot.Constants.Debug.INDEX_TUNING_ENABLED;
 import static frc.robot.Constants.Debug.INTAKE_TUNING_ENABLED;
-import static frc.robot.Constants.Indexer.*;
-import static frc.robot.Constants.Indexer.INDEX_RIGHT_MOTOR_ID;
 import static frc.robot.Constants.Intake.*;
 
 public class IntakeSubsystem extends SubsystemBase {
@@ -47,7 +40,7 @@ public class IntakeSubsystem extends SubsystemBase {
         if (!RobotBase.isSimulation()) {
             sensorActivated = sensor.get();
         }
-        
+
         SmartDashboard.putBoolean("Intake: Has Note", hasNote());
     }
 
@@ -62,7 +55,3 @@ public class IntakeSubsystem extends SubsystemBase {
 
     public boolean hasNote() { return !sensorActivated; }
 }
-
-
-
-

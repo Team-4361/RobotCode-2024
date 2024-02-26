@@ -78,9 +78,7 @@ public class ClimberSubsystem extends SubsystemBase {
         if (speedTune != null)
             speedTune.update();
 
-       // SmartDashboard.putBoolean("Climber: Left Activated", leftSensor.get());
-       // SmartDashboard.putBoolean("Climber: Right Activated", rightSensor.get());
-       SmartDashboard.putNumber("Climber: Left Position", leftEncoder.getPosition());
-       SmartDashboard.putNumber("Climber: Right Position", rightEncoder.getPosition());
+        SmartDashboard.putNumber("Climber: Left Position", leftEncoder.getPosition());
+        SmartDashboard.putNumber("Climber: Right Position", rightEncoder.getPosition());
     }
 }

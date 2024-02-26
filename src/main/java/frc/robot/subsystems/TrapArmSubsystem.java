@@ -1,17 +1,16 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.Servo;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.util.motor.MotorModel;
 import frc.robot.util.pid.PIDLinearMechanism;
-import frc.robot.util.pid.PIDRotationalMechanism;
 import frc.robot.util.pid.PIDLinearMechanism.DistanceUnit;
+import frc.robot.util.pid.PIDRotationalMechanism;
 import frc.robot.util.preset.PresetMap;
 
-import static frc.robot.Constants.TrapArm.*;
 import static frc.robot.Constants.Debug.TRAP_ARM_TUNING_ENABLED;
+import static frc.robot.Constants.TrapArm.*;
 
 /**
  * This {@link TrapArmSubsystem} is designed to control the {@link Robot}'s arm. It has an Actuonix L16-50-35-6R

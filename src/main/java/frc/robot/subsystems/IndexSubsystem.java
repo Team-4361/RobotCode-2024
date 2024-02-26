@@ -1,14 +1,9 @@
 package frc.robot.subsystems;
 
-import com.revrobotics.CANSparkLowLevel;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.util.math.GearRatio;
 import frc.robot.util.motor.FRCSparkMax;
 import frc.robot.util.motor.MotorModel;
 import frc.robot.util.pid.DashTunableNumber;
-import frc.robot.util.pid.PIDMechanismBase;
-import frc.robot.util.pid.PIDRotationalMechanism;
-import frc.robot.util.pid.PIDRotationalMechanism.RotationUnit;
 
 import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 import static frc.robot.Constants.Debug.INDEX_TUNING_ENABLED;
@@ -55,6 +50,5 @@ public class IndexSubsystem extends SubsystemBase {
         rightMotor.stopMotor();
     }
 }
-
 
 
