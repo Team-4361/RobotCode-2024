@@ -25,9 +25,9 @@ public class Constants {
         public static final boolean DEBUG_LOGGING_ENABLED = false;
         public static final boolean INDEX_TUNING_ENABLED = false;
         public static final boolean INTAKE_TUNING_ENABLED = false;
-        public static final boolean WRIST_TUNING_ENABLED = false;
         public static final boolean CLIMBER_TUNING_ENABLED = false;
-        public static final boolean TRAP_ARM_TUNING_ENABLED = false;
+        public static final boolean TRAP_ARM_TUNING_ENABLED = true;
+        public static final boolean TRAP_WRIST_TUNING_ENABLED = true;
         public static final boolean PHOTON_ENABLED = false;
         public static final boolean SWERVE_TUNING_ENABLED = false;
     }
@@ -63,6 +63,7 @@ public class Constants {
         public static final int WRIST_MIN_US = 1000;
         public static final int WRIST_MOTOR_ID = 18;
         public static final int WRIST_SERVO_ID = 0;
+        public static final int WRIST_SERVO_MIN_MM = 0;
 
         public static final double WRIST_KS = 0;
         public static final double WRIST_KV = 0;
@@ -91,6 +92,7 @@ public class Constants {
         public static final int ARM_CENTER_US = 1500;
         public static final int ARM_DEAD_BAND_MIN_US = 1500;
         public static final int ARM_MIN_US = 1000;
+        public static final int ARM_SERVO_MIN_MM = 3;
 
         public static final int ARM_MOTOR_ID = 17;
         public static final int ARM_SERVO_ID = 1;

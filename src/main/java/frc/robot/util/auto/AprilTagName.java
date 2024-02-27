@@ -1,14 +1,15 @@
 package frc.robot.util.auto;
 
+import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
+import java.util.List;
 import java.util.Optional;
 
 import static edu.wpi.first.wpilibj.DriverStation.Alliance.Blue;
 import static edu.wpi.first.wpilibj.DriverStation.Alliance.Red;
 
 public enum AprilTagName {
-
     RED_SPEAKER_MID(4, "Speaker-Mid", Red),
     RED_SPEAKER_LEFT(3, "Speaker-Left", Red),
     RED_SOURCE_LEFT(10, "Source-Left", Red),
@@ -25,13 +26,6 @@ public enum AprilTagName {
     BLUE_STAGE_MID(14, "Stage-Mid", Blue),
     BLUE_STAGE_LEFT(15, "Stage-Left", Blue),
     BLUE_STAGE_RIGHT(16, "Stage-Right", Blue);
-
-
-
-
-
-
-
 
 
     private final int id;

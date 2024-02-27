@@ -39,6 +39,7 @@ public abstract class PIDMechanismBase {
     private boolean pidEnabled = true;
     private double forwardLimit = Double.MAX_VALUE;
     private double reverseLimit = Double.MIN_VALUE;
+    private double lastPower = 0;
 
     private boolean limitBypassEnabled = false;
     private boolean dashboardEnabled = false;
@@ -256,14 +257,16 @@ public abstract class PIDMechanismBase {
             if (power == 0 && teleopMode) {
                 // Set the target angle to the current rotations to freeze the value and prevent the PIDController from
                 // automatically adjusting to the previous value.
-                setTarget(currentPosition);
-                teleopMode = false;
+                if (lastPower != 0) {
+                    setTarget(currentPosition);
+                    teleopMode = false;
+                }
             }
             if (power != 0 && !teleopMode)
                 teleopMode = true;
-
             motor.set(getLimitAdjustedPower(power));
         }
+        lastPower = power;
     }
 
     /**
@@ -280,10 +283,9 @@ public abstract class PIDMechanismBase {
 
     /** Stops the {@link PIDMechanismBase} from spinning. */
     public void stop() {
-        if (!pidEnabled) {
+        if (!pidEnabled)
             translateMotor(0);
-        } else {
+        else
             setTarget(0);
-        }
     }
 }

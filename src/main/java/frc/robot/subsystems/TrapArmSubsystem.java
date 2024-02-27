@@ -1,9 +1,11 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.Servo;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.util.motor.MotorModel;
+import frc.robot.util.motor.MotorServo;
 import frc.robot.util.pid.PIDLinearMechanism;
 import frc.robot.util.pid.PIDLinearMechanism.DistanceUnit;
 import frc.robot.util.pid.PIDRotationalMechanism;
@@ -17,11 +19,11 @@ import static frc.robot.Constants.TrapArm.*;
  * Linear Servo for grabbing, and a 63:1 NEO-550 motor used for extending.
  */
 public class TrapArmSubsystem extends SubsystemBase {
-    private final Servo linearServo;
+    private final MotorServo linearServo;
     private final PIDLinearMechanism mechanism;
-    public double extensionPosition = 0.0;
-    public double extensionTarget = 0.0;
-    private double lastSpeed = 0.0;
+
+    public double getAngleDistanceMM() { return linearServo.getDistanceMM(); }
+    public double getAngleTargetMM() { return linearServo.getTargetMM(); }
 
     /** Constructs a new {@link PIDRotationalMechanism}. */
     public TrapArmSubsystem() {
@@ -37,21 +39,29 @@ public class TrapArmSubsystem extends SubsystemBase {
                 DistanceUnit.INCHES,
                 ARM_DISTANCE
         );
-        this.linearServo = new Servo(ARM_SERVO_ID);
-        linearServo.setBoundsMicroseconds(
+
+        linearServo = new MotorServo(
+                ARM_SERVO_ID,
                 ARM_MAX_US,
                 ARM_DEAD_BAND_MAX_US,
                 ARM_CENTER_US,
                 ARM_DEAD_BAND_MIN_US,
-                ARM_MIN_US
+                ARM_MIN_US,
+                ARM_SERVO_MIN_MM,
+                ARM_SERVO_MAX_MM
         );
+
         mechanism.setDistanceTuningEnabled(TRAP_ARM_TUNING_ENABLED);
+        mechanism.setDashboardEnabled(TRAP_ARM_TUNING_ENABLED);
     }
 
     @Override
     public void periodic() {
         mechanism.update();
-        extensionPosition = linearServo.getPosition() * ARM_SERVO_MAX_MM;
+        linearServo.update();
+        if (TRAP_ARM_TUNING_ENABLED) {
+            SmartDashboard.putNumber("Arm: ROT Pos", getAngleTargetMM());
+        }
     }
 
     public void registerAnglePresets(PresetMap<Double> map) {
@@ -66,8 +76,7 @@ public class TrapArmSubsystem extends SubsystemBase {
      * @param mm The {@link Double} value in millimeters.
      */
     public void setAnglePosition(double mm) {
-        extensionTarget = mm;
-        linearServo.setPosition(Math.max(0, extensionTarget / ARM_SERVO_MAX_MM));
+        linearServo.setDistance(mm);
     }
 
     /**
@@ -83,9 +92,6 @@ public class TrapArmSubsystem extends SubsystemBase {
      * @param speed The {@link Double} value from -1.0 to +1.0
      */
     public void setAngleSpeed(double speed) {
-        if (speed != lastSpeed) {
-            linearServo.set(speed); // FIXME: make it act like a motor!
-            lastSpeed = speed;
-        }
+        linearServo.set(speed);
     }
 }

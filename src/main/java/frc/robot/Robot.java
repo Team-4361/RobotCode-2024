@@ -14,7 +14,6 @@ import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -45,6 +44,7 @@ import swervelib.telemetry.Alert.AlertType;
 import static frc.robot.Constants.Control.*;
 import static frc.robot.Constants.Debug.*;
 import static frc.robot.Constants.ShooterCamera.*;
+import static frc.robot.util.math.GlobalUtils.deadband;
 import static swervelib.telemetry.Alert.AlertType.WARNING;
 
 
@@ -204,7 +204,7 @@ public class Robot extends TimedRobot {
         if (DEBUG_LOGGING_ENABLED)   { new Alert("Debug Logging Enabled",  WARNING).set(true); }
         if (INDEX_TUNING_ENABLED)    { new Alert("Index Tuning Enabled",   WARNING).set(true); }
         if (INTAKE_TUNING_ENABLED)   { new Alert("Intake Tuning Enabled",  WARNING).set(true); }
-        if (WRIST_TUNING_ENABLED)    { new Alert("Wrist Tuning Enabled",   WARNING).set(true); }
+        if (TRAP_WRIST_TUNING_ENABLED)    { new Alert("Wrist Tuning Enabled",   WARNING).set(true); }
         if (CLIMBER_TUNING_ENABLED)  { new Alert("Climber Tuning Enabled", WARNING).set(true); }
         if (TRAP_ARM_TUNING_ENABLED) { new Alert("Arm Tuning Enabled",     WARNING).set(true); }
         if (SWERVE_TUNING_ENABLED)   { new Alert("Swerve Tuning Enabled",  WARNING).set(true); }
@@ -270,6 +270,7 @@ public class Robot extends TimedRobot {
                 () -> Robot.climber.moveRightDown(),
                 () -> Robot.climber.stopRight()
         ));
+
     }
 
 
@@ -296,6 +297,9 @@ public class Robot extends TimedRobot {
             slowModeAlert.set(Robot.leftStick.getPresetName().equals("Slow Mode"));
             nextUpdateMillis = System.currentTimeMillis() + 2000;
         }
+
+        Robot.arm.setExtensionSpeed(deadband(-Robot.xbox.getLeftX()));
+        Robot.arm.setAngleSpeed(deadband(-Robot.xbox.getRightX()));
     }
 
     @Override public void autonomousInit() { autoChooser.getSelected().schedule(); }

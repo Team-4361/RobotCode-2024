@@ -1,15 +1,15 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.util.motor.MotorModel;
+import frc.robot.util.motor.MotorServo;
 import frc.robot.util.pid.PIDRotationalMechanism;
 import frc.robot.util.pid.PIDRotationalMechanism.RotationUnit;
 import frc.robot.util.preset.PresetMap;
 
-import static frc.robot.Constants.Debug.WRIST_TUNING_ENABLED;
+import static frc.robot.Constants.Debug.TRAP_WRIST_TUNING_ENABLED;
 import static frc.robot.Constants.Wrist.*;
 
 /**
@@ -17,11 +17,8 @@ import static frc.robot.Constants.Wrist.*;
  * Linear Servo for grabbing, and a 63:1 NEO-550 motor used for turning.
  */
 public class TrapWristSubsystem extends SubsystemBase {
-    private final Servo grabServo;
+    private final MotorServo grabServo;
     private final PIDRotationalMechanism mechanism;
-
-    public double extensionPosition = 0.0;
-    public double extensionTarget = 0.0;
 
     /** Constructs a new {@link PIDRotationalMechanism}. */
     public TrapWristSubsystem() {
@@ -33,44 +30,45 @@ public class TrapWristSubsystem extends SubsystemBase {
                 WRIST_KA,
                 MotorModel.NEO_550,
                 "Wrist",
-                WRIST_TUNING_ENABLED,
+                TRAP_WRIST_TUNING_ENABLED,
                 WRIST_TURN_RATIO,
                 RotationUnit.DEGREES,
                 false
         );
 
-        grabServo = new Servo(WRIST_SERVO_ID);
-        grabServo.setBoundsMicroseconds(
+        grabServo = new MotorServo(
+                WRIST_SERVO_ID,
                 WRIST_MAX_US,
                 WRIST_DEAD_BAND_MAX_US,
                 WRIST_CENTER_US,
                 WRIST_DEAD_BAND_MIN_US,
-                WRIST_MIN_US
+                WRIST_MIN_US,
+                WRIST_SERVO_MIN_MM,
+                WRIST_SERVO_MAX_MM
         );
 
         mechanism.setInverted(WRIST_INVERTED);
+        mechanism.setPIDControlSupplier(() -> false); // tuning purposes only.
     }
 
     public void registerPresets(PresetMap<Double> map) { mechanism.registerPresets(map); }
 
     @Override
     public void periodic() {
-        extensionPosition = grabServo.getPosition() * WRIST_SERVO_MAX_MM;
+        grabServo.update();
         mechanism.update();
-        grabServo.setPosition(Math.max(0, extensionTarget / WRIST_SERVO_MAX_MM));
-        if (WRIST_TUNING_ENABLED)
+
+        if (TRAP_WRIST_TUNING_ENABLED) {
             SmartDashboard.putNumber("Wrist: EXT Pos", getExtensionPosition());
+        }
     }
 
     /**
      * Sets the extension target of the {@link TrapWristSubsystem}.
      * @param mm The extension target in <b>millimeters</b>.
      */
-    public void setExtensionTarget(double mm) { this.extensionTarget = mm; }
-
-    public void translateWrist(double speed) {
-        mechanism.translateMotor(speed);
-    }
+    public void setExtensionTarget(double mm) { grabServo.setDistance(mm); }
+    public void translateWrist(double speed) { mechanism.translateMotor(speed); }
 
     /** Extends the {@link TrapWristSubsystem} to the maximum allowed value -- dropping the note. */
     public void dropNote() { setExtensionTarget(WRIST_SERVO_MAX_MM); }
@@ -78,5 +76,5 @@ public class TrapWristSubsystem extends SubsystemBase {
     /** Retracts the {@link TrapWristSubsystem} to the minimum allowed value -- grabbing the note. */
     public void grabNote() { setExtensionTarget(0); }
 
-    public double getExtensionPosition(){ return extensionPosition; }
+    public double getExtensionPosition(){ return grabServo.getDistanceMM(); }
 }
