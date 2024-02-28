@@ -64,6 +64,10 @@ public class TrapWristSubsystem extends SubsystemBase {
         }
     }
 
+    public void reset() {
+        mechanism.reset();
+    }
+
     /**
      * Sets the extension target of the {@link TrapWristSubsystem}.
      * @param mm The extension target in <b>millimeters</b>.

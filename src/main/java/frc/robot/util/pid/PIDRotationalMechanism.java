@@ -1,13 +1,14 @@
 package frc.robot.util.pid;
 
 
+import com.pathplanner.lib.util.PIDConstants;
+import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.util.math.GearRatio;
-import frc.robot.util.motor.FRCSparkMax;
-import frc.robot.util.motor.IMotorModel;
+import frc.robot.util.motor.MotorModel;
 
 public class PIDRotationalMechanism extends PIDMechanismBase {
     private final GearRatio ratio;
@@ -16,23 +17,23 @@ public class PIDRotationalMechanism extends PIDMechanismBase {
     /**
      * Constructs a new {@link PIDRotationalMechanism}.
      *
-     * @param motorId       The {@link FRCSparkMax} motor ID to use.
-     * @param constants     The {@link PIDConstantsAK} to use.
+     * @param motorId       The {@link CANSparkMax} motor ID to use.
+     * @param constants     The {@link PIDConstants} to use.
      * @param kS            The {@link SimpleMotorFeedforward} kS constant.
      * @param kV            The {@link SimpleMotorFeedforward} kV constant.
      * @param kA            The {@link SimpleMotorFeedforward} kA constant.
-     * @param model         The {@link IMotorModel} of the {@link FRCSparkMax} motor.
+     * @param model         The {@link MotorModel} of the {@link CANSparkMax} motor.
      * @param moduleName    The {@link String} module name
      * @param tuningEnabled If PID {@link SmartDashboard} tuning is enabled.
      * @param ratio         The {@link GearRatio} of the {@link PIDRotationalMechanism}.
      * @param unit          The conversion unit of the {@link PIDRotationalMechanism}. <b>MUST BE CONSISTENT!</b>
      */
     public PIDRotationalMechanism(int motorId,
-                                  PIDConstantsAK constants,
+                                  PIDConstants constants,
                                   double kS,
                                   double kV,
                                   double kA,
-                                  IMotorModel model,
+                                  MotorModel model,
                                   String moduleName,
                                   boolean tuningEnabled,
                                   GearRatio ratio,

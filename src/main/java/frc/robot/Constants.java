@@ -1,13 +1,16 @@
 package frc.robot;
 
+import com.pathplanner.lib.util.PIDConstants;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import frc.robot.util.math.GearRatio;
 import frc.robot.util.math.PeakMotorDistance;
-import frc.robot.util.pid.PIDConstantsAK;
 import frc.robot.util.preset.PresetGroup;
 import frc.robot.util.preset.PresetMap;
 
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.wpilibj.PowerDistribution.ModuleType.kRev;
 
 /**
  * This {@link Constants} class is an easy-to-use place for fixed value storage (ex. motor/controller IDs,
@@ -22,14 +25,18 @@ public class Constants {
     public static class Debug {
         public static final boolean PHOTON_TUNING_ENABLED = false;
         public static final boolean SHOOTER_TUNING_ENABLED = false;
-        public static final boolean DEBUG_LOGGING_ENABLED = false;
         public static final boolean INDEX_TUNING_ENABLED = false;
         public static final boolean INTAKE_TUNING_ENABLED = false;
         public static final boolean CLIMBER_TUNING_ENABLED = false;
         public static final boolean TRAP_ARM_TUNING_ENABLED = true;
         public static final boolean TRAP_WRIST_TUNING_ENABLED = true;
         public static final boolean PHOTON_ENABLED = false;
-        public static final boolean SWERVE_TUNING_ENABLED = false;
+        public static final boolean SWERVE_TUNING_ENABLED = true;
+    }
+
+    public static class Power {
+        public static final ModuleType POWER_MODULE_TYPE = kRev;
+        public static final int POWER_CAN_ID = 34;
     }
 
 
@@ -73,7 +80,7 @@ public class Constants {
         public static final boolean WRIST_INVERTED = false;
 
         public static final GearRatio WRIST_TURN_RATIO = GearRatio.from(63, 1);
-        public static final PIDConstantsAK WRIST_PID = new PIDConstantsAK(0.02, 0, 0);
+        public static final PIDConstants WRIST_PID = new PIDConstants(0.02, 0, 0);
     }
 
     public static class Climber {
@@ -102,7 +109,7 @@ public class Constants {
 
         public static final double ARM_SERVO_MAX_MM = 50;
         public static final PeakMotorDistance ARM_DISTANCE = new PeakMotorDistance(Inches.of(24), 10);
-        public static final PIDConstantsAK ARM_PID = new PIDConstantsAK(0.02, 0, 0);
+        public static final PIDConstants ARM_PID = new PIDConstants(0.02, 0, 0);
     }
 
     public static class Control {
@@ -112,9 +119,6 @@ public class Constants {
         public static final int RIGHT_STICK_ID = 1;
         /** The Xbox Controller ID (typically 2) */
         public static final int XBOX_CONTROLLER_ID = 2;
-
-        /** The default dead-zone value to use on Controllers. */
-        public static final double DEAD_ZONE = 0.05;
     }
 
     public static class ShooterCamera {
@@ -153,10 +157,14 @@ public class Constants {
     public static class Chassis {
         public static final double SIDE_LENGTH_METERS = Units.inchesToMeters(30);
         public static final double MAX_SPEED_MPS = 12.5;
+
         public static final double PHOTON_DRIVE_MAX_SPEED = 0.5;
         public static final double PHOTON_TURN_MAX_SPEED = 0.2;
 
-        public static final PIDConstantsAK PHOTON_DRIVE_PID = new PIDConstantsAK(0.25, 0, 0);
-        public static final PIDConstantsAK PHOTON_TURN_PID = new PIDConstantsAK(0.02, 0, 0);
+        public static final PIDConstants PHOTON_DRIVE_PID = new PIDConstants(0.02, 0, 0);
+        public static final PIDConstants PHOTON_TURN_PID = new PIDConstants(0.02, 0, 0);
+
+        public static final PIDConstants AUTO_DRIVE_PID = new PIDConstants(0.25, 0, 0);
+        public static final PIDConstants AUTO_TURN_PID = new PIDConstants(0.02, 0, 0);
     }
 }

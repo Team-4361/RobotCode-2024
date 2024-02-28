@@ -11,8 +11,8 @@ import frc.robot.Robot;
 
 import static frc.robot.Constants.TrapArm.ARM_SERVO_MAX_MM;
 
-public class SimpleAutoCommand extends SequentialCommandGroup {
-    public SimpleAutoCommand() {
+public class TwoNoteAutoCommand extends SequentialCommandGroup {
+    public TwoNoteAutoCommand() {
         super(
                 Robot.swerve.resetCommand(),
                 Commands.runOnce(() -> Robot.arm.setAnglePosition(ARM_SERVO_MAX_MM)),

@@ -1,6 +1,7 @@
 package frc.robot.util.auto;
 
 import edu.wpi.first.apriltag.AprilTag;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 import java.util.List;
@@ -34,6 +35,17 @@ public enum AprilTagName {
 
     public int getID() { return this.id; }
     public Alliance getAlliance() { return this.alliance; };
+
+    public static int getAllianceID(String name) {
+        // FIXME: fix!
+        Alliance color = DriverStation.getAlliance().get();
+        for (AprilTagName tag : AprilTagName.values()) {
+            if (tag.alliance == color && tag.name.trim().equalsIgnoreCase(name.trim())) {
+                return tag.id;
+            }
+        }
+        return 0;
+    }
 
     public static Optional<AprilTagName> fromID(int id) {
         for (AprilTagName tag : AprilTagName.values()) {

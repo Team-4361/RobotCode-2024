@@ -79,6 +79,10 @@ public class TrapArmSubsystem extends SubsystemBase {
         linearServo.setDistance(mm);
     }
 
+    public void reset() {
+        mechanism.reset();
+    }
+
     /**
      * Sets the extension speed of the {@link TrapArmSubsystem}.
      * @param speed The {@link Double} value from -1.0 to +1.0

@@ -16,39 +16,15 @@ import static frc.robot.Constants.Chassis.PHOTON_TURN_MAX_SPEED;
 
 public class DriveToPoseCommand extends Command {
     private final Pose2d desiredPose;
-    private Pose2d currentPose = new Pose2d();
 
     public DriveToPoseCommand(Pose2d desiredPose) {
         addRequirements(Robot.swerve);
         this.desiredPose = desiredPose;
     }
 
-    private ChassisSpeeds calculateSpeeds() {
-        PIDController driveController = Robot.shooterCamera.getDriveController();
-        PIDController turnController = Robot.shooterCamera.getTurnController();
-
-        double mX = Robot.shooterCamera.getMaxDriveSpeed();
-        double jX = MathUtil.clamp(driveController.calculate(currentPose.getX(), desiredPose.getX()), -mX, mX);
-        double jY = MathUtil.clamp(driveController.calculate(currentPose.getY(), desiredPose.getY()), -mX, mX);
-        double jO = MathUtil.clamp(
-                turnController.calculate(
-                        currentPose.getRotation().getRadians(),
-                        desiredPose.getRotation().getRadians()
-                ),
-                -PHOTON_TURN_MAX_SPEED,
-                PHOTON_TURN_MAX_SPEED
-        );
-        return new ChassisSpeeds(
-                jX * MAX_SPEED_MPS,
-                jY * MAX_SPEED_MPS,
-                jO * MAX_SPEED_MPS
-        );
-    }
-
     @Override
     public void execute() {
-        currentPose = Robot.swerve.getPose();
-        Robot.swerve.setChassisSpeeds(calculateSpeeds());
+        Robot.swerve.setChassisSpeeds(Robot.swerve.calculateSpeedsToPose(desiredPose));
     }
 
     /**
@@ -77,6 +53,7 @@ public class DriveToPoseCommand extends Command {
 
     @Override
     public boolean isFinished() {
+        Pose2d currentPose = Robot.swerve.getPose();
         return GlobalUtils.inTolerance(desiredPose.getX(), currentPose.getX(), 0.1)
                 && GlobalUtils.inTolerance(desiredPose.getY(), currentPose.getY(), 0.1);
     }

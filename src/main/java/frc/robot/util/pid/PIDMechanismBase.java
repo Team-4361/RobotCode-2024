@@ -1,16 +1,21 @@
 package frc.robot.util.pid;
 
+import com.pathplanner.lib.util.PIDConstants;
+import com.revrobotics.CANSparkLowLevel;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.util.math.GlobalUtils;
-import frc.robot.util.motor.FRCSparkMax;
-import frc.robot.util.motor.IMotorModel;
+import frc.robot.util.motor.MotorModel;
 import frc.robot.util.preset.PresetMap;
 
 import java.util.function.Supplier;
@@ -24,7 +29,11 @@ import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
  * @author Eric Gold
  */
 public abstract class PIDMechanismBase {
-    private final FRCSparkMax motor;
+    private final CANSparkMax motor;
+    private final DCMotorSim motorSim;
+    private final MotorModel model;
+    private boolean simInverted = false;
+    private long lastSimUpdateMillis = System.currentTimeMillis();
 
     private final SimpleMotorFeedforward feedFwd;
     private final DashTunablePID pidTune;
@@ -50,6 +59,101 @@ public abstract class PIDMechanismBase {
 
     private RelativeEncoder encoder;
 
+    public MotorModel getModel() { return this.model; }
+
+    private RelativeEncoder getEncoder() {
+        RelativeEncoder realEncoder = motor.getEncoder();
+        return new RelativeEncoder() {
+            @Override
+            public double getPosition() {
+                if (RobotBase.isSimulation() && motorSim != null) {
+                    return motorSim.getAngularPositionRotations();
+                } else {
+                    return realEncoder.getPosition();
+                }
+            }
+            @Override
+            public double getVelocity() {
+                if (RobotBase.isSimulation() && motorSim != null) {
+                    return motorSim.getAngularVelocityRPM();
+                } else {
+                    return realEncoder.getVelocity();
+                }
+            }
+            @Override
+            public REVLibError setPosition(double position) {
+                if (RobotBase.isSimulation() && motorSim != null) {
+                    motorSim.setState(position, 0);
+                    return REVLibError.kOk;
+                } else {
+                    return realEncoder.setPosition(position);
+                }
+            }
+
+            @Override
+            public REVLibError setPositionConversionFactor(double factor) {
+                return realEncoder.setPositionConversionFactor(factor);
+            }
+
+            @Override
+            public REVLibError setVelocityConversionFactor(double factor) {
+                return realEncoder.setVelocityConversionFactor(factor);
+            }
+            @Override
+            public double getPositionConversionFactor() {
+                return realEncoder.getPositionConversionFactor();
+            }
+
+            @Override
+            public double getVelocityConversionFactor() {
+                return realEncoder.getVelocityConversionFactor();
+            }
+
+            @Override
+            public REVLibError setAverageDepth(int depth) {
+                return realEncoder.setAverageDepth(depth);
+            }
+
+            @Override
+            public int getAverageDepth() {
+                return realEncoder.getAverageDepth();
+            }
+
+            @Override
+            public REVLibError setMeasurementPeriod(int period_ms) {
+                return realEncoder.setMeasurementPeriod(period_ms);
+            }
+
+            @Override
+            public int getMeasurementPeriod() {
+                return realEncoder.getMeasurementPeriod();
+            }
+
+            @Override
+            public int getCountsPerRevolution() {
+                return realEncoder.getCountsPerRevolution();
+            }
+
+            @Override
+            public REVLibError setInverted(boolean inverted) {
+                if (RobotBase.isSimulation() && motorSim != null) {
+                    simInverted = inverted;
+                    return REVLibError.kOk;
+                } else {
+                    return realEncoder.setInverted(inverted);
+                }
+            }
+
+            @Override
+            public boolean getInverted() {
+                if (RobotBase.isSimulation() && motorSim != null) {
+                    return simInverted;
+                }
+                return realEncoder.getInverted();
+            }
+        };
+    }
+
     /**
      * @param motorRotations The motor rotations as reported by the {@link Encoder}.
      *
@@ -61,30 +165,37 @@ public abstract class PIDMechanismBase {
     /**
      * Constructs a new {@link PIDMechanismBase}.
      * @param motorId       The motor ID to use.
-     * @param constants     The {@link PIDConstantsAK} to use.
+     * @param constants     The {@link PIDConstants} to use.
      * @param kS            The {@link SimpleMotorFeedforward} kS constant.
      * @param kV            The {@link SimpleMotorFeedforward} kV constant.
      * @param kA            The {@link SimpleMotorFeedforward} kA constant.
-     * @param model         The {@link IMotorModel} of the {@link FRCSparkMax} motor.
+     * @param model         The {@link MotorModel} of the {@link CANSparkMax} motor.
      * @param moduleName    The {@link String} module name
      * @param tuningEnabled If PID {@link SmartDashboard} tuning is enabled.
      */
     public PIDMechanismBase(int motorId,
-                            PIDConstantsAK constants,
+                            PIDConstants constants,
                             double kS,
                             double kV,
                             double kA,
-                            IMotorModel model,
+                            MotorModel model,
                             String moduleName,
                             boolean tuningEnabled,
                             boolean rpmControl) {
-        this.motor = new FRCSparkMax(motorId, kBrushless, model);
+        this.motor = new CANSparkMax(motorId, kBrushless);
         this.feedFwd = new SimpleMotorFeedforward(kS, kV, kA);
-        this.controller = PIDConstantsAK.generateController(constants);
+        this.controller = GlobalUtils.generateController(constants);
         this.rpmControl = rpmControl;
         this.moduleName = moduleName;
         this.encoder = motor.getEncoder();
+        this.model = model;
+
         encoder.setPosition(0);
+
+        motor.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus1, 20);
+        motor.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus2, 20);
+        motor.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus3, 20);
+        motor.enableVoltageCompensation(12.0);
 
         if (tuningEnabled) {
             pidTune = new DashTunablePID(moduleName + ": PID", constants);
@@ -92,6 +203,11 @@ public abstract class PIDMechanismBase {
         } else {
             pidTune = null;
         }
+
+        if (RobotBase.isSimulation()) {
+            motorSim = new DCMotorSim(model.getMotorInstance(), 1, 0.025);
+            lastSimUpdateMillis = System.currentTimeMillis();
+        } else { motorSim = null; }
     }
 
     /** @return The {@link String} name of the {@link PIDMechanismBase}. */
@@ -130,15 +246,26 @@ public abstract class PIDMechanismBase {
         );
     }
 
+    private void setVoltage(double outputVolts) {
+        if (RobotBase.isSimulation() && motorSim != null) {
+            double simVolts = MathUtil.clamp(outputVolts, -12, 12);
+            motorSim.setInputVoltage(simVolts);
+        } else {
+            motor.setVoltage(outputVolts);
+        }
+    }
+
     /** Updates the {@link PIDMechanismBase}. <b>This MUST be called in a periodic/execute method!</b> */
     public void update() {
-        encoder = motor.getEncoder();
+        encoder = getEncoder();
 
         if (pidTune != null)
             pidTune.update();
 
-        if (RobotBase.isSimulation())
-            motor.updateSim();
+        if (RobotBase.isSimulation()) {
+            motorSim.update((System.currentTimeMillis() - lastSimUpdateMillis) / 1000f);
+            lastSimUpdateMillis = System.currentTimeMillis();
+        }
 
         double velocityRPM = encoder.getVelocity();
         currentValue = getCurrentPosition(encoder.getPosition());
@@ -155,7 +282,7 @@ public abstract class PIDMechanismBase {
             if (rpmControl) {
                 double targetVelocityRadPerSec = Units.rotationsPerMinuteToRadiansPerSecond(targetValue);
 
-                motor.setVoltage(
+                setVoltage(
                         feedFwd.calculate(velocityRadPerSec)
                             + controller.calculate(velocityRadPerSec, targetVelocityRadPerSec)
                 );
@@ -163,7 +290,7 @@ public abstract class PIDMechanismBase {
                 double positionRad = Units.rotationsToRadians(currentValue);
                 double targetPositionRad = Units.rotationsToRadians(targetValue);
 
-                motor.setVoltage(
+                setVoltage(
                         feedFwd.calculate(velocityRadPerSec)
                             + controller.calculate(positionRad, targetPositionRad)
                 );
@@ -229,6 +356,15 @@ public abstract class PIDMechanismBase {
         }
     }
 
+    private void setPower(final double speed) {
+        double adjustedSpeed = MathUtil.clamp(speed, -1, 1);
+        if (RobotBase.isSimulation() && motorSim != null) {
+            motorSim.setInputVoltage(adjustedSpeed * 12);
+        } else {
+            motor.set(adjustedSpeed);
+        }
+    }
+
     /**
      * Sets the Tolerance for the {@link PIDController}. This will prevent any encoder inaccuracies from stalling
      * the motor when the target is reached.
@@ -253,7 +389,7 @@ public abstract class PIDMechanismBase {
      */
     public void translateMotor(double power) {
         if (rpmControl || !pidEnabled) {
-            motor.set(getLimitAdjustedPower(power));
+            setPower(getLimitAdjustedPower(power));
         } else if (DriverStation.isTeleop()) {
             if (power == 0 && teleopMode) {
                 // Set the target angle to the current rotations to freeze the value and prevent the PIDController from
@@ -265,7 +401,7 @@ public abstract class PIDMechanismBase {
             }
             if (power != 0 && !teleopMode)
                 teleopMode = true;
-            motor.set(getLimitAdjustedPower(power));
+            setPower(getLimitAdjustedPower(power));
         }
         lastPower = power;
     }
@@ -288,5 +424,10 @@ public abstract class PIDMechanismBase {
             translateMotor(0);
         else
             setTarget(0);
+    }
+
+    public void reset() {
+        encoder.setPosition(0);
+        setTarget(0);
     }
 }

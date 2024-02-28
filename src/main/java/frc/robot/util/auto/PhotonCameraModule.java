@@ -7,11 +7,10 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.util.math.GlobalUtils;
 import frc.robot.util.pid.DashTunableNumber;
 import frc.robot.util.pid.DashTunablePID;
-import frc.robot.util.pid.PIDConstantsAK;
 
-import java.sql.Driver;
 import java.util.Optional;
 
 import org.photonvision.PhotonCamera;
@@ -52,13 +51,13 @@ public class PhotonCameraModule extends PhotonCamera {
         this.cameraHeight = height;
         this.cameraPitch = pitch;
 
-        this.driveController = PIDConstantsAK.generateController(PHOTON_DRIVE_PID);
-        this.turnController = PIDConstantsAK.generateController(PHOTON_TURN_PID);
+        this.driveController = GlobalUtils.generateController(AUTO_DRIVE_PID);
+        this.turnController = GlobalUtils.generateController(AUTO_TURN_PID);
 
 
         if (PHOTON_TUNING_ENABLED) {
-            this.driveTune = new DashTunablePID("Photon: Drive PID", PHOTON_DRIVE_PID);
-            this.turnTune = new DashTunablePID("Photon: Turn PID", PHOTON_TURN_PID);
+            this.driveTune = new DashTunablePID("Photon: Drive PID", AUTO_DRIVE_PID);
+            this.turnTune = new DashTunablePID("Photon: Turn PID", AUTO_TURN_PID);
             this.speedTune = new DashTunableNumber("Photon: Max Speed", PHOTON_DRIVE_MAX_SPEED);
 
             speedTune.addConsumer(this::setMaxDriveSpeed);
@@ -70,7 +69,6 @@ public class PhotonCameraModule extends PhotonCamera {
             speedTune = null;
         }
     }
-
 
     public void setTargetHeight(double height) { this.targetHeight = height; }
     public double getTargetHeight() { return this.targetHeight; }

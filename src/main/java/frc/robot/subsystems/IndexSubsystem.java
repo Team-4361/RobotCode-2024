@@ -1,8 +1,7 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.CANSparkMax;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.util.motor.FRCSparkMax;
-import frc.robot.util.motor.MotorModel;
 import frc.robot.util.pid.DashTunableNumber;
 
 import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
@@ -11,8 +10,8 @@ import static frc.robot.Constants.Indexer.*;
 
 public class IndexSubsystem extends SubsystemBase {
     private final DashTunableNumber indexTune;
-    private final FRCSparkMax leftMotor;
-    private final FRCSparkMax rightMotor;
+    private final CANSparkMax leftMotor;
+    private final CANSparkMax rightMotor;
     private double targetSpeed = INDEX_SPEED;
 
     public IndexSubsystem() {
@@ -22,8 +21,8 @@ public class IndexSubsystem extends SubsystemBase {
         } else {
             indexTune = null;
         }
-        this.leftMotor = new FRCSparkMax(INDEX_LEFT_MOTOR_ID, kBrushless, MotorModel.NEO_550);
-        this.rightMotor = new FRCSparkMax(INDEX_RIGHT_MOTOR_ID, kBrushless, MotorModel.NEO_550);
+        this.leftMotor = new CANSparkMax(INDEX_LEFT_MOTOR_ID, kBrushless);
+        this.rightMotor = new CANSparkMax(INDEX_RIGHT_MOTOR_ID, kBrushless);
 
         leftMotor.setInverted(true);
         rightMotor.setInverted(false);

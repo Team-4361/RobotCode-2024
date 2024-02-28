@@ -5,6 +5,8 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.ReplanningConfig;
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -19,7 +21,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Subsystem;
-import frc.robot.util.joystick.DriveHIDBase;
+import frc.robot.Robot;
 import swervelib.SwerveDrive;
 import swervelib.SwerveModule;
 import swervelib.math.SwerveMath;
@@ -33,10 +35,11 @@ import swervelib.telemetry.SwerveDriveTelemetry;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
+import java.util.function.DoubleSupplier;
 
 import static edu.wpi.first.wpilibj.Filesystem.getDeployDirectory;
-import static frc.robot.Constants.Chassis.MAX_SPEED_MPS;
-import static frc.robot.Constants.Chassis.SIDE_LENGTH_METERS;
+import static frc.robot.Constants.Chassis.*;
+import static frc.robot.Constants.Chassis.PHOTON_TURN_MAX_SPEED;
 import static frc.robot.Constants.Debug.SWERVE_TUNING_ENABLED;
 import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.*;
 
@@ -50,12 +53,21 @@ import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.*;
  */
 public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Sendable {
     public boolean fieldOriented = true;
+    public boolean slowMode = false;
+
     private static SwerveDriveConfiguration driveConfig = null;
     private static SwerveControllerConfiguration controllerConfig = null;
 
 
     /** @return A {@link Command} used to toggle teleoperated field-oriented. */
     public Command toggleFieldOrientedCommand() { return Commands.runOnce(() -> fieldOriented = !fieldOriented); }
+
+    public Command toggleSlowModeCommand() {
+        return Commands.runEnd(
+                () -> Robot.swerve.slowMode = true,
+                () -> Robot.swerve.slowMode = false
+        );
+    }
 
     public Command resetCommand() { return Commands.runOnce(this::reset); }
 
@@ -69,26 +81,6 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
                         new SwerveModuleState(0, Rotation2d.fromDegrees(0))
                 });
     }
-
-    /**
-     * Use PathPlanner Path finding to go to a point on the field.
-     *
-     * @param pose Target {@link Pose2d} to go to.
-     * @return PathFinding command
-     */
-    public Command driveToPose(Pose2d pose) {
-        PathConstraints constraints = new PathConstraints(
-                getMaximumVelocity(), 4.0,
-                getMaximumAngularVelocity(), Units.degreesToRadians(720));
-
-        return AutoBuilder.pathfindToPose(
-                pose,
-                constraints,
-                0.0,
-                0.0
-        );
-    }
-
 
     /**
      * Initializes the {@link SwerveParser} and auto-generates all configuration information based on the files.
@@ -167,6 +159,29 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
                 null);
     }
 
+    public ChassisSpeeds calculateSpeedsToPose(Pose2d desiredPose) {
+        PIDController driveController = Robot.shooterCamera.getDriveController();
+        PIDController turnController = Robot.shooterCamera.getTurnController();
+        Pose2d currentPose = getPose();
+
+        double mX = Robot.shooterCamera.getMaxDriveSpeed();
+        double jX = MathUtil.clamp(driveController.calculate(currentPose.getX(), desiredPose.getX()), -mX, mX);
+        double jY = MathUtil.clamp(driveController.calculate(currentPose.getY(), desiredPose.getY()), -mX, mX);
+        double jO = MathUtil.clamp(
+                turnController.calculate(
+                        currentPose.getRotation().getRadians(),
+                        desiredPose.getRotation().getRadians()
+                ),
+                -PHOTON_TURN_MAX_SPEED,
+                PHOTON_TURN_MAX_SPEED
+        );
+        return new ChassisSpeeds(
+                jX * MAX_SPEED_MPS,
+                jY * MAX_SPEED_MPS,
+                jO * MAX_SPEED_MPS
+        );
+    }
+
     /**
      * Constructs a new {@link SwerveDriveSubsystem} with the specified modules. The {@link #initParser()} method
      * <b>MUST</b> be called prior to calling this constructor!
@@ -202,15 +217,6 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
 
     public void setStates(SwerveModuleState[] states) { this.setModuleStates(states, false); }
 
-    /*
-    @Override
-    public Pose2d getPose() {
-        Pose2d current = super.getPose();
-        Translation2d translation = current.getTranslation();
-        return new Pose2d(new Translation2d(-translation.getX(), -translation.getY()), current.getRotation());
-    }
-     */
-
     @Override
     public void periodic() {
         if (SWERVE_TUNING_ENABLED) {
@@ -224,46 +230,32 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
         
     }
 
-    /**
-     * Drives the Robot using one Joystick.
-     * @param stick The {@link DriveHIDBase} to use.
-     */
-    public void drive(DriveHIDBase stick) {
-        // Calculate the maximum speed based on XY and Twist.
-        double xS = stick.getRobotX() * MAX_SPEED_MPS;
-        double yS = stick.getRobotY() * MAX_SPEED_MPS;
-        double tS = stick.getRobotTwist() * MAX_SPEED_MPS;
-
-        ChassisSpeeds speeds = new ChassisSpeeds(xS, yS, tS);
-
-        if (fieldOriented)
-            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getYaw());
-
-        this.drive(speeds);
-    }
-
-    /**
-     * Drives the Robot using two Joysticks (one for XY, one for Twist)
-     * @param xyStick The {@link DriveHIDBase} to use for XY translation.
-     * @param twistStick The {@link DriveHIDBase} to use for Twist.
-     */
-    public void drive(DriveHIDBase xyStick, DriveHIDBase twistStick) {
-        double xS = xyStick.getRobotX() * MAX_SPEED_MPS;
-        double yS = xyStick.getRobotY() * MAX_SPEED_MPS;
-        double tS = twistStick.getRobotTwist() * MAX_SPEED_MPS;
-
-        ChassisSpeeds speeds = new ChassisSpeeds(xS, yS, tS);
-
-        if (fieldOriented)
-            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getOdometryHeading());
-
-        this.drive(speeds);
-    }
-
     public void reset(Pose2d pose) {
         this.zeroGyro();
         this.resetOdometry(pose);
         this.synchronizeModuleEncoders();
+    }
+
+    /**
+     * Command to drive the robot using translative values and heading as angular velocity.
+     *
+     * @param translationX     Translation in the X direction. Cubed for smoother controls.
+     * @param translationY     Translation in the Y direction. Cubed for smoother controls.
+     * @param angularRotationX Angular velocity of the robot to set. Cubed for smoother controls.
+     * @return Drive command.
+     */
+    public Command driveCommand(DoubleSupplier translationX,
+                                DoubleSupplier translationY,
+                                DoubleSupplier angularRotationX)
+    {
+        return run(() -> {
+            // Make the robot move
+            drive(new Translation2d(Math.pow(translationX.getAsDouble(), 3) * getMaximumVelocity(),
+                            Math.pow(translationY.getAsDouble(), 3) * getMaximumVelocity()),
+                    Math.pow(angularRotationX.getAsDouble(), 3) * getMaximumAngularVelocity(),
+                    fieldOriented,
+                    false);
+        });
     }
 
     public void reset() { reset(new Pose2d()); }

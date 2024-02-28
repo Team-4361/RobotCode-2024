@@ -1,6 +1,8 @@
 package frc.robot.util.math;
 
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.pathplanner.lib.util.PIDConstants;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -25,6 +27,10 @@ public class GlobalUtils {
         if (negativeAxis > 0) { return -negativeAxis; }
         if (positiveAxis > 0) { return positiveAxis; }
         return 0;
+    }
+
+    public static PIDController generateController(PIDConstants constants) {
+        return new PIDController(constants.kP, constants.kI, constants.kD);
     }
 
     /**

@@ -1,9 +1,8 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.CANSparkMax;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
-import frc.robot.util.motor.FRCSparkMax;
-import frc.robot.util.motor.MotorModel;
 import frc.robot.util.pid.DashTunableNumber;
 
 import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
@@ -15,8 +14,8 @@ import static frc.robot.Constants.Shooter.*;
  * mechanism contains two motors which need to be driven opposite to each other.
  */
 public class ShooterSubsystem extends SubsystemBase {
-    private final FRCSparkMax leftMotor;
-    private final FRCSparkMax rightMotor;
+    private final CANSparkMax leftMotor;
+    private final CANSparkMax rightMotor;
     private final DashTunableNumber shootTune;
     private final DashTunableNumber delayTune;
     private double targetSpeed = SHOOT_SPEED;
@@ -34,8 +33,8 @@ public class ShooterSubsystem extends SubsystemBase {
             delayTune = null;
         }
 
-        this.leftMotor = new FRCSparkMax(SHOOT_LEFT_MOTOR_ID, kBrushless, MotorModel.NEO);
-        this.rightMotor = new FRCSparkMax(SHOOT_RIGHT_MOTOR_ID, kBrushless, MotorModel.NEO);
+        this.leftMotor = new CANSparkMax(SHOOT_LEFT_MOTOR_ID, kBrushless);
+        this.rightMotor = new CANSparkMax(SHOOT_RIGHT_MOTOR_ID, kBrushless);
 
         leftMotor.setInverted(true);
         rightMotor.setInverted(false);

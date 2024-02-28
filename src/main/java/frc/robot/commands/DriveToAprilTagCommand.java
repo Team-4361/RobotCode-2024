@@ -76,7 +76,6 @@ public class DriveToAprilTagCommand extends Command {
         PIDController driveController = Robot.shooterCamera.getDriveController();
         PIDController turnController = Robot.shooterCamera.getTurnController();
 
-        //double mX = PHOTON_DRIVE_MAX_SPEED.getValue();
         double mX = Robot.shooterCamera.getMaxDriveSpeed();
         double jX = MathUtil.clamp(driveController.calculate(currentPose.getX(), desiredPose.getX()), -mX, mX);
         double jY = MathUtil.clamp(driveController.calculate(currentPose.getY(), desiredPose.getY()),-mX,mX);

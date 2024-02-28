@@ -11,9 +11,11 @@ import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
 import edu.wpi.first.cscore.UsbCamera;
+import edu.wpi.first.cscore.VideoMode;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.util.PixelFormat;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -23,19 +25,14 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.commands.DriveToAprilTagCommand;
-import frc.robot.commands.IntakeNoteCommand;
-import frc.robot.commands.ShootCommand;
-import frc.robot.commands.SimpleAutoCommand;
+import frc.robot.commands.*;
 import frc.robot.subsystems.*;
+import frc.robot.util.auto.AprilTagName;
 import frc.robot.util.auto.PhotonCameraModule;
-import frc.robot.util.joystick.DriveJoystick;
-import frc.robot.util.joystick.DriveMode;
-import frc.robot.util.joystick.DriveXboxController;
 import frc.robot.util.math.GlobalUtils;
-import frc.robot.util.preset.PresetGroup;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
@@ -44,10 +41,10 @@ import swervelib.telemetry.Alert;
 import swervelib.telemetry.Alert.AlertType;
 
 import static frc.robot.Constants.Control.*;
-import static frc.robot.Constants.Debug.*;
+import static frc.robot.Constants.Power.POWER_CAN_ID;
+import static frc.robot.Constants.Power.POWER_MODULE_TYPE;
 import static frc.robot.Constants.ShooterCamera.*;
 import static frc.robot.util.math.GlobalUtils.deadband;
-import static swervelib.telemetry.Alert.AlertType.WARNING;
 
 
 /**
@@ -58,11 +55,10 @@ import static swervelib.telemetry.Alert.AlertType.WARNING;
  */
 public class Robot extends TimedRobot {
     public static PowerDistribution pdh;
-    public static DriveXboxController xbox;
-    public static DriveJoystick leftStick;
-    public static DriveJoystick rightStick;
+    public static CommandXboxController xbox;
+    public static CommandJoystick leftStick;
+    public static CommandJoystick rightStick;
     public static SwerveDriveSubsystem swerve;
-    public static PresetGroup drivePresets;
     public static PhotonCameraModule shooterCamera;
     public static ShooterSubsystem shooter;
     public static IntakeSubsystem intake;
@@ -72,10 +68,9 @@ public class Robot extends TimedRobot {
     public static TrapArmSubsystem arm;
 
     private SendableChooser<Command> autoChooser;
-    private final Alert lowVoltageAlert = new Alert("Idle Voltage Low", AlertType.WARNING);
-    private final Alert slowModeAlert = new Alert("Slow Mode Activated", AlertType.INFO);
-    private long nextUpdateMillis = System.currentTimeMillis();
 
+
+    @SuppressWarnings("resource")
     private void startDriverCamera() {
         int width = 360;
         int height = 240;
@@ -84,7 +79,7 @@ public class Robot extends TimedRobot {
                     try {
                         UsbCamera camera = CameraServer.startAutomaticCapture();
                         if (!RobotBase.isSimulation()) {
-                            camera.setResolution(width, height);
+                            camera.setVideoMode(new VideoMode(PixelFormat.kGray, width, height, 60));
                         }
 
                         CvSink cvSink = CameraServer.getVideo();
@@ -101,14 +96,14 @@ public class Robot extends TimedRobot {
                                     mat,
                                     new Point((width/2.0)-125-(thickness*5), height),
                                     new Point((width/2.0)-(thickness*5), height-100),
-                                    new Scalar(255, 255, 0),
+                                    new Scalar(0, 0, 0),
                                     (int)thickness
                             );
                             Imgproc.line(
                                     mat,
                                     new Point((width/2.0)+125-(thickness*5), height),
                                     new Point((width/2.0)-(thickness*5), height-100),
-                                    new Scalar(255, 255, 0),
+                                    new Scalar(0, 0, 0),
                                     (int)thickness
                             );
                             outputStream.putFrame(mat);
@@ -130,86 +125,46 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void robotInit() {
-        boolean useNormalSticks = true;
-        // Use a PresetGroup to keep the presets synchronized. We don't want one joystick sensitive
-        // and the other one non-sensitive.
-        drivePresets = new PresetGroup("Drive Presets");
+        if (!RobotBase.isSimulation())
+            startDriverCamera();
 
-        //noinspection ConstantValue
-        if (useNormalSticks) {
-            leftStick = new DriveJoystick(
-                    LEFT_STICK_ID,  // Left stick ID
-                    false,          // Drive X inverted?
-                    false,          // Drive Y inverted?
-                    false,          // Twist Axis Inverted?
-                    DEAD_ZONE,      // Dead-band
-                    DriveMode.SMOOTH_MAP,
-                    DriveMode.SLOW_MODE
-            );
+        leftStick = new CommandJoystick(LEFT_STICK_ID);
+        rightStick = new CommandJoystick(RIGHT_STICK_ID);
+        xbox = new CommandXboxController(XBOX_CONTROLLER_ID);
+        pdh = new PowerDistribution(POWER_CAN_ID, POWER_MODULE_TYPE);
 
-            rightStick = new DriveJoystick(
-                    RIGHT_STICK_ID, // Right stick ID
-                    false,          // Drive X inverted?
-                    false,          // Drive Y inverted?
-                    false,          // Twist Axis Inverted?
-                    DEAD_ZONE,      // Dead-band
-                    DriveMode.SMOOTH_MAP,
-                    DriveMode.SLOW_MODE
-            );
-
-            drivePresets.add(leftStick);
-            drivePresets.add(rightStick);
-        }
-
-        xbox = new DriveXboxController(XBOX_CONTROLLER_ID,
-                true,
-                true,
-                true,
-                DEAD_ZONE,
-                DriveMode.LINEAR_MAP
-        );
-
-        if (!useNormalSticks)
-            drivePresets.add(xbox); // only add the Xbox Controller if used for driving.
-
-        pdh = new PowerDistribution(34, ModuleType.kRev);
         intake = new IntakeSubsystem();
         shooter = new ShooterSubsystem();
         index = new IndexSubsystem();
         wrist = new TrapWristSubsystem();
         climber = new ClimberSubsystem();
         arm = new TrapArmSubsystem();
+
         shooterCamera = new PhotonCameraModule(
                 SHOOT_CAMERA_NAME,
                 SHOOT_CAMERA_HEIGHT_METERS,
                 SHOOT_CAMERA_PITCH_DEGREES
         );
 
-        if (!RobotBase.isSimulation())
-            startDriverCamera();
-
         SwerveDriveSubsystem.initParser();
         swerve = new SwerveDriveSubsystem();
 
-        // *** IMPORTANT: Call this method at the VERY END of robotInit!!! *** //
-        configureBindings(!useNormalSticks);
-        // ******************************************************************* //
+        autoChooser = new SendableChooser<>();
+        autoChooser.addOption("None", Commands.runOnce(() -> Robot.swerve.reset()));
+        autoChooser.addOption("Two Note Shoot", new TwoNoteAutoCommand());
+        autoChooser.setDefaultOption("None", Commands.runOnce(() -> Robot.swerve.reset()));
 
-        NamedCommands.registerCommand("ShootCommand", new ShootCommand());
-        NamedCommands.registerCommand("IntakeCommand", new IntakeNoteCommand());
-
-        autoChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData("Auto Chooser", autoChooser);
+        configureBindings();
+    }
 
-        if (PHOTON_TUNING_ENABLED)   { new Alert("Photon Tuning Enabled",  WARNING).set(true); }
-        if (SHOOTER_TUNING_ENABLED)  { new Alert("Shooter Tuning Enabled", WARNING).set(true); }
-        if (DEBUG_LOGGING_ENABLED)   { new Alert("Debug Logging Enabled",  WARNING).set(true); }
-        if (INDEX_TUNING_ENABLED)    { new Alert("Index Tuning Enabled",   WARNING).set(true); }
-        if (INTAKE_TUNING_ENABLED)   { new Alert("Intake Tuning Enabled",  WARNING).set(true); }
-        if (TRAP_WRIST_TUNING_ENABLED)    { new Alert("Wrist Tuning Enabled",   WARNING).set(true); }
-        if (CLIMBER_TUNING_ENABLED)  { new Alert("Climber Tuning Enabled", WARNING).set(true); }
-        if (TRAP_ARM_TUNING_ENABLED) { new Alert("Arm Tuning Enabled",     WARNING).set(true); }
-        if (SWERVE_TUNING_ENABLED)   { new Alert("Swerve Tuning Enabled",  WARNING).set(true); }
+    public static Command resetAllCommand() {
+        return Commands.runOnce(() -> {
+            Robot.swerve.reset();
+            Robot.climber.reset();
+            Robot.arm.reset();
+            Robot.wrist.reset();
+        });
     }
 
     /**
@@ -221,42 +176,36 @@ public class Robot extends TimedRobot {
      * PS4} controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
      * joysticks}.
      */
-    private void configureBindings(boolean xboxOnly) {
-        if (xboxOnly) {
-            System.out.println("Xbox-only/Simulation mode detected.");
-            Robot.swerve.setDefaultCommand(Robot.swerve.runEnd(
-                    () -> Robot.swerve.drive(xbox),
-                    () -> Robot.swerve.lockPose())
-            );
-        } else {
-            System.out.println("Regular mode detected.");
-            Robot.swerve.setDefaultCommand(Robot.swerve.runEnd(
-                    () -> Robot.swerve.drive(leftStick, rightStick),
-                    () -> Robot.swerve.lockPose())
-            );
-        }
+    private void configureBindings() {
+        Command teleopFlightDriveCommand = Robot.swerve.driveCommand(
+                () -> deadband(leftStick.getY()), // +X forward | -X reverse
+                () -> -deadband(leftStick.getX()), // +Y left | -Y right
+                () -> -deadband(rightStick.getTwist())); // CCW positive
 
-        if (!xboxOnly) {
-            leftStick.button(10).onTrue(Commands.runOnce(() -> drivePresets.nextPreset(true)));
-            leftStick.button(11).onTrue(swerve.resetCommand().andThen(() -> Robot.climber.reset()));
-            leftStick.button(12).onTrue(swerve.toggleFieldOrientedCommand());
-            leftStick.trigger().whileTrue(Commands.runEnd(
-                    () -> drivePresets.setPreset(1),
-                    () -> drivePresets.setPreset(0)
-            ));
-            leftStick.button(2).whileTrue(Commands.run(() -> swerve.lockPose()));
-            leftStick.button(4).whileTrue(new DriveToAprilTagCommand(
-                    new Pose2d(
-                            new Translation2d(2, 0),
-                            new Rotation2d(0)
-                    ), 27, 7, false
-            ));
-        }
+        Command teleopXboxDriveCommand = Robot.swerve.driveCommand(
+                () -> -deadband(xbox.getLeftY()),
+                () -> -deadband(xbox.getLeftX()),
+                () -> -deadband(xbox.getRightX())
+        );
+
+        //Robot.swerve.setDefaultCommand(teleopFlightDriveCommand); // will be set this way on real robot.
+        Robot.swerve.setDefaultCommand(teleopXboxDriveCommand);
+
+        leftStick.button(11).onTrue(Robot.resetAllCommand());
+        leftStick.button(12).onTrue(swerve.toggleFieldOrientedCommand());
+        leftStick.trigger().whileTrue(swerve.toggleSlowModeCommand());
+
+        leftStick.button(4).whileTrue(new DriveToAprilTagCommand(
+                new Pose2d(
+                        new Translation2d(2, 0),
+                        new Rotation2d(0)
+                ), 27, AprilTagName.getAllianceID("Shooter"), false
+        ));
 
         xbox.b().whileTrue(new IntakeNoteCommand());
         xbox.a().onTrue(new ShootCommand());
 
-        /*
+        /* TODO: add proper button bindings
         xbox.leftTrigger().whileTrue(Commands.runEnd(
                 () -> Robot.climber.moveLeftUp(),
                 () -> Robot.climber.stopLeft()
@@ -273,8 +222,11 @@ public class Robot extends TimedRobot {
                 () -> Robot.climber.moveRightDown(),
                 () -> Robot.climber.stopRight()
         ));
-
          */
+
+        xbox.leftBumper()
+                .and(xbox.rightBumper())
+                .whileTrue(new ClimbDownCommand());
     }
 
 
@@ -296,12 +248,6 @@ public class Robot extends TimedRobot {
         CommandScheduler.getInstance().run();
         Robot.shooterCamera.update();
 
-        if (System.currentTimeMillis() >= nextUpdateMillis) {
-            lowVoltageAlert.set(Robot.pdh.getVoltage() <= 11.0 && Robot.pdh.getTotalCurrent() >= 2.0);
-            slowModeAlert.set(Robot.leftStick.getPresetName().equals("Slow Mode"));
-            nextUpdateMillis = System.currentTimeMillis() + 2000;
-        }
-
         Robot.arm.setExtensionSpeed(deadband(-Robot.xbox.getLeftY()));
         Robot.arm.setAngleSpeed(deadband(-Robot.xbox.getRightY()));
 
@@ -313,7 +259,7 @@ public class Robot extends TimedRobot {
         );
     }
 
-    @Override public void autonomousInit() { new SimpleAutoCommand().schedule(); }
+    @Override public void autonomousInit() { autoChooser.getSelected().schedule(); }
     @Override public void disabledInit() { CommandScheduler.getInstance().cancelAll(); }
     @Override public void testInit() { CommandScheduler.getInstance().cancelAll(); }
     @Override public void teleopInit() { CommandScheduler.getInstance().cancelAll(); }

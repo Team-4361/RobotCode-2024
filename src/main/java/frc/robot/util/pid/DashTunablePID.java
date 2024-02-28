@@ -20,15 +20,6 @@ public class DashTunablePID {
     }
 
     /**
-     * Constructs a new {@link DashTunablePID} with the specified parameters.
-     * @param name      The name of the {@link DashTunablePID}.
-     * @param constants The {@link PIDConstantsAK} to initialize with.
-     */
-    public DashTunablePID(String name, PIDConstantsAK constants) {
-        this(name, constants.get());
-    }
-
-    /**
      * Adds a new {@link Consumer} set to the {@link DashTunablePID}.
      *
      * @param pC The {@link Consumer} to use for the Proportional variable.
