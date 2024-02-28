@@ -10,13 +10,18 @@ public class MotorServo extends Servo {
     private double servoTargetMM = 0;
     private double servoPositionMM = 0;
     private double lastSpeed = 0;
+    private long nextManualUpdate = System.currentTimeMillis();
 
     public double getTargetMM() { return this.servoTargetMM; }
     public double getDistanceMM() { return servoPositionMM; }
 
     public void setDistance(double mm) {
+        if (mm > maxMM)
+            mm = maxMM;
+        if (mm < minMM)
+            mm = minMM;
         servoTargetMM = mm;
-        this.setPosition(Math.max(minMM, servoTargetMM / maxMM));
+        this.setPosition(mm / maxMM);
     }
 
     public void update() {
@@ -25,13 +30,11 @@ public class MotorServo extends Servo {
 
     @Override
     public void set(double speed) {
-        if (speed != lastSpeed) {
-            if (speed == 0) {
-                super.set(lastSpeed);
-            } else {
-                super.set(speed);
-            }
-            lastSpeed = speed;
+        if (speed == 0)
+            return;
+        if (System.currentTimeMillis() >= nextManualUpdate) {
+            setDistance(getDistanceMM() + speed);
+            nextManualUpdate = System.currentTimeMillis() + 20;
         }
     }
 

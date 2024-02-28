@@ -20,8 +20,8 @@ public class GlobalUtils {
     public static final Random rand = new Random();
 
     public static double getDualSpeed(double negativeAxis, double positiveAxis) {
-        negativeAxis = deadband(negativeAxis);
-        positiveAxis = deadband(positiveAxis);
+        negativeAxis = deadband(Math.abs(negativeAxis));
+        positiveAxis = deadband(Math.abs(positiveAxis));
         if (negativeAxis > 0) { return -negativeAxis; }
         if (positiveAxis > 0) { return positiveAxis; }
         return 0;

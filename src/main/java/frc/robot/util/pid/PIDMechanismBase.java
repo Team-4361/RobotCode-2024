@@ -34,7 +34,7 @@ public abstract class PIDMechanismBase {
 
     // All INPUT values are logged here!
     private double targetValue = 0.0;
-    private double currentPosition = 0.0;
+    private double currentValue = 0.0;
     private double tolerance = 0.0;
     private boolean pidEnabled = true;
     private double forwardLimit = Double.MAX_VALUE;
@@ -141,7 +141,7 @@ public abstract class PIDMechanismBase {
             motor.updateSim();
 
         double velocityRPM = encoder.getVelocity();
-        currentPosition = getCurrentPosition(encoder.getPosition());
+        currentValue = getCurrentPosition(encoder.getPosition());
 
         // It is required to pull the direct values of these suppliers since AdvantageKit CANNOT log suppliers
         // correctly.
@@ -160,7 +160,7 @@ public abstract class PIDMechanismBase {
                             + controller.calculate(velocityRadPerSec, targetVelocityRadPerSec)
                 );
             } else {
-                double positionRad = Units.rotationsToRadians(currentPosition);
+                double positionRad = Units.rotationsToRadians(currentValue);
                 double targetPositionRad = Units.rotationsToRadians(targetValue);
 
                 motor.setVoltage(
@@ -174,6 +174,7 @@ public abstract class PIDMechanismBase {
             SmartDashboard.putNumber(getModuleName() + "/VelocityRPM", velocityRPM);
             SmartDashboard.putNumber(getModuleName() + "/Target", targetValue);
             SmartDashboard.putNumber(getModuleName() + "/Tolerance", tolerance);
+            SmartDashboard.putNumber(getModuleName() + "/Value", currentValue);
         }
     }
 
@@ -258,7 +259,7 @@ public abstract class PIDMechanismBase {
                 // Set the target angle to the current rotations to freeze the value and prevent the PIDController from
                 // automatically adjusting to the previous value.
                 if (lastPower != 0) {
-                    setTarget(currentPosition);
+                    setTarget(currentValue);
                     teleopMode = false;
                 }
             }

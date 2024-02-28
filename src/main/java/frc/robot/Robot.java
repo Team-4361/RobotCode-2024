@@ -28,11 +28,13 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.DriveToAprilTagCommand;
 import frc.robot.commands.IntakeNoteCommand;
 import frc.robot.commands.ShootCommand;
+import frc.robot.commands.SimpleAutoCommand;
 import frc.robot.subsystems.*;
 import frc.robot.util.auto.PhotonCameraModule;
 import frc.robot.util.joystick.DriveJoystick;
 import frc.robot.util.joystick.DriveMode;
 import frc.robot.util.joystick.DriveXboxController;
+import frc.robot.util.math.GlobalUtils;
 import frc.robot.util.preset.PresetGroup;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
@@ -254,6 +256,7 @@ public class Robot extends TimedRobot {
         xbox.b().whileTrue(new IntakeNoteCommand());
         xbox.a().onTrue(new ShootCommand());
 
+        /*
         xbox.leftTrigger().whileTrue(Commands.runEnd(
                 () -> Robot.climber.moveLeftUp(),
                 () -> Robot.climber.stopLeft()
@@ -271,6 +274,7 @@ public class Robot extends TimedRobot {
                 () -> Robot.climber.stopRight()
         ));
 
+         */
     }
 
 
@@ -298,11 +302,18 @@ public class Robot extends TimedRobot {
             nextUpdateMillis = System.currentTimeMillis() + 2000;
         }
 
-        Robot.arm.setExtensionSpeed(deadband(-Robot.xbox.getLeftX()));
-        Robot.arm.setAngleSpeed(deadband(-Robot.xbox.getRightX()));
+        Robot.arm.setExtensionSpeed(deadband(-Robot.xbox.getLeftY()));
+        Robot.arm.setAngleSpeed(deadband(-Robot.xbox.getRightY()));
+
+        Robot.wrist.translateWrist(
+                GlobalUtils.getDualSpeed(
+                        Robot.xbox.getLeftTriggerAxis(),
+                        Robot.xbox.getRightTriggerAxis()
+                )
+        );
     }
 
-    @Override public void autonomousInit() { autoChooser.getSelected().schedule(); }
+    @Override public void autonomousInit() { new SimpleAutoCommand().schedule(); }
     @Override public void disabledInit() { CommandScheduler.getInstance().cancelAll(); }
     @Override public void testInit() { CommandScheduler.getInstance().cancelAll(); }
     @Override public void teleopInit() { CommandScheduler.getInstance().cancelAll(); }

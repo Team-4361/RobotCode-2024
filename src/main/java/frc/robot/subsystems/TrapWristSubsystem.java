@@ -49,6 +49,7 @@ public class TrapWristSubsystem extends SubsystemBase {
 
         mechanism.setInverted(WRIST_INVERTED);
         mechanism.setPIDControlSupplier(() -> false); // tuning purposes only.
+        mechanism.setDashboardEnabled(TRAP_WRIST_TUNING_ENABLED);
     }
 
     public void registerPresets(PresetMap<Double> map) { mechanism.registerPresets(map); }

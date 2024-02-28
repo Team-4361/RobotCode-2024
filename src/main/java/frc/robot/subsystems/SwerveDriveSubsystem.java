@@ -202,12 +202,14 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
 
     public void setStates(SwerveModuleState[] states) { this.setModuleStates(states, false); }
 
+    /*
     @Override
     public Pose2d getPose() {
         Pose2d current = super.getPose();
         Translation2d translation = current.getTranslation();
         return new Pose2d(new Translation2d(-translation.getX(), -translation.getY()), current.getRotation());
     }
+     */
 
     @Override
     public void periodic() {
@@ -216,8 +218,9 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
             SmartDashboard.putNumber("FR Turn", getModuleMap().get("frontright").getAbsolutePosition());
             SmartDashboard.putNumber("BL Turn", getModuleMap().get("backleft").getAbsolutePosition());
             SmartDashboard.putNumber("BR Turn", getModuleMap().get("backright").getAbsolutePosition());
-            SmartDashboard.putString("Pose", getPose().toString());
+            
         }
+        SmartDashboard.putString("Pose", getPose().toString());
         
     }
 
@@ -258,8 +261,9 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
     }
 
     public void reset(Pose2d pose) {
-        this.resetDriveEncoders();
+        this.zeroGyro();
         this.resetOdometry(pose);
+        this.synchronizeModuleEncoders();
     }
 
     public void reset() { reset(new Pose2d()); }

@@ -92,7 +92,7 @@ public class Constants {
         public static final int ARM_CENTER_US = 1500;
         public static final int ARM_DEAD_BAND_MIN_US = 1500;
         public static final int ARM_MIN_US = 1000;
-        public static final int ARM_SERVO_MIN_MM = 3;
+        public static final int ARM_SERVO_MIN_MM = 0;
 
         public static final int ARM_MOTOR_ID = 17;
         public static final int ARM_SERVO_ID = 1;
@@ -156,7 +156,7 @@ public class Constants {
         public static final double PHOTON_DRIVE_MAX_SPEED = 0.5;
         public static final double PHOTON_TURN_MAX_SPEED = 0.2;
 
-        public static final PIDConstantsAK PHOTON_DRIVE_PID = new PIDConstantsAK(0.01, 0, 0);
-        public static final PIDConstantsAK PHOTON_TURN_PID = new PIDConstantsAK(0.01, 0, 0);
+        public static final PIDConstantsAK PHOTON_DRIVE_PID = new PIDConstantsAK(0.25, 0, 0);
+        public static final PIDConstantsAK PHOTON_TURN_PID = new PIDConstantsAK(0.02, 0, 0);
     }
 }
