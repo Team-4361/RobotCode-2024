@@ -69,31 +69,9 @@ public class DriveToAprilTagCommand extends Command {
             firstTarget = false;
         currentPose = storedPose.get();
 
-        Robot.swerve.setChassisSpeeds(calculateSpeeds());
+        Robot.swerve.setChassisSpeeds(Robot.swerve.calculateSpeedsToPose(currentPose, desiredPose));
     }
-
-    private ChassisSpeeds calculateSpeeds() {
-        PIDController driveController = Robot.shooterCamera.getDriveController();
-        PIDController turnController = Robot.shooterCamera.getTurnController();
-
-        double mX = Robot.shooterCamera.getMaxDriveSpeed();
-        double jX = MathUtil.clamp(driveController.calculate(currentPose.getX(), desiredPose.getX()), -mX, mX);
-        double jY = MathUtil.clamp(driveController.calculate(currentPose.getY(), desiredPose.getY()),-mX,mX);
-        double jO = MathUtil.clamp(
-                turnController.calculate(
-                    currentPose.getRotation().getRadians(),
-                    desiredPose.getRotation().getRadians()
-                ),
-                -PHOTON_TURN_MAX_SPEED,
-                PHOTON_TURN_MAX_SPEED
-        );
-        return ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(
-                jX * MAX_SPEED_MPS,
-                jY * MAX_SPEED_MPS,
-                jO * MAX_SPEED_MPS
-        ), Robot.swerve.getOdometryHeading());
-    }
-
+    
     /**
      * The action to take when the command ends. Called when either the command finishes normally, or
      * when it interrupted/canceled.
