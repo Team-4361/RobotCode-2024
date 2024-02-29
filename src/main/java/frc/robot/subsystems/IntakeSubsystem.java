@@ -43,9 +43,8 @@ public class IntakeSubsystem extends SubsystemBase {
         SmartDashboard.putBoolean("Intake: Has Note", hasNote());
     }
 
-    public void start() {
-        motor.set(targetSpeed);
-    }
+    public void startNormal() { motor.set(targetSpeed); }
+    public void startReverse() { motor.set(-targetSpeed); }
 
     /** Stops the {@link IndexSubsystem} from spinning. */
     public void stop() {

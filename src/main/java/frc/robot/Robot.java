@@ -5,8 +5,6 @@
 
 package frc.robot;
 
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
@@ -17,7 +15,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.util.PixelFormat;
 import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -178,7 +175,7 @@ public class Robot extends TimedRobot {
      */
     private void configureBindings() {
         Command teleopFlightDriveCommand = Robot.swerve.driveCommand(
-                () -> deadband(leftStick.getY()), // +X forward | -X reverse
+                () -> -deadband(leftStick.getY()), // +X forward | -X reverse
                 () -> -deadband(leftStick.getX()), // +Y left | -Y right
                 () -> -deadband(rightStick.getTwist())); // CCW positive
 
@@ -188,8 +185,8 @@ public class Robot extends TimedRobot {
                 () -> -deadband(xbox.getRightX())
         );
 
-        //Robot.swerve.setDefaultCommand(teleopFlightDriveCommand); // will be set this way on real robot.
-        Robot.swerve.setDefaultCommand(teleopXboxDriveCommand);
+        Robot.swerve.setDefaultCommand(teleopFlightDriveCommand); // will be set this way on real robot.
+        //Robot.swerve.setDefaultCommand(teleopXboxDriveCommand);
 
         leftStick.button(11).onTrue(Robot.resetAllCommand());
         leftStick.button(12).onTrue(swerve.toggleFieldOrientedCommand());
@@ -204,6 +201,16 @@ public class Robot extends TimedRobot {
 
         xbox.b().whileTrue(new IntakeNoteCommand());
         xbox.a().onTrue(new ShootCommand());
+        xbox.y().whileTrue(Robot.intake.runEnd(
+                () -> Robot.intake.startReverse(),
+                () -> Robot.intake.stop()
+        ));
+
+        // Xbox Y --> reverse intake (hold)
+        // each bumper controls each side of the climber
+        // Xbox X --> auto grab note
+        // Xbox left-dpad + right-dpad --> place the note
+
 
         /* TODO: add proper button bindings
         xbox.leftTrigger().whileTrue(Commands.runEnd(
@@ -255,7 +262,7 @@ public class Robot extends TimedRobot {
                 GlobalUtils.getDualSpeed(
                         Robot.xbox.getLeftTriggerAxis(),
                         Robot.xbox.getRightTriggerAxis()
-                )
+                )/3
         );
     }
 

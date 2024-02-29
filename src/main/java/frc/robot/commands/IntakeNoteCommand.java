@@ -15,7 +15,7 @@ public class IntakeNoteCommand extends Command {
      */
     @Override
     public void initialize() {
-        Robot.intake.start();
+        Robot.intake.startNormal();
         endMillis = -1;
     }
 

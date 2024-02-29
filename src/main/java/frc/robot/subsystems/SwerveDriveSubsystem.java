@@ -2,7 +2,6 @@ package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.math.MathUtil;
@@ -195,7 +194,8 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
 
         setHeadingCorrection(false);
         setCosineCompensator(false);
-        setMotorIdleMode(true);
+        setDriveMotorBrake(true);
+        setAngleMotorBrake(true);
         SwerveDriveTelemetry.verbosity = SWERVE_TUNING_ENABLED ? HIGH : NONE;
 
         AutoBuilder.configureHolonomic(
@@ -227,7 +227,6 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
             
         }
         SmartDashboard.putString("Pose", getPose().toString());
-        
     }
 
     public void reset(Pose2d pose) {

@@ -33,7 +33,7 @@ public class ShootCommand extends Command {
     public void execute() {
         if (System.currentTimeMillis() >= feedMillis) {
             Robot.index.start();
-            Robot.intake.start();
+            Robot.intake.startNormal();
             if (endMillis == 0)
                 endMillis = System.currentTimeMillis() + SHOOT_END_DELAY_MS;
         }

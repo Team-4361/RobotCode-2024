@@ -99,7 +99,7 @@ public class Constants {
         public static final int ARM_CENTER_US = 1500;
         public static final int ARM_DEAD_BAND_MIN_US = 1500;
         public static final int ARM_MIN_US = 1000;
-        public static final int ARM_SERVO_MIN_MM = 0;
+        public static final int ARM_SERVO_MIN_MM = 3;
 
         public static final int ARM_MOTOR_ID = 17;
         public static final int ARM_SERVO_ID = 1;
