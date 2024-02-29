@@ -76,7 +76,9 @@ public class Robot extends TimedRobot {
                     try {
                         UsbCamera camera = CameraServer.startAutomaticCapture();
                         if (!RobotBase.isSimulation()) {
-                            camera.setVideoMode(new VideoMode(PixelFormat.kGray, width, height, 60));
+                            camera.setResolution(width, height);
+                            camera.setFPS(30);
+                            //camera.setVideoMode(new VideoMode(PixelFormat.kGray, width, height, 60));
                         }
 
                         CvSink cvSink = CameraServer.getVideo();
