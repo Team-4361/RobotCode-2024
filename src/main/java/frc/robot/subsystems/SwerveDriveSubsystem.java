@@ -30,6 +30,7 @@ import swervelib.parser.SwerveModuleConfiguration;
 import swervelib.parser.SwerveParser;
 import swervelib.parser.json.ModuleJson;
 import swervelib.telemetry.SwerveDriveTelemetry;
+import swervelib.telemetry.Alert;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,6 +57,7 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
 
     private static SwerveDriveConfiguration driveConfig = null;
     private static SwerveControllerConfiguration controllerConfig = null;
+    private Alert focDisabledAlert = new Alert("Swerve", Alert.AlertType.WARNING, "Field oriented control is disabled!");
 
 
     /** @return A {@link Command} used to toggle teleoperated field-oriented. */
@@ -230,6 +232,7 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
             
         }
         SmartDashboard.putString("Pose", getPose().toString());
+        focDisabledAlert.set(!fieldOriented);
     }
 
     public void reset(Pose2d pose) {
@@ -248,15 +251,18 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
      */
     public Command driveCommand(DoubleSupplier translationX,
                                 DoubleSupplier translationY,
-                                DoubleSupplier angularRotationX)
-    {
+                                DoubleSupplier angularRotationX) {
         return run(() -> {
             // Make the robot move
-            drive(new Translation2d(Math.pow(translationX.getAsDouble(), 3) * getMaximumVelocity(),
-                            Math.pow(translationY.getAsDouble(), 3) * getMaximumVelocity()),
-                    Math.pow(angularRotationX.getAsDouble(), 3) * getMaximumAngularVelocity(),
-                    fieldOriented,
-                    false);
+            drive(
+                new Translation2d(
+                        Math.pow(translationX.getAsDouble(), 3) * getMaximumVelocity(),
+                        Math.pow(translationY.getAsDouble(), 3) * getMaximumVelocity()
+                ),
+                Math.pow(angularRotationX.getAsDouble(), 3) * getMaximumAngularVelocity(),
+                fieldOriented,
+                false
+            )
         });
     }
 
