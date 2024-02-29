@@ -67,7 +67,6 @@ public class Robot extends TimedRobot {
     private SendableChooser<Command> autoChooser;
 
 
-    @SuppressWarnings("resource")
     private void startDriverCamera() {
         int width = 360;
         int height = 240;

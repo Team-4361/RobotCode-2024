@@ -162,7 +162,6 @@ public class SwerveModule {
                 }
 
                 // Setup the cache for the absolute encoder position.
-                absolutePositionCache = new Cache<>(this::getRawAbsolutePosition, 15);
 
                 // Config angle motor/controller
 
@@ -180,6 +179,8 @@ public class SwerveModule {
         //driveMotor.burnFlash();
         //angleMotor.burnFlash();
 
+        absolutePositionCache = new Cache<>(this::getRawAbsolutePosition, 15);
+        
         drivePositionCache = new Cache<>(driveMotor::getPosition, 15);
         driveVelocityCache = new Cache<>(driveMotor::getVelocity, 15);
 
