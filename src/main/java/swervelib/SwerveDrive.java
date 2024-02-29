@@ -680,13 +680,7 @@ public class SwerveDrive {
      */
     public void setDriveMotorBrake(boolean brake) {
         for (SwerveModule swerveModule : swerveModules) {
-            swerveModule.setDriveMotorBrake(brake);
-        }
-    }
-
-    public void setAngleMotorBrake(boolean brake) {
-        for (SwerveModule swerveModule : swerveModules) {
-            swerveModule.setAngleMotorBrake(brake);
+            swerveModule.setMotorBrake(brake);
         }
     }
 

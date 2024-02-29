@@ -57,7 +57,7 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
 
     private static SwerveDriveConfiguration driveConfig = null;
     private static SwerveControllerConfiguration controllerConfig = null;
-    private Alert focDisabledAlert = new Alert("Swerve", Alert.AlertType.WARNING, "Field oriented control is disabled!");
+    private Alert focDisabledAlert = new Alert("Swerve foc disabled!", Alert.AlertType.WARNING);
 
 
     /** @return A {@link Command} used to toggle teleoperated field-oriented. */
@@ -200,7 +200,7 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
         setHeadingCorrection(false);
         setCosineCompensator(false);
         setDriveMotorBrake(true);
-        setAngleMotorBrake(true);
+       // setAngleMotorBrake(true);
         SwerveDriveTelemetry.verbosity = SWERVE_TUNING_ENABLED ? HIGH : NONE;
 
         AutoBuilder.configureHolonomic(
@@ -262,7 +262,7 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
                 Math.pow(angularRotationX.getAsDouble(), 3) * getMaximumAngularVelocity(),
                 fieldOriented,
                 false
-            )
+            );
         });
     }
 

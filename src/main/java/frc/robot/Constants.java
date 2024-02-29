@@ -28,10 +28,10 @@ public class Constants {
         public static final boolean INDEX_TUNING_ENABLED = false;
         public static final boolean INTAKE_TUNING_ENABLED = false;
         public static final boolean CLIMBER_TUNING_ENABLED = false;
-        public static final boolean TRAP_ARM_TUNING_ENABLED = true;
-        public static final boolean TRAP_WRIST_TUNING_ENABLED = true;
+        public static final boolean TRAP_ARM_TUNING_ENABLED = false;
+        public static final boolean TRAP_WRIST_TUNING_ENABLED = false;
         public static final boolean PHOTON_ENABLED = false;
-        public static final boolean SWERVE_TUNING_ENABLED = true;
+        public static final boolean SWERVE_TUNING_ENABLED = false;
     }
 
     public static class Power {
@@ -46,6 +46,7 @@ public class Constants {
         public static final int SHOOT_RIGHT_MOTOR_ID = 16;
         public static final long SHOOT_END_DELAY_MS = 750;
         public static final double SHOOT_SPEED = 0.9;
+        public static final double SLOW_SHOOT_SPEED = 0.1;
     }
 
     /** This {@link Indexer} class represents all values regarding the {@link Robot}'s index mechanism. */
@@ -53,11 +54,13 @@ public class Constants {
         public static final int INDEX_LEFT_MOTOR_ID = 11;
         public static final int INDEX_RIGHT_MOTOR_ID = 15;
         public static final double INDEX_SPEED = 0.4;
+        public static final double SLOW_INDEX_SPEED = 0.1;
     }
 
     /** This {@link Intake} class represents all values regarding the {@link Robot}'s in-taking mechanism. */
     public static class Intake {
         public static final double INTAKE_SPEED = 0.4;
+        public static final double SLOW_INTAKE_SPEED = 0.1;
         public static final int INTAKE_MOTOR_ID = 12;
         public static final int INTAKE_SENSOR_PORT = 0;
     }
@@ -108,7 +111,7 @@ public class Constants {
         public static final double ARM_KA = 0;
 
         public static final double ARM_SERVO_MAX_MM = 50;
-        public static final PeakMotorDistance ARM_DISTANCE = new PeakMotorDistance(Inches.of(24), 10);
+        public static final PeakMotorDistance ARM_DISTANCE = new PeakMotorDistance(Inches.of(24), 425.4);
         public static final PIDConstants ARM_PID = new PIDConstants(0.02, 0, 0);
     }
 
@@ -135,9 +138,11 @@ public class Constants {
         static {
             TRAP_ARM_PRESETS.put("Zero", 0.0);
             TRAP_WRIST_PRESETS.put("Zero", 0.0);
-
             TRAP_ARM_ANGLE_PRESETS.put("Zero", 0.0);
-            TRAP_ARM_ANGLE_PRESETS.put("One", 20.0);
+
+            TRAP_WRIST_PRESETS.put("One", 216.0);
+            TRAP_ARM_PRESETS.put("One", 24.0);
+            TRAP_ARM_ANGLE_PRESETS.put("One", 48.3);
 
             // TODO: add real entries!
             Robot.arm.registerExtensionPresets(TRAP_ARM_PRESETS);

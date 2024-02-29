@@ -40,6 +40,7 @@ import swervelib.telemetry.Alert.AlertType;
 import static frc.robot.Constants.Control.*;
 import static frc.robot.Constants.Power.POWER_CAN_ID;
 import static frc.robot.Constants.Power.POWER_MODULE_TYPE;
+import static frc.robot.Constants.Presets.TRAP_PRESET_GROUP;
 import static frc.robot.Constants.ShooterCamera.*;
 import static frc.robot.util.math.GlobalUtils.deadband;
 
@@ -213,7 +214,8 @@ public class Robot extends TimedRobot {
         // Xbox left-dpad + right-dpad --> place the note
 
 
-        /* TODO: add proper button bindings
+
+        /*
         xbox.leftTrigger().whileTrue(Commands.runEnd(
                 () -> Robot.climber.moveLeftUp(),
                 () -> Robot.climber.stopLeft()
@@ -222,6 +224,7 @@ public class Robot extends TimedRobot {
                 () -> Robot.climber.moveRightUp(),
                 () -> Robot.climber.stopRight()
         ));
+         */
         xbox.leftBumper().whileTrue(Commands.runEnd(
                 () -> Robot.climber.moveLeftDown(),
                 () -> Robot.climber.stopLeft()
@@ -230,11 +233,23 @@ public class Robot extends TimedRobot {
                 () -> Robot.climber.moveRightDown(),
                 () -> Robot.climber.stopRight()
         ));
-         */
 
-        xbox.leftBumper()
-                .and(xbox.rightBumper())
-                .whileTrue(new ClimbDownCommand());
+        xbox.back().whileTrue(Commands.runEnd(
+                () -> Robot.climber.moveLeftUp(),
+                () -> Robot.climber.stopLeft()
+        ));
+        xbox.start().whileTrue(Commands.runEnd(
+                () -> Robot.climber.moveRightUp(),
+                () -> Robot.climber.stopRight()
+        ));
+
+
+        //xbox.leftBumper().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset("Zero")));
+        //xbox.rightBumper().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset("One")));
+
+        xbox.x().whileTrue(new SlowShootCommand());
+        xbox.povUp().onTrue(Robot.wrist.runOnce(() -> Robot.wrist.grabNote()));
+        xbox.povDown().onTrue(Robot.wrist.runOnce(() -> Robot.wrist.dropNote()));
     }
 
 

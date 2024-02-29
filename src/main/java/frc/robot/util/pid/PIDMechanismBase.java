@@ -298,13 +298,13 @@ public abstract class PIDMechanismBase {
         }
 
         if (dashboardEnabled) {
-            SmartDashboard.putNumber(getModuleName() + "/VelocityRPM", velocityRPM);
-            SmartDashboard.putNumber(getModuleName() + "/Tolerance", tolerance);
+            //SmartDashboard.putNumber(getModuleName() + "/VelocityRPM", velocityRPM);
+            //SmartDashboard.putNumber(getModuleName() + "/Tolerance", tolerance);
 
             // On the Shuffleboard, adding a slash hides the value from the main screen, making it harder to access.
-            SmartDashboard.putNumber(getModuleName() + " Target", targetValue);
-            SmartDashboard.putNumber(getModuleName() + " Value", currentValue);
+           // SmartDashboard.putNumber(getModuleName() + " Target", targetValue);
         }
+        SmartDashboard.putNumber(getModuleName() + " Value", currentValue);
     }
 
     /**

@@ -51,7 +51,7 @@ public class TrapArmSubsystem extends SubsystemBase {
                 ARM_SERVO_MAX_MM
         );
 
-        mechanism.setDistanceTuningEnabled(TRAP_ARM_TUNING_ENABLED);
+        //mechanism.setDistanceTuningEnabled(TRAP_ARM_TUNING_ENABLED);
         mechanism.setDashboardEnabled(TRAP_ARM_TUNING_ENABLED);
     }
 

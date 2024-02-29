@@ -3,7 +3,10 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
 
+import static frc.robot.Constants.Indexer.INDEX_SPEED;
+import static frc.robot.Constants.Intake.INTAKE_SPEED;
 import static frc.robot.Constants.Shooter.SHOOT_END_DELAY_MS;
+import static frc.robot.Constants.Shooter.SHOOT_SPEED;
 
 public class ShootCommand extends Command {
     private long endMillis = 0;
@@ -21,6 +24,11 @@ public class ShootCommand extends Command {
     public void initialize() {
         endMillis = 0;
         feedMillis = System.currentTimeMillis() + Robot.shooter.getDelayMS();
+
+        Robot.shooter.setTargetSpeed(SHOOT_SPEED);
+        Robot.index.setTargetSpeed(INDEX_SPEED);
+        Robot.intake.setTargetSpeed(INTAKE_SPEED);
+
         Robot.shooter.start();
         Robot.index.stop();
         Robot.intake.stop();
