@@ -164,9 +164,16 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
                 null);
     }
 
-    public ChassisSpeeds calculateSpeedsToPose(Pose2d currentPose, Pose2d desiredPose) {
-        PIDController driveController = Robot.shooterCamera.getDriveController();
-        PIDController turnController = Robot.shooterCamera.getTurnController();
+    public ChassisSpeeds calculateSpeedsToPose(Pose2d currentPose, Pose2d desiredPose, boolean usePhoton) {
+        PIDController driveController, turnController;
+
+        if (usePhoton) {
+            driveController = Robot.shooterCamera.getPhotonDriveController();
+            turnController = Robot.shooterCamera.getPhotonTurnController();
+        } else {
+            driveController = Robot.shooterCamera.getDriveController();
+            turnController = Robot.shooterCamera.getTurnController();
+        }
         
         double mX = Robot.shooterCamera.getMaxDriveSpeed();
         double jX = MathUtil.clamp(driveController.calculate(currentPose.getX(), desiredPose.getX()), -mX, mX);
@@ -186,8 +193,8 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
         );
     }
 
-    public ChassisSpeeds calculateSpeedsToPose(Pose2d desiredPose) {
-       return calculateSpeedsToPose(getPose(), desiredPose);
+    public ChassisSpeeds calculateSpeedsToPose(Pose2d desiredPose, boolean usePhoton) {
+       return calculateSpeedsToPose(getPose(), desiredPose, usePhoton);
     }
 
     /**

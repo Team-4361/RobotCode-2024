@@ -25,6 +25,8 @@ public class PhotonCameraModule extends PhotonCamera {
     private final String cameraName;
     private final PIDController driveController;
     private final PIDController turnController;
+    private final PIDController photonDriveController;
+    private final PIDController photonTurnController;
     private final DashTunablePID driveTune;
     private final DashTunablePID turnTune;
     private final DashTunableNumber speedTune;
@@ -45,6 +47,9 @@ public class PhotonCameraModule extends PhotonCamera {
     public PIDController getDriveController() { return this.driveController; }
     public PIDController getTurnController() { return this.turnController; }
 
+    public PIDController getPhotonDriveController() { return this.photonDriveController; }
+    public PIDController getPhotonTurnController() { return this.photonTurnController; }
+
     public PhotonCameraModule(String name, double height, double pitch) {
         super(name);
         this.cameraName = name;
@@ -54,15 +59,18 @@ public class PhotonCameraModule extends PhotonCamera {
         this.driveController = GlobalUtils.generateController(AUTO_DRIVE_PID);
         this.turnController = GlobalUtils.generateController(AUTO_TURN_PID);
 
+        this.photonDriveController = GlobalUtils.generateController(PHOTON_DRIVE_PID);
+        this.photonTurnController = GlobalUtils.generateController(PHOTON_TURN_PID);
+
 
         if (PHOTON_TUNING_ENABLED) {
-            this.driveTune = new DashTunablePID("Photon: Drive PID", AUTO_DRIVE_PID);
-            this.turnTune = new DashTunablePID("Photon: Turn PID", AUTO_TURN_PID);
+            this.driveTune = new DashTunablePID("Photon: Drive PID", PHOTON_DRIVE_PID);
+            this.turnTune = new DashTunablePID("Photon: Turn PID", PHOTON_TURN_PID);
             this.speedTune = new DashTunableNumber("Photon: Max Speed", PHOTON_DRIVE_MAX_SPEED);
 
             speedTune.addConsumer(this::setMaxDriveSpeed);
-            driveTune.addConsumer(driveController::setP, driveController::setI, driveController::setD);
-            turnTune.addConsumer(turnController::setP, turnController::setI, turnController::setD);
+            driveTune.addConsumer(photonDriveController::setP, photonDriveController::setI, photonDriveController::setD);
+            turnTune.addConsumer(photonTurnController::setP, photonTurnController::setI, photonTurnController::setD);
         } else {
             driveTune = null;
             turnTune = null;

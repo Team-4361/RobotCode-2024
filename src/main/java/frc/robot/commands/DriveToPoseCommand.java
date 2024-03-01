@@ -24,7 +24,7 @@ public class DriveToPoseCommand extends Command {
 
     @Override
     public void execute() {
-        Robot.swerve.setChassisSpeeds(Robot.swerve.calculateSpeedsToPose(desiredPose));
+        Robot.swerve.setChassisSpeeds(Robot.swerve.calculateSpeedsToPose(desiredPose, false));
     }
 
     /**

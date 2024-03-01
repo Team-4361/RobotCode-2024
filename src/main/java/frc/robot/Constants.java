@@ -126,7 +126,7 @@ public class Constants {
     }
 
     public static class ShooterCamera {
-        public static final String SHOOT_CAMERA_NAME = "Shooter Camera";
+        public static final String SHOOT_CAMERA_NAME = "Microsoft_LifeCam_HD-3000";
         public static final double SHOOT_CAMERA_HEIGHT_METERS = Units.inchesToMeters(27);
         public static final double SHOOT_CAMERA_PITCH_DEGREES = 20;
     }
@@ -167,7 +167,7 @@ public class Constants {
         public static final double PHOTON_DRIVE_MAX_SPEED = 0.5;
         public static final double PHOTON_TURN_MAX_SPEED = 0.2;
 
-        public static final PIDConstants PHOTON_DRIVE_PID = new PIDConstants(0.02, 0, 0);
+        public static final PIDConstants PHOTON_DRIVE_PID = new PIDConstants(0.05, 0, 0);
         public static final PIDConstants PHOTON_TURN_PID = new PIDConstants(0.02, 0, 0);
 
         public static final PIDConstants AUTO_DRIVE_PID = new PIDConstants(0.25, 0, 0);

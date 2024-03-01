@@ -57,7 +57,7 @@ public class DriveToAprilTagCommand extends Command {
     public void execute() {
         Optional<Pose2d> storedPose = Robot.shooterCamera.getTrackedPose();
         boolean bad = storedPose.isEmpty();
-        if (ids[0] != 0) {
+        if (ids.length > 0 && ids[0] != 0) {
             for (int id : ids) {
                 if (Robot.shooterCamera.getAprilTagID() != id) {
                     bad = true;
@@ -79,7 +79,7 @@ public class DriveToAprilTagCommand extends Command {
             firstTarget = false;
         currentPose = storedPose.get();
 
-        Robot.swerve.setChassisSpeeds(Robot.swerve.calculateSpeedsToPose(currentPose, desiredPose));
+        Robot.swerve.setChassisSpeeds(Robot.swerve.calculateSpeedsToPose(currentPose, desiredPose, true));
     }
     
     /**
