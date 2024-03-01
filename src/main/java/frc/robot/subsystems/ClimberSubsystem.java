@@ -56,8 +56,20 @@ public class ClimberSubsystem extends SubsystemBase {
 
     public void moveLeftUp() { leftMotor.set(targetSpeed); }
     public void moveRightUp() { rightMotor.set(targetSpeed); }
-    public void moveLeftDown() { leftMotor.set(-targetSpeed); }
-    public void moveRightDown() { rightMotor.set(-targetSpeed); }
+    public void moveLeftDown() {
+        if (leftSensor.get()) {
+            leftMotor.set(0);
+        } else {
+            leftMotor.set(-targetSpeed);
+        }
+    }
+    public void moveRightDown() {
+        if (rightSensor.get()) {
+            rightMotor.set(0);
+        } else {
+            rightMotor.set(-targetSpeed);
+        }
+    }
 
     public void stopLeft() { leftMotor.stopMotor(); }
     public void stopRight() { rightMotor.stopMotor(); }
@@ -73,7 +85,7 @@ public class ClimberSubsystem extends SubsystemBase {
         if (speedTune != null)
             speedTune.update();
 
-        SmartDashboard.putNumber("Climber: Left Position", leftEncoder.getPosition());
-        SmartDashboard.putNumber("Climber: Right Position", rightEncoder.getPosition());
+        SmartDashboard.putBoolean("Climber: Left Down", leftSensor.get());
+        SmartDashboard.putBoolean("Climber: Right Down", rightSensor.get());
     }
 }

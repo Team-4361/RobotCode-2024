@@ -214,17 +214,6 @@ public class Robot extends TimedRobot {
         // Xbox left-dpad + right-dpad --> place the note
 
 
-
-        /*
-        xbox.leftTrigger().whileTrue(Commands.runEnd(
-                () -> Robot.climber.moveLeftUp(),
-                () -> Robot.climber.stopLeft()
-        ));
-        xbox.rightTrigger().whileTrue(Commands.runEnd(
-                () -> Robot.climber.moveRightUp(),
-                () -> Robot.climber.stopRight()
-        ));
-         */
         xbox.leftBumper().whileTrue(Commands.runEnd(
                 () -> Robot.climber.moveLeftDown(),
                 () -> Robot.climber.stopLeft()
