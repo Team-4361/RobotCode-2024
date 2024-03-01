@@ -81,8 +81,10 @@ public class PhotonCameraModule extends PhotonCamera {
         if (!PHOTON_ENABLED || RobotBase.isSimulation())
             return;
 
-        driveTune.update();
-        turnTune.update();
+        if (driveTune != null)
+            driveTune.update();
+        if (turnTune != null)
+            turnTune.update();
         PhotonPipelineResult result = getLatestResult();
         if (result.hasTargets()) {
             Transform3d targetTransform;

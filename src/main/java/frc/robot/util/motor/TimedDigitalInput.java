@@ -1,5 +1,7 @@
 package frc.robot.util.motor;
 
+import edu.wpi.first.wpilibj.DigitalInput;
+
 public class TimedDigitalInput extends DigitalInput {
   private long activatedMs = 0;
 

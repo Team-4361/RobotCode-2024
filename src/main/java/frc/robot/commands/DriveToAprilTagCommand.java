@@ -19,7 +19,7 @@ import static frc.robot.Constants.Chassis.PHOTON_TURN_MAX_SPEED;
 public class DriveToAprilTagCommand extends Command {
     private final Pose2d desiredPose;
     private final double targetHeightMeters;
-    private final int id;
+    private final int[] ids;
 
     private Pose2d currentPose;
     private boolean noTarget;
@@ -27,18 +27,18 @@ public class DriveToAprilTagCommand extends Command {
     private final boolean stopOnEnd;
     private long initTimeout = System.currentTimeMillis() + 5000;
 
-    public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, int id, boolean stopOnEnd) {
+    public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, boolean stopOnEnd, int... ids) {
         addRequirements(Robot.swerve);
         this.desiredPose = desiredPose;
         this.targetHeightMeters = targetHeightMeters;
         this.noTarget = false;
         this.firstTarget = false;
         this.stopOnEnd = stopOnEnd;
-        this.id = id;
+        this.ids = ids;
     }
 
     public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, boolean stopOnEnd) {
-        this(desiredPose, targetHeightMeters, 0, stopOnEnd);
+        this(desiredPose, targetHeightMeters, stopOnEnd, new int[0]);
     }
 
     @Override
@@ -56,7 +56,17 @@ public class DriveToAprilTagCommand extends Command {
     @Override
     public void execute() {
         Optional<Pose2d> storedPose = Robot.shooterCamera.getTrackedPose();
-        if (storedPose.isEmpty() || (id > 0 && Robot.shooterCamera.getAprilTagID() != id)) {
+        boolean bad = storedPose.isEmpty();
+        if (ids[0] != 0) {
+            for (int id : ids) {
+                if (Robot.shooterCamera.getAprilTagID() != id) {
+                    bad = true;
+                    break;
+                }
+            }
+        }
+
+        if (bad) {
             Robot.swerve.stop();
             if (!firstTarget && System.currentTimeMillis() > initTimeout) {
                 noTarget = true;

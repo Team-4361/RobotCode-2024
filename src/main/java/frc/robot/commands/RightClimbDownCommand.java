@@ -3,29 +3,17 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
 
-public class ClimbDownCommand extends Command {
-    public ClimbDownCommand() { addRequirements(Robot.climber); }
+import static frc.robot.Constants.Climber.CLIMBER_SENSOR_DELAY_MS;
+
+public class RightClimbDownCommand extends Command {
+    public RightClimbDownCommand() { }
 
     /**
      * The initial subroutine of a command. Called once when the command is initially scheduled.
      */
     @Override
     public void initialize() {
-        Robot.climber.moveLeftDown();
         Robot.climber.moveRightDown();
-    }
-
-    /**
-     * The main body of a command. Called repeatedly while the command is scheduled.
-     */
-    @Override
-    public void execute() {
-        if (Robot.climber.isLeftRetracted()) {
-            Robot.climber.stopLeft();
-        }
-        if (Robot.climber.isRightRetracted()) {
-            Robot.climber.stopRight();
-        }
     }
 
     /**
@@ -39,7 +27,6 @@ public class ClimbDownCommand extends Command {
      */
     @Override
     public void end(boolean interrupted) {
-        Robot.climber.stopLeft();
         Robot.climber.stopRight();
     }
 
@@ -51,6 +38,6 @@ public class ClimbDownCommand extends Command {
      */
     @Override
     public boolean isFinished() {
-        return Robot.climber.isLeftRetracted() && Robot.climber.isRightRetracted();
+        return Robot.climber.isRightRetracted() && Robot.climber.getRightActivatedDuration() >= CLIMBER_SENSOR_DELAY_MS;
     }
 }

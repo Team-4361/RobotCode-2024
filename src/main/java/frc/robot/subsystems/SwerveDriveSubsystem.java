@@ -39,7 +39,6 @@ import java.util.function.DoubleSupplier;
 
 import static edu.wpi.first.wpilibj.Filesystem.getDeployDirectory;
 import static frc.robot.Constants.Chassis.*;
-import static frc.robot.Constants.Chassis.PHOTON_TURN_MAX_SPEED;
 import static frc.robot.Constants.Debug.SWERVE_TUNING_ENABLED;
 import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.*;
 
@@ -93,6 +92,9 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
         try {
             new SwerveParser(new File(getDeployDirectory(), "swerve"));
 
+            SwerveParser.physicalPropertiesJson.conversionFactor.drive = 0.047286787200699704;
+            SwerveParser.physicalPropertiesJson.conversionFactor.angle = 28.125;
+            /* 
             SwerveParser.physicalPropertiesJson.conversionFactor.drive = SwerveMath.calculateMetersPerRotation(
                     Units.inchesToMeters(4),
                     6.75,
@@ -102,6 +104,8 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
                     12.8,
                     1
             );
+            */
+            
 
             // Upon a successful initialization, create the drive instance using the static variables.
             SwerveModuleConfiguration[] moduleConfigurations =

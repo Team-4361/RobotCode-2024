@@ -198,7 +198,7 @@ public class Robot extends TimedRobot {
                 new Pose2d(
                         new Translation2d(2, 0),
                         new Rotation2d(0)
-                ), 27, AprilTagName.getAllianceID("Shooter"), false
+                ), 27, false
         ));
 
         xbox.b().whileTrue(new IntakeNoteCommand());
@@ -214,14 +214,8 @@ public class Robot extends TimedRobot {
         // Xbox left-dpad + right-dpad --> place the note
 
 
-        xbox.leftBumper().whileTrue(Commands.runEnd(
-                () -> Robot.climber.moveLeftDown(),
-                () -> Robot.climber.stopLeft()
-        ));
-        xbox.rightBumper().whileTrue(Commands.runEnd(
-                () -> Robot.climber.moveRightDown(),
-                () -> Robot.climber.stopRight()
-        ));
+        xbox.leftBumper().whileTrue(new LeftClimbDownCommand());
+        xbox.rightBumper().whileTrue(new RightClimbDownCommand());
 
         xbox.back().whileTrue(Commands.runEnd(
                 () -> Robot.climber.moveLeftUp(),

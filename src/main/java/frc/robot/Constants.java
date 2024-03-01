@@ -30,7 +30,7 @@ public class Constants {
         public static final boolean CLIMBER_TUNING_ENABLED = false;
         public static final boolean TRAP_ARM_TUNING_ENABLED = false;
         public static final boolean TRAP_WRIST_TUNING_ENABLED = false;
-        public static final boolean PHOTON_ENABLED = false;
+        public static final boolean PHOTON_ENABLED = true;
         public static final boolean SWERVE_TUNING_ENABLED = false;
     }
 
@@ -91,9 +91,10 @@ public class Constants {
         public static final int CLIMBER_RIGHT_ID = 14;
         public static final int CLIMBER_LEFT_DIO = 1;
         public static final int CLIMBER_RIGHT_DIO = 2;
-        public static final double CLIMBER_SPEED = 0.5;
+        public static final double CLIMBER_SPEED = 1;
         public static final boolean CLIMBER_LEFT_INVERTED = true;
         public static final boolean CLIMBER_RIGHT_INVERTED = false;
+        public static final long CLIMBER_SENSOR_DELAY_MS = 150;
     }
 
     public static class TrapArm {
