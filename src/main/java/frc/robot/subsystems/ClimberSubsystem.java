@@ -17,8 +17,8 @@ import static frc.robot.Constants.Debug.CLIMBER_TUNING_ENABLED;
 public class ClimberSubsystem extends SubsystemBase {
     private final CANSparkMax leftMotor;
     private final CANSparkMax rightMotor;
-    private final DigitalInput leftSensor;
-    private final DigitalInput rightSensor;
+    private final TimedDigitalInput leftSensor;
+    private final TimedDigitalInput rightSensor;
     private final DashTunableNumber speedTune;
     private final RelativeEncoder leftEncoder;
     private final RelativeEncoder rightEncoder;
@@ -29,8 +29,8 @@ public class ClimberSubsystem extends SubsystemBase {
     public ClimberSubsystem(){
         this.leftMotor = new CANSparkMax(CLIMBER_LEFT_ID, kBrushless);
         this.rightMotor = new CANSparkMax(CLIMBER_RIGHT_ID, kBrushless);
-        this.leftSensor = new DigitalInput(CLIMBER_LEFT_DIO);
-        this.rightSensor = new DigitalInput(CLIMBER_RIGHT_DIO);
+        this.leftSensor = new TimedDigitalInput(CLIMBER_LEFT_DIO);
+        this.rightSensor = new TimedDigitalInput(CLIMBER_RIGHT_DIO);
 
         this.leftEncoder = leftMotor.getEncoder();
         this.rightEncoder = rightMotor.getEncoder();
@@ -45,6 +45,9 @@ public class ClimberSubsystem extends SubsystemBase {
             speedTune = null;
         }
     }
+
+    public long getLeftActivatedDuration() { return leftSensor.getActivatedDuration(); }
+    public long getRightActivatedDuration() { return rightSensor.getActivatedDuration(); }
 
     public void reset() {
         leftEncoder.setPosition(0);
@@ -84,6 +87,8 @@ public class ClimberSubsystem extends SubsystemBase {
     public void periodic() {
         if (speedTune != null)
             speedTune.update();
+        leftSensor.update();
+        rightSensor.update();
 
         SmartDashboard.putBoolean("Climber: Left Down", leftSensor.get());
         SmartDashboard.putBoolean("Climber: Right Down", rightSensor.get());
