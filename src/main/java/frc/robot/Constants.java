@@ -176,7 +176,7 @@ public class Constants {
 
     public static class Chassis {
         public static final double SIDE_LENGTH_METERS = Units.inchesToMeters(30);
-        public static final double MAX_SPEED_MPS = 12.5;
+        public static final double MAX_SPEED_MPS = 4.602;
 
         public static final double PHOTON_DRIVE_MAX_SPEED = 0.5;
         public static final double PHOTON_TURN_MAX_SPEED = 0.2;
