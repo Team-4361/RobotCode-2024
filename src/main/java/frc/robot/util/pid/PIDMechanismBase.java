@@ -55,7 +55,7 @@ public abstract class PIDMechanismBase {
     private boolean teleopMode = false;
 
     private Supplier<Boolean> pidEnabledSupplier = () -> true;
-    private Supplier<Boolean> limitBypassSupplier = () -> true;
+    private Supplier<Boolean> limitBypassSupplier = () -> false;
 
     private RelativeEncoder encoder;
 
@@ -187,10 +187,7 @@ public abstract class PIDMechanismBase {
         this.controller = GlobalUtils.generateController(constants);
         this.rpmControl = rpmControl;
         this.moduleName = moduleName;
-        this.encoder = motor.getEncoder();
         this.model = model;
-
-        encoder.setPosition(0);
 
         motor.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus1, 20);
         motor.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus2, 20);
@@ -208,6 +205,9 @@ public abstract class PIDMechanismBase {
             motorSim = new DCMotorSim(model.getMotorInstance(), 1, 0.025);
             lastSimUpdateMillis = System.currentTimeMillis();
         } else { motorSim = null; }
+
+        this.encoder = getEncoder();
+        encoder.setPosition(0);
     }
 
     /** @return The {@link String} name of the {@link PIDMechanismBase}. */
@@ -225,7 +225,7 @@ public abstract class PIDMechanismBase {
     public boolean isDashboardEnabled() { return this.dashboardEnabled; }
 
     /**
-     * Sets the inversion of the underlying {@link FRCSparkMax} instance.
+     * Sets the inversion of the underlying {@link CANSparkMax} instance.
      * @param inverted The value to apply.
      */
     public void setInverted(boolean inverted) {
@@ -257,8 +257,6 @@ public abstract class PIDMechanismBase {
 
     /** Updates the {@link PIDMechanismBase}. <b>This MUST be called in a periodic/execute method!</b> */
     public void update() {
-        encoder = getEncoder();
-
         if (pidTune != null)
             pidTune.update();
 
@@ -302,8 +300,8 @@ public abstract class PIDMechanismBase {
             //SmartDashboard.putNumber(getModuleName() + "/Tolerance", tolerance);
 
             // On the Shuffleboard, adding a slash hides the value from the main screen, making it harder to access.
-           // SmartDashboard.putNumber(getModuleName() + " Target", targetValue);
         }
+        //SmartDashboard.putNumber(getModuleName() + " Target", targetValue);
         SmartDashboard.putNumber(getModuleName() + " Value", currentValue);
     }
 

@@ -23,8 +23,6 @@ import static frc.robot.Constants.Debug.PHOTON_TUNING_ENABLED;
 
 public class PhotonCameraModule extends PhotonCamera {
     private final String cameraName;
-    private final PIDController driveController;
-    private final PIDController turnController;
     private final PIDController photonDriveController;
     private final PIDController photonTurnController;
     private final DashTunablePID driveTune;
@@ -38,27 +36,18 @@ public class PhotonCameraModule extends PhotonCamera {
     private int aprilTagID = 0;
     private double maxDriveSpeed = PHOTON_DRIVE_MAX_SPEED;
 
-    public double getMaxDriveSpeed() { return maxDriveSpeed; }
 
-    public void setMaxDriveSpeed(double speed) {
-        this.maxDriveSpeed = speed;
-    }
-
-    public PIDController getDriveController() { return this.driveController; }
-    public PIDController getTurnController() { return this.turnController; }
+    public void setMaxDriveSpeed(double speed) { this.maxDriveSpeed = speed; }
 
     public PIDController getPhotonDriveController() { return this.photonDriveController; }
     public PIDController getPhotonTurnController() { return this.photonTurnController; }
+    public double getMaxDriveSpeed() { return maxDriveSpeed; }
 
     public PhotonCameraModule(String name, double height, double pitch) {
         super(name);
         this.cameraName = name;
         this.cameraHeight = height;
         this.cameraPitch = pitch;
-
-        this.driveController = GlobalUtils.generateController(AUTO_DRIVE_PID);
-        this.turnController = GlobalUtils.generateController(AUTO_TURN_PID);
-
         this.photonDriveController = GlobalUtils.generateController(PHOTON_DRIVE_PID);
         this.photonTurnController = GlobalUtils.generateController(PHOTON_TURN_PID);
 
@@ -93,6 +82,9 @@ public class PhotonCameraModule extends PhotonCamera {
             driveTune.update();
         if (turnTune != null)
             turnTune.update();
+        if (speedTune != null)
+            speedTune.update();
+
         PhotonPipelineResult result = getLatestResult();
         if (result.hasTargets()) {
             Transform3d targetTransform;
@@ -111,9 +103,9 @@ public class PhotonCameraModule extends PhotonCamera {
             );
             lastFoundMillis = System.currentTimeMillis();
 
-            Optional<AprilTagName> name = AprilTagName.fromID(aprilTagID);
+            Optional<AprilTagID> name = AprilTagID.fromID(aprilTagID);
             if (name.isPresent()) {
-                SmartDashboard.putString("Found Tag", name.toString());
+                SmartDashboard.putString("Found Tag", name.get().toString());
             } else {
                 SmartDashboard.putString("Found Tag", "NONE");
             }

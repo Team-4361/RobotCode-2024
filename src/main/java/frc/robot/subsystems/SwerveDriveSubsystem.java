@@ -11,7 +11,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.util.sendable.SendableRegistry;
@@ -21,6 +20,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.Robot;
+import frc.robot.util.math.GlobalUtils;
+import frc.robot.util.pid.DashTunableNumber;
+import frc.robot.util.pid.DashTunablePID;
 import swervelib.SwerveDrive;
 import swervelib.SwerveModule;
 import swervelib.math.SwerveMath;
@@ -51,13 +53,77 @@ import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.*;
  * @author Eric Gold
  */
 public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Sendable {
+    private static SwerveDriveConfiguration driveConfig = null;
+    private static SwerveControllerConfiguration controllerConfig = null;
+
     public boolean fieldOriented = true;
     public boolean slowMode = false;
 
-    private static SwerveDriveConfiguration driveConfig = null;
-    private static SwerveControllerConfiguration controllerConfig = null;
-    private Alert focDisabledAlert = new Alert("Swerve foc disabled!", Alert.AlertType.WARNING);
+    private final Alert focDisabledAlert;
+    private final PIDController autoDriveController;
+    private final PIDController autoTurnController;
+    private final DashTunablePID autoDriveTune;
+    private final DashTunablePID autoTurnTune;
+    private final DashTunableNumber autoSpeedTune;
 
+    private double maxAutoDriveSpeed = AUTO_DRIVE_MAX_SPEED;
+
+    public PIDController getAutoDriveController() { return this.autoDriveController; }
+    public PIDController getAutoTurnController()  { return this.autoTurnController;  }
+
+    public void setMaxAutoDriveSpeed(double speed) { this.maxAutoDriveSpeed = speed; }
+    public double getMaxAutoDriveSpeed() { return maxAutoDriveSpeed; }
+
+    /**
+     * Constructs a new {@link SwerveDriveSubsystem} with the specified modules. The {@link #initParser()} method
+     * <b>MUST</b> be called prior to calling this constructor!
+     */
+    public SwerveDriveSubsystem() {
+        super(
+                driveConfig,
+                controllerConfig,
+                MAX_SPEED_MPS
+        );
+
+        this.autoDriveController = GlobalUtils.generateController(AUTO_DRIVE_PID);
+        this.autoTurnController = GlobalUtils.generateController(AUTO_TURN_PID);
+        this.focDisabledAlert = new Alert("Swerve FOC disabled!", Alert.AlertType.WARNING);
+
+        setHeadingCorrection(false);
+        setCosineCompensator(false);
+        setDriveMotorBrake(true);
+        SwerveDriveTelemetry.verbosity = SWERVE_TUNING_ENABLED ? HIGH : MACHINE;
+
+        AutoBuilder.configureHolonomic(
+                this::getPose,
+                this::reset,
+                this::getRobotVelocity,
+                this::setChassisSpeeds,
+                new HolonomicPathFollowerConfig(
+                        MAX_SPEED_MPS,
+                        Math.hypot(SIDE_LENGTH_METERS/2, SIDE_LENGTH_METERS/2),
+                        new ReplanningConfig()
+                ), () -> {
+                    Optional<DriverStation.Alliance> alliance = DriverStation.getAlliance();
+                    return alliance.filter(value -> value == DriverStation.Alliance.Red).isPresent();
+                },
+                this
+        );
+
+        if (SWERVE_TUNING_ENABLED) {
+            this.autoDriveTune = new DashTunablePID("Swerve: Auto Drive PID", AUTO_DRIVE_PID);
+            this.autoTurnTune = new DashTunablePID("Swerve: Auto Turn PID", AUTO_TURN_PID);
+            this.autoSpeedTune = new DashTunableNumber("Swerve: AD Speed", AUTO_DRIVE_MAX_SPEED);
+
+            autoSpeedTune.addConsumer(this::setMaxAutoDriveSpeed);
+            autoDriveTune.addConsumer(autoDriveController::setP, autoDriveController::setI, autoDriveController::setD);
+            autoTurnTune.addConsumer(autoTurnController::setP, autoTurnController::setI, autoTurnController::setD);
+        } else {
+            autoDriveTune = null;
+            autoTurnTune = null;
+            autoSpeedTune = null;
+        }
+    }
 
     /** @return A {@link Command} used to toggle teleoperated field-oriented. */
     public Command toggleFieldOrientedCommand() { return Commands.runOnce(() -> fieldOriented = !fieldOriented); }
@@ -94,6 +160,7 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
 
             SwerveParser.physicalPropertiesJson.conversionFactor.drive = 0.047286787200699704;
             SwerveParser.physicalPropertiesJson.conversionFactor.angle = 28.125;
+            //region old calculations (not used)
             /* 
             SwerveParser.physicalPropertiesJson.conversionFactor.drive = SwerveMath.calculateMetersPerRotation(
                     Units.inchesToMeters(4),
@@ -105,7 +172,7 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
                     1
             );
             */
-            
+            //endregion
 
             // Upon a successful initialization, create the drive instance using the static variables.
             SwerveModuleConfiguration[] moduleConfigurations =
@@ -166,16 +233,20 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
 
     public ChassisSpeeds calculateSpeedsToPose(Pose2d currentPose, Pose2d desiredPose, boolean usePhoton) {
         PIDController driveController, turnController;
+        double mX, mO;
 
         if (usePhoton) {
             driveController = Robot.shooterCamera.getPhotonDriveController();
             turnController = Robot.shooterCamera.getPhotonTurnController();
+            mX = Robot.shooterCamera.getMaxDriveSpeed();
+            mO = PHOTON_TURN_MAX_SPEED;
         } else {
-            driveController = Robot.shooterCamera.getDriveController();
-            turnController = Robot.shooterCamera.getTurnController();
+            driveController = Robot.swerve.getAutoDriveController();
+            turnController = Robot.swerve.getAutoTurnController();
+            mX = Robot.swerve.getMaxAutoDriveSpeed();
+            mO = AUTO_TURN_MAX_SPEED;
         }
-        
-        double mX = Robot.shooterCamera.getMaxDriveSpeed();
+
         double jX = MathUtil.clamp(driveController.calculate(currentPose.getX(), desiredPose.getX()), -mX, mX);
         double jY = MathUtil.clamp(driveController.calculate(currentPose.getY(), desiredPose.getY()), -mX, mX);
         double jO = MathUtil.clamp(
@@ -183,8 +254,8 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
                         currentPose.getRotation().getRadians(),
                         desiredPose.getRotation().getRadians()
                 ),
-                -PHOTON_TURN_MAX_SPEED,
-                PHOTON_TURN_MAX_SPEED
+                -mO,
+                mO
         );
         return new ChassisSpeeds(
                 jX * MAX_SPEED_MPS,
@@ -197,40 +268,6 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
        return calculateSpeedsToPose(getPose(), desiredPose, usePhoton);
     }
 
-    /**
-     * Constructs a new {@link SwerveDriveSubsystem} with the specified modules. The {@link #initParser()} method
-     * <b>MUST</b> be called prior to calling this constructor!
-     */
-    public SwerveDriveSubsystem() {
-        super(
-                driveConfig,
-                controllerConfig,
-                MAX_SPEED_MPS
-        );
-
-        setHeadingCorrection(false);
-        setCosineCompensator(false);
-        setDriveMotorBrake(true);
-       // setAngleMotorBrake(true);
-        SwerveDriveTelemetry.verbosity = SWERVE_TUNING_ENABLED ? HIGH : NONE;
-
-        AutoBuilder.configureHolonomic(
-                this::getPose,
-                this::reset,
-                this::getRobotVelocity,
-                this::setChassisSpeeds,
-                new HolonomicPathFollowerConfig(
-                        MAX_SPEED_MPS,
-                        Math.hypot(SIDE_LENGTH_METERS/2, SIDE_LENGTH_METERS/2),
-                        new ReplanningConfig()
-                ), () -> {
-                    Optional<DriverStation.Alliance> alliance = DriverStation.getAlliance();
-                    return alliance.filter(value -> value == DriverStation.Alliance.Red).isPresent();
-                },
-                this
-        );
-    }
-
     public void setStates(SwerveModuleState[] states) { this.setModuleStates(states, false); }
 
     @Override
@@ -240,8 +277,14 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
             SmartDashboard.putNumber("FR Turn", getModuleMap().get("frontright").getAbsolutePosition());
             SmartDashboard.putNumber("BL Turn", getModuleMap().get("backleft").getAbsolutePosition());
             SmartDashboard.putNumber("BR Turn", getModuleMap().get("backright").getAbsolutePosition());
-            
         }
+        if (autoTurnTune != null)
+            autoTurnTune.update();
+        if (autoDriveTune != null)
+            autoDriveTune.update();
+        if (autoSpeedTune != null)
+            autoSpeedTune.update();
+
         SmartDashboard.putString("Pose", getPose().toString());
         focDisabledAlert.set(!fieldOriented);
     }

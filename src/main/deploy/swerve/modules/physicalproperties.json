@@ -1,6 +1,6 @@
 {
   "optimalVoltage": 12,
-  "wheelGripCoefficientOfFriction": 1.19,
+  "wheelGripCoefficientOfFriction": null,
   "currentLimit": {
     "drive": 40,
     "angle": 20

@@ -1,20 +1,15 @@
 package frc.robot.commands;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
+import frc.robot.util.auto.AprilTagID;
 import frc.robot.util.math.GlobalUtils;
 
 import java.util.Optional;
-
-import static frc.robot.Constants.Chassis.MAX_SPEED_MPS;
-import static frc.robot.Constants.Chassis.PHOTON_TURN_MAX_SPEED;
 
 public class DriveToAprilTagCommand extends Command {
     private final Pose2d desiredPose;
@@ -35,6 +30,19 @@ public class DriveToAprilTagCommand extends Command {
         this.firstTarget = false;
         this.stopOnEnd = stopOnEnd;
         this.ids = ids;
+    }
+
+    public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, boolean stopOnEnd, AprilTagID... tags) {
+        this.desiredPose = desiredPose;
+        this.targetHeightMeters = targetHeightMeters;
+        this.noTarget = false;
+        this.firstTarget = false;
+        this.stopOnEnd = stopOnEnd;
+        this.ids = new int[tags.length];
+
+        for (int i=0; i<tags.length; i++) {
+            ids[i] = tags[i].getID();
+        }
     }
 
     public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, boolean stopOnEnd) {

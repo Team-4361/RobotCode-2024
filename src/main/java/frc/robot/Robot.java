@@ -9,11 +9,9 @@ import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
 import edu.wpi.first.cscore.UsbCamera;
-import edu.wpi.first.cscore.VideoMode;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.util.PixelFormat;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -26,8 +24,17 @@ import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.*;
+import frc.robot.commands.auto.MoveAutoCommand;
+import frc.robot.commands.auto.MoveFarAutoCommand;
+import frc.robot.commands.auto.ShootOnlyCommand;
+import frc.robot.commands.auto.TwoNoteMiddleAutoCommand;
+import frc.robot.commands.auto.TwoNoteOffsetAutoCommand;
+import frc.robot.commands.climber.LeftClimbDownCommand;
+import frc.robot.commands.climber.RightClimbDownCommand;
+import frc.robot.commands.intake.IntakeNoteCommand;
+import frc.robot.commands.shooter.ShootCommand;
+import frc.robot.commands.shooter.SlowShootCommand;
 import frc.robot.subsystems.*;
-import frc.robot.util.auto.AprilTagName;
 import frc.robot.util.auto.PhotonCameraModule;
 import frc.robot.util.math.GlobalUtils;
 import org.opencv.core.Mat;
@@ -40,8 +47,9 @@ import swervelib.telemetry.Alert.AlertType;
 import static frc.robot.Constants.Control.*;
 import static frc.robot.Constants.Power.POWER_CAN_ID;
 import static frc.robot.Constants.Power.POWER_MODULE_TYPE;
-import static frc.robot.Constants.Presets.TRAP_PRESET_GROUP;
 import static frc.robot.Constants.ShooterCamera.*;
+import static frc.robot.util.auto.AprilTagID.BLUE_SPEAKER_MID;
+import static frc.robot.util.auto.AprilTagID.RED_SPEAKER_MID;
 import static frc.robot.util.math.GlobalUtils.deadband;
 
 
@@ -78,7 +86,6 @@ public class Robot extends TimedRobot {
                         if (!RobotBase.isSimulation()) {
                             camera.setResolution(width, height);
                             camera.setFPS(30);
-                            //camera.setVideoMode(new VideoMode(PixelFormat.kGray, width, height, 60));
                         }
 
                         CvSink cvSink = CameraServer.getVideo();
@@ -149,9 +156,14 @@ public class Robot extends TimedRobot {
         swerve = new SwerveDriveSubsystem();
 
         autoChooser = new SendableChooser<>();
-        autoChooser.addOption("None", Commands.runOnce(() -> Robot.swerve.reset()));
-        autoChooser.addOption("Two Note Shoot", new TwoNoteAutoCommand());
-        autoChooser.setDefaultOption("None", Commands.runOnce(() -> Robot.swerve.reset()));
+        autoChooser.addOption("NO AUTO", Commands.runOnce(() -> Robot.swerve.reset()));
+        //autoChooser.addOption("Shoot MIDDLE", new TwoNoteMiddleAutoCommand());
+        autoChooser.addOption("Shoot LEFT", new TwoNoteOffsetAutoCommand(-56));
+        autoChooser.addOption("Shoot RIGHT", new TwoNoteOffsetAutoCommand(56));
+        //autoChooser.addOption("MOVE ONLY", new MoveAutoCommand());
+        //autoChooser.addOption("Shoot ONLY", new ShootOnlyCommand());
+        //autoChooser.addOption("MOVE FAR ONLY", new MoveFarAutoCommand());
+        autoChooser.setDefaultOption("NO AUTO", Commands.runOnce(() -> Robot.swerve.reset()));
 
         SmartDashboard.putData("Auto Chooser", autoChooser);
         configureBindings();
@@ -198,7 +210,7 @@ public class Robot extends TimedRobot {
                 new Pose2d(
                         new Translation2d(2, 0),
                         new Rotation2d(0)
-                ), 27, false
+                ), 27, false, RED_SPEAKER_MID, BLUE_SPEAKER_MID
         ));
 
         xbox.b().whileTrue(new IntakeNoteCommand());
@@ -212,7 +224,6 @@ public class Robot extends TimedRobot {
         // each bumper controls each side of the climber
         // Xbox X --> auto grab note
         // Xbox left-dpad + right-dpad --> place the note
-
 
         xbox.leftBumper().whileTrue(new LeftClimbDownCommand());
         xbox.rightBumper().whileTrue(new RightClimbDownCommand());
@@ -255,7 +266,7 @@ public class Robot extends TimedRobot {
         Robot.shooterCamera.update();
 
         Robot.arm.setExtensionSpeed(deadband(-Robot.xbox.getLeftY()));
-        Robot.arm.setAngleSpeed(deadband(-Robot.xbox.getRightY()));
+        Robot.arm.setAngleSpeed(deadband(-Robot.xbox.getRightY()/2));
 
         Robot.wrist.translateWrist(
                 GlobalUtils.getDualSpeed(

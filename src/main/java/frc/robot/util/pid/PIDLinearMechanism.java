@@ -77,6 +77,6 @@ public class PIDLinearMechanism extends PIDMechanismBase {
         if (tuneMode) {
             return motorRotations;
         }
-        return convertUnits(maxDistance.rotationToInches(motorRotations));
+        return convertUnits(maxDistance.rotationToMeters(motorRotations));
     }
 }

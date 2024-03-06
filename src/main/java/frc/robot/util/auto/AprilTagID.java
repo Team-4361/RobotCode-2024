@@ -1,16 +1,14 @@
 package frc.robot.util.auto;
 
-import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
-import java.util.List;
 import java.util.Optional;
 
 import static edu.wpi.first.wpilibj.DriverStation.Alliance.Blue;
 import static edu.wpi.first.wpilibj.DriverStation.Alliance.Red;
 
-public enum AprilTagName {
+public enum AprilTagID {
     RED_SPEAKER_MID(4, "Speaker-Mid", Red),
     RED_SPEAKER_LEFT(3, "Speaker-Left", Red),
     RED_SOURCE_LEFT(10, "Source-Left", Red),
@@ -39,7 +37,7 @@ public enum AprilTagName {
     public static int getAllianceID(String name) {
         // FIXME: fix!
         Alliance color = DriverStation.getAlliance().get();
-        for (AprilTagName tag : AprilTagName.values()) {
+        for (AprilTagID tag : AprilTagID.values()) {
             if (tag.alliance == color && tag.name.trim().equalsIgnoreCase(name.trim())) {
                 return tag.id;
             }
@@ -47,8 +45,8 @@ public enum AprilTagName {
         return 0;
     }
 
-    public static Optional<AprilTagName> fromID(int id) {
-        for (AprilTagName tag : AprilTagName.values()) {
+    public static Optional<AprilTagID> fromID(int id) {
+        for (AprilTagID tag : AprilTagID.values()) {
             if (tag.id == id) {
                 return Optional.of(tag);
             }
@@ -61,7 +59,7 @@ public enum AprilTagName {
         return name + " - " + alliance.name();
     }
 
-    AprilTagName(int id, String name, Alliance alliance) {
+    AprilTagID(int id, String name, Alliance alliance) {
         this.id = id;
         this.name = name;
         this.alliance = alliance;

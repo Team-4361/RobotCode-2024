@@ -12,7 +12,7 @@ import frc.robot.util.preset.PresetMap;
 import static frc.robot.Constants.Debug.TRAP_WRIST_TUNING_ENABLED;
 import static frc.robot.Constants.Wrist.*;
 
-/**
+/**b
  * This {@link TrapWristSubsystem} is designed to control the {@link Robot}'s wrist. It has an Actuonix L16-50-35-6R
  * Linear Servo for grabbing, and a 63:1 NEO-550 motor used for turning.
  */
@@ -48,8 +48,8 @@ public class TrapWristSubsystem extends SubsystemBase {
         );
 
         mechanism.setInverted(WRIST_INVERTED);
-        mechanism.setPIDControlSupplier(() -> false); // tuning purposes only.
-        mechanism.setDashboardEnabled(TRAP_WRIST_TUNING_ENABLED);
+        //mechanism.setPIDControlSupplier(() -> !TRAP_WRIST_TUNING_ENABLED); // tuning purposes only.
+        mechanism.setDashboardEnabled(true);
     }
 
     public void registerPresets(PresetMap<Double> map) { mechanism.registerPresets(map); }

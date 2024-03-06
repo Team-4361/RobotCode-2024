@@ -55,6 +55,7 @@ public class DriveToPoseCommand extends Command {
     public boolean isFinished() {
         Pose2d currentPose = Robot.swerve.getPose();
         return GlobalUtils.inTolerance(desiredPose.getX(), currentPose.getX(), 0.1)
-                && GlobalUtils.inTolerance(desiredPose.getY(), currentPose.getY(), 0.1);
+                && GlobalUtils.inTolerance(desiredPose.getY(), currentPose.getY(), 0.1)
+                && GlobalUtils.inTolerance(desiredPose.getRotation().getDegrees(), currentPose.getRotation().getDegrees(), 0.1);
     }
 }

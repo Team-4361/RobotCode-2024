@@ -2,8 +2,6 @@ package frc.robot.util.motor;
 
 import edu.wpi.first.wpilibj.Servo;
 
-import static frc.robot.Constants.TrapArm.ARM_SERVO_MAX_MM;
-
 public class MotorServo extends Servo {
     private final double maxMM;
     private final double minMM;
@@ -25,7 +23,7 @@ public class MotorServo extends Servo {
     }
 
     public void update() {
-        servoPositionMM = getPosition() * ARM_SERVO_MAX_MM;
+        servoPositionMM = getPosition() * maxMM;
     }
 
     @Override

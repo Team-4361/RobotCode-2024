@@ -2,7 +2,6 @@ package frc.robot;
 
 import com.pathplanner.lib.util.PIDConstants;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import frc.robot.util.math.GearRatio;
 import frc.robot.util.math.PeakMotorDistance;
@@ -30,8 +29,10 @@ public class Constants {
         public static final boolean CLIMBER_TUNING_ENABLED = false;
         public static final boolean TRAP_ARM_TUNING_ENABLED = false;
         public static final boolean TRAP_WRIST_TUNING_ENABLED = false;
-        public static final boolean PHOTON_ENABLED = true;
-        public static final boolean SWERVE_TUNING_ENABLED = false;
+        public static final boolean TRAP_ROTATION_TUNING_ENABLED = true;
+
+        public static final boolean PHOTON_ENABLED = false;
+        public static final boolean SWERVE_TUNING_ENABLED = true;
     }
 
     public static class Power {
@@ -44,8 +45,8 @@ public class Constants {
     public static class Shooter {
         public static final int SHOOT_LEFT_MOTOR_ID = 10;
         public static final int SHOOT_RIGHT_MOTOR_ID = 16;
-        public static final long SHOOT_END_DELAY_MS = 750;
-        public static final double SHOOT_SPEED = 0.9;
+        public static final long SHOOT_END_DELAY_MS = 1200;
+        public static final double SHOOT_SPEED = 1;
         public static final double SLOW_SHOOT_SPEED = 0.1;
     }
 
@@ -53,7 +54,7 @@ public class Constants {
     public static class Indexer {
         public static final int INDEX_LEFT_MOTOR_ID = 11;
         public static final int INDEX_RIGHT_MOTOR_ID = 15;
-        public static final double INDEX_SPEED = 0.4;
+        public static final double INDEX_SPEED = 0.6;
         public static final double SLOW_INDEX_SPEED = 0.1;
     }
 
@@ -98,22 +99,35 @@ public class Constants {
     }
 
     public static class TrapArm {
+        /*
         public static final int ARM_MAX_US = 2000;
         public static final int ARM_DEAD_BAND_MAX_US = 1500;
         public static final int ARM_CENTER_US = 1500;
         public static final int ARM_DEAD_BAND_MIN_US = 1500;
         public static final int ARM_MIN_US = 1000;
         public static final int ARM_SERVO_MIN_MM = 3;
+         */
+        //public static final double ARM_SERVO_MAX_MM = 50;
+        //public static final int ARM_SERVO_ID = 1;
 
-        public static final int ARM_MOTOR_ID = 17;
-        public static final int ARM_SERVO_ID = 1;
-        public static final double ARM_KS = 0;
-        public static final double ARM_KV = 0;
-        public static final double ARM_KA = 0;
+        public static final double ARM_MAX_ROTATION = -0.5;
 
-        public static final double ARM_SERVO_MAX_MM = 50;
+        public static final int ARM_ROTATION_MOTOR_ID = 19;
+        public static final int ARM_EXTENSION_MOTOR_ID = 17;
+
+        public static final double ARM_EXTENSION_KS = 0;
+        public static final double ARM_EXTENSION_KV = 0;
+        public static final double ARM_EXTENSION_KA = 0;
+
+        public static final double ARM_ROTATION_KS = 0;
+        public static final double ARM_ROTATION_KV = 0;
+        public static final double ARM_ROTATION_KA = 0;
+
         public static final PeakMotorDistance ARM_DISTANCE = new PeakMotorDistance(Inches.of(24), 425.4);
-        public static final PIDConstants ARM_PID = new PIDConstants(0.02, 0, 0);
+
+        public static final GearRatio ARM_ROTATION_GEAR_RATIO = new GearRatio(90, 1);
+        public static final PIDConstants ARM_ROTATION_PID = new PIDConstants(0.6, 0, 0);
+        public static final PIDConstants ARM_EXTENSION_PID = new PIDConstants(0.02, 0, 0);
     }
 
     public static class Control {
@@ -141,9 +155,9 @@ public class Constants {
             TRAP_WRIST_PRESETS.put("Zero", 0.0);
             TRAP_ARM_ANGLE_PRESETS.put("Zero", 0.0);
 
-            TRAP_WRIST_PRESETS.put("One", 216.0);
-            TRAP_ARM_PRESETS.put("One", 24.0);
-            TRAP_ARM_ANGLE_PRESETS.put("One", 48.3);
+            TRAP_WRIST_PRESETS.put("One", 0.0);
+            TRAP_ARM_PRESETS.put("One", 0.0);
+            TRAP_ARM_ANGLE_PRESETS.put("One", 0.0);
 
             // TODO: add real entries!
             Robot.arm.registerExtensionPresets(TRAP_ARM_PRESETS);
@@ -167,10 +181,13 @@ public class Constants {
         public static final double PHOTON_DRIVE_MAX_SPEED = 0.5;
         public static final double PHOTON_TURN_MAX_SPEED = 0.2;
 
+        public static final double AUTO_DRIVE_MAX_SPEED = 0.5;
+        public static final double AUTO_TURN_MAX_SPEED = 0.2;
+
         public static final PIDConstants PHOTON_DRIVE_PID = new PIDConstants(0.05, 0, 0);
         public static final PIDConstants PHOTON_TURN_PID = new PIDConstants(0.02, 0, 0);
 
-        public static final PIDConstants AUTO_DRIVE_PID = new PIDConstants(0.25, 0, 0);
-        public static final PIDConstants AUTO_TURN_PID = new PIDConstants(0.02, 0, 0);
+        public static final PIDConstants AUTO_DRIVE_PID = new PIDConstants(0.3, 0, 0);
+        public static final PIDConstants AUTO_TURN_PID = new PIDConstants(0.23, 0, 0);
     }
 }
