@@ -5,6 +5,8 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
@@ -70,7 +72,6 @@ public class Robot extends TimedRobot {
 
     private SendableChooser<Command> autoChooser;
 
-
     private void startDriverCamera() {
         int width = 360;
         int height = 240;
@@ -80,7 +81,7 @@ public class Robot extends TimedRobot {
                         UsbCamera camera = CameraServer.startAutomaticCapture();
                         if (!RobotBase.isSimulation()) {
                             camera.setResolution(width, height);
-                            camera.setFPS(30);
+                            camera.setFPS(60);
                         }
 
                         CvSink cvSink = CameraServer.getVideo();
@@ -146,21 +147,23 @@ public class Robot extends TimedRobot {
                 SHOOT_CAMERA_TRANSFORM
         );
 
-        SwerveDriveSubsystem.initParser();
         swerve = new SwerveDriveSubsystem();
 
-        autoChooser = new SendableChooser<>();
-        autoChooser.addOption("NO AUTO", Commands.runOnce(() -> Robot.swerve.reset()));
-        //autoChooser.addOption("Shoot MIDDLE", new TwoNoteMiddleAutoCommand());
-        autoChooser.addOption("Shoot LEFT", new TwoNoteOffsetAutoCommand(-56));
-        autoChooser.addOption("Shoot RIGHT", new TwoNoteOffsetAutoCommand(56));
-        //autoChooser.addOption("MOVE ONLY", new MoveAutoCommand());
-        //autoChooser.addOption("Shoot ONLY", new ShootOnlyCommand());
-        //autoChooser.addOption("MOVE FAR ONLY", new MoveFarAutoCommand());
-        autoChooser.setDefaultOption("NO AUTO", Commands.runOnce(() -> Robot.swerve.reset()));
+        autoChooser = AutoBuilder.buildAutoChooser();
+//        autoChooser.addOption("NO AUTO", Commands.runOnce(() -> Robot.swerve.reset()));
+//        //autoChooser.addOption("Shoot MIDDLE", new TwoNoteMiddleAutoCommand());
+//        autoChooser.addOption("Shoot LEFT", new TwoNoteOffsetAutoCommand(-56));
+//        autoChooser.addOption("Shoot RIGHT", new TwoNoteOffsetAutoCommand(56));
+//        //autoChooser.addOption("MOVE ONLY", new MoveAutoCommand());
+//        //autoChooser.addOption("Shoot ONLY", new ShootOnlyCommand());
+//        //autoChooser.addOption("MOVE FAR ONLY", new MoveFarAutoCommand());
+//        autoChooser.setDefaultOption("NO AUTO", Commands.runOnce(() -> Robot.swerve.reset()));
 
         SmartDashboard.putData("Auto Chooser", autoChooser);
         configureBindings();
+
+        NamedCommands.registerCommand("IntakeCommand", new IntakeNoteCommand());
+        NamedCommands.registerCommand("ShootCommand", new ShootCommand());
     }
 
     public static Command resetAllCommand() {
