@@ -29,7 +29,8 @@ public class ShootCommand extends Command {
         Robot.index.setTargetSpeed(INDEX_SPEED);
         Robot.intake.setTargetSpeed(INTAKE_SPEED);
 
-        Robot.shooter.start();
+        Robot.shooter.setEnabled(true);
+
         Robot.index.stop();
         Robot.intake.stop();
     }
@@ -39,7 +40,7 @@ public class ShootCommand extends Command {
      */
     @Override
     public void execute() {
-        if (System.currentTimeMillis() >= feedMillis) {
+        if (Robot.shooter.getShooterRPM() >= 5000) {
             Robot.index.start();
             Robot.intake.startNormal();
             if (endMillis == 0)
@@ -58,7 +59,7 @@ public class ShootCommand extends Command {
      */
     @Override
     public void end(boolean interrupted) {
-        Robot.shooter.stop();
+        Robot.shooter.setEnabled(false);
         Robot.index.stop();
         Robot.intake.stop();
     }

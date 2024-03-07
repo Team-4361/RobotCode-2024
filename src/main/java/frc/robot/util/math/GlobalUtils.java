@@ -117,15 +117,15 @@ public class GlobalUtils {
      * @param values The {@link List} to use.
      * @return The calculated average.
      */
-    public static double average(List<Long> values) {
-        if (values == null || values.isEmpty()) {
+    public static double average(long...values) {
+        if (values == null || values.length == 0) {
             throw new IllegalArgumentException("List is null or empty");
         }
         long sum = 0;
         for (long number : values) {
             sum += number;
         }
-        return (double) sum/values.size();
+        return (double) sum/values.length;
     }
 
     public static double deadband(double value) { return deadband(value, 0.05); }
@@ -136,14 +136,14 @@ public class GlobalUtils {
      * @param values The {@link List} to use.
      * @return The calculated average.
      */
-    public static double averageDouble(List<Double> values) {
-        if (values == null || values.isEmpty()) {
+    public static double averageDouble(double... values) {
+        if (values == null || values.length == 0) {
             throw new IllegalArgumentException("List is null or empty");
         }
         double sum = 0;
         for (double number : values) {
             sum += number;
         }
-        return sum/values.size();
+        return sum/values.length;
     }
 }

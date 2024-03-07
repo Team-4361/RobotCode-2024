@@ -51,8 +51,6 @@ public class DriveToAprilTagCommand extends Command {
 
     @Override
     public void initialize() {
-        Robot.shooterCamera.setTargetHeight(targetHeightMeters);
-
         initTimeout = System.currentTimeMillis() + 5000;
         noTarget = false;
         firstTarget = true;

@@ -1,8 +1,10 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
+import frc.robot.util.math.GlobalUtils;
 import frc.robot.util.pid.DashTunableNumber;
 
 import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
@@ -18,8 +20,11 @@ public class ShooterSubsystem extends SubsystemBase {
     private final CANSparkMax rightMotor;
     private final DashTunableNumber shootTune;
     private final DashTunableNumber delayTune;
+    private final RelativeEncoder leftEncoder;
+    private final RelativeEncoder rightEncoder;
     private double targetSpeed = SHOOT_SPEED;
     private long delayMs = SHOOT_END_DELAY_MS;
+    private boolean fireMode = false;
 
     /**Constructs a new {@link ShooterSubsystem} using all <code>CONSTANTS</code> values. */
     public ShooterSubsystem() {
@@ -36,8 +41,15 @@ public class ShooterSubsystem extends SubsystemBase {
         this.leftMotor = new CANSparkMax(SHOOT_LEFT_MOTOR_ID, kBrushless);
         this.rightMotor = new CANSparkMax(SHOOT_RIGHT_MOTOR_ID, kBrushless);
 
+        this.leftEncoder = leftMotor.getEncoder();
+        this.rightEncoder = rightMotor.getEncoder();
+
         leftMotor.setInverted(true);
         rightMotor.setInverted(false);
+    }
+
+    public double getShooterRPM() {
+        return GlobalUtils.averageDouble(Math.abs(leftEncoder.getVelocity()), Math.abs(rightEncoder.getVelocity()));
     }
 
     public long getDelayMS() { return this.delayMs; }
@@ -51,18 +63,23 @@ public class ShooterSubsystem extends SubsystemBase {
             shootTune.update();
         if (delayTune != null)
             delayTune.update();
+
+        if (fireMode) {
+            leftMotor.set(targetSpeed);
+            rightMotor.set(targetSpeed);
+        } else if (Robot.intake.hasNote()) {
+            leftMotor.set(SHOOT_IDLE_SPEED);
+            rightMotor.set(SHOOT_IDLE_SPEED);
+        } else if (leftMotor.get() != 0 && rightMotor.get() != 0) {
+            leftMotor.stopMotor();
+            rightMotor.stopMotor();
+        }
     }
 
     /**
      * Sets the target of the {@link ShooterSubsystem} to the Shoot RPM.
      */
-    public void start() {
-        leftMotor.set(targetSpeed);
-        rightMotor.set(targetSpeed);
-    }
-
-    public void stop() {
-        leftMotor.stopMotor();
-        rightMotor.stopMotor();
+    public void setEnabled(boolean enabled) {
+        this.fireMode = enabled;
     }
 }

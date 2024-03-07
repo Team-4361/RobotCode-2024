@@ -91,7 +91,7 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
 
         setHeadingCorrection(false);
         setCosineCompensator(false);
-        setDriveMotorBrake(true);
+        setMotorIdleMode(true);
         SwerveDriveTelemetry.verbosity = SWERVE_TUNING_ENABLED ? HIGH : MACHINE;
 
         AutoBuilder.configureHolonomic(
@@ -236,8 +236,8 @@ public class SwerveDriveSubsystem extends SwerveDrive implements Subsystem, Send
         double mX, mO;
 
         if (usePhoton) {
-            driveController = Robot.shooterCamera.getPhotonDriveController();
-            turnController = Robot.shooterCamera.getPhotonTurnController();
+            driveController = Robot.shooterCamera.getDriveController();
+            turnController = Robot.shooterCamera.getTurnController();
             mX = Robot.shooterCamera.getMaxDriveSpeed();
             mO = PHOTON_TURN_MAX_SPEED;
         } else {

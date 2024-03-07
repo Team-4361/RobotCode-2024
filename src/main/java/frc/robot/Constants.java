@@ -1,6 +1,9 @@
 package frc.robot;
 
 import com.pathplanner.lib.util.PIDConstants;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import frc.robot.util.math.GearRatio;
@@ -47,6 +50,7 @@ public class Constants {
         public static final int SHOOT_RIGHT_MOTOR_ID = 16;
         public static final long SHOOT_END_DELAY_MS = 1200;
         public static final double SHOOT_SPEED = 1;
+        public static final double SHOOT_IDLE_SPEED = 0.25;
         public static final double SLOW_SHOOT_SPEED = 0.1;
     }
 
@@ -141,8 +145,11 @@ public class Constants {
 
     public static class ShooterCamera {
         public static final String SHOOT_CAMERA_NAME = "Microsoft_LifeCam_HD-3000";
-        public static final double SHOOT_CAMERA_HEIGHT_METERS = Units.inchesToMeters(27);
-        public static final double SHOOT_CAMERA_PITCH_DEGREES = 20;
+
+        public static final Transform3d SHOOT_CAMERA_TRANSFORM = new Transform3d(
+                new Translation3d(0, 0, 0.30),
+                new Rotation3d(0, 0, 0)
+        );
     }
 
     public static class Presets {
@@ -173,6 +180,12 @@ public class Constants {
                 TRAP_ARM_ANGLE_PRESETS
         );
     }
+
+    public static class FrontCamera {
+
+    }
+
+
 
     public static class Chassis {
         public static final double SIDE_LENGTH_METERS = Units.inchesToMeters(30);

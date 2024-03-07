@@ -24,16 +24,11 @@ import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.*;
-import frc.robot.commands.auto.MoveAutoCommand;
-import frc.robot.commands.auto.MoveFarAutoCommand;
-import frc.robot.commands.auto.ShootOnlyCommand;
-import frc.robot.commands.auto.TwoNoteMiddleAutoCommand;
 import frc.robot.commands.auto.TwoNoteOffsetAutoCommand;
 import frc.robot.commands.climber.LeftClimbDownCommand;
 import frc.robot.commands.climber.RightClimbDownCommand;
 import frc.robot.commands.intake.IntakeNoteCommand;
 import frc.robot.commands.shooter.ShootCommand;
-import frc.robot.commands.shooter.SlowShootCommand;
 import frc.robot.subsystems.*;
 import frc.robot.util.auto.PhotonCameraModule;
 import frc.robot.util.math.GlobalUtils;
@@ -148,8 +143,7 @@ public class Robot extends TimedRobot {
 
         shooterCamera = new PhotonCameraModule(
                 SHOOT_CAMERA_NAME,
-                SHOOT_CAMERA_HEIGHT_METERS,
-                SHOOT_CAMERA_PITCH_DEGREES
+                SHOOT_CAMERA_TRANSFORM
         );
 
         SwerveDriveSubsystem.initParser();
@@ -241,7 +235,7 @@ public class Robot extends TimedRobot {
         //xbox.leftBumper().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset("Zero")));
         //xbox.rightBumper().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset("One")));
 
-        xbox.x().whileTrue(new SlowShootCommand());
+
         xbox.povUp().onTrue(Robot.wrist.runOnce(() -> Robot.wrist.grabNote()));
         xbox.povDown().onTrue(Robot.wrist.runOnce(() -> Robot.wrist.dropNote()));
     }
