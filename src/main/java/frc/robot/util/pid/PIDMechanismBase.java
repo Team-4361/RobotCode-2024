@@ -288,10 +288,14 @@ public abstract class PIDMechanismBase {
                 double positionRad = Units.rotationsToRadians(currentValue);
                 double targetPositionRad = Units.rotationsToRadians(targetValue);
 
+                /*
                 setVoltage(
                         feedFwd.calculate(velocityRadPerSec)
                             + controller.calculate(positionRad, targetPositionRad)
                 );
+
+                 */
+                setPower(controller.calculate(positionRad, targetPositionRad));
             }
         }
 
@@ -301,8 +305,9 @@ public abstract class PIDMechanismBase {
 
             // On the Shuffleboard, adding a slash hides the value from the main screen, making it harder to access.
         }
-        //SmartDashboard.putNumber(getModuleName() + " Target", targetValue);
+        SmartDashboard.putNumber(getModuleName() + " Target", targetValue);
         SmartDashboard.putNumber(getModuleName() + " Value", currentValue);
+        SmartDashboard.putNumber(getModuleName() + "PID Power", motor.get());
     }
 
     /**
@@ -313,7 +318,7 @@ public abstract class PIDMechanismBase {
 
     /**
      * Sets the maximum value this {@link PIDMechanismBase} is allowed to rotate.
-     * @param limit The {@link Double} value to use.
+     * @param limit The motor rotation {@link Double} value to use.
      */
     public void setForwardLimit(double limit) { this.forwardLimit = limit; }
 
@@ -399,9 +404,10 @@ public abstract class PIDMechanismBase {
                     teleopMode = false;
                 }
             }
-            if (power != 0 && !teleopMode)
+            if (power != 0 && !teleopMode) {
                 teleopMode = true;
-            setPower(getLimitAdjustedPower(power));
+                setPower(getLimitAdjustedPower(power));
+            }
         }
         lastPower = power;
     }
@@ -411,10 +417,10 @@ public abstract class PIDMechanismBase {
      * @param value      The value to use.
      */
     public void setTarget(double value) {
-        if (!rpmControl) {
-            if (forwardLimit != Double.MAX_VALUE) value = Math.min(value, forwardLimit - 0.1); // Enforce forward limit
-            if (reverseLimit != Double.MIN_VALUE) value = Math.max(value, reverseLimit + 0.1); // Enforce reverse limit
-        }
+       // if (!rpmControl) {
+        //    if (forwardLimit != Double.MAX_VALUE) value = Math.min(value, forwardLimit - 0.1); // Enforce forward limit
+        //    if (reverseLimit != Double.MIN_VALUE) value = Math.max(value, reverseLimit + 0.1); // Enforce reverse limit
+        //}
         this.targetValue = value;
     }
 

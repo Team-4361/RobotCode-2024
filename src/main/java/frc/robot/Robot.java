@@ -26,7 +26,6 @@ import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.*;
-import frc.robot.commands.auto.TwoNoteOffsetAutoCommand;
 import frc.robot.commands.climber.LeftClimbDownCommand;
 import frc.robot.commands.climber.RightClimbDownCommand;
 import frc.robot.commands.intake.IntakeNoteCommand;
@@ -44,6 +43,7 @@ import swervelib.telemetry.Alert.AlertType;
 import static frc.robot.Constants.Control.*;
 import static frc.robot.Constants.Power.POWER_CAN_ID;
 import static frc.robot.Constants.Power.POWER_MODULE_TYPE;
+import static frc.robot.Constants.Presets.TRAP_PRESET_GROUP;
 import static frc.robot.Constants.ShooterCamera.*;
 import static frc.robot.util.auto.AprilTagID.BLUE_SPEAKER_MID;
 import static frc.robot.util.auto.AprilTagID.RED_SPEAKER_MID;
@@ -66,9 +66,9 @@ public class Robot extends TimedRobot {
     public static ShooterSubsystem shooter;
     public static IntakeSubsystem intake;
     public static IndexSubsystem index;
-    public static TrapWristSubsystem wrist;
+    //public static TrapWristSubsystem wrist;
     public static ClimberSubsystem climber;
-    public static TrapArmSubsystem arm;
+    public static FingerSubsystem arm;
 
     private SendableChooser<Command> autoChooser;
 
@@ -138,9 +138,9 @@ public class Robot extends TimedRobot {
         intake = new IntakeSubsystem();
         shooter = new ShooterSubsystem();
         index = new IndexSubsystem();
-        wrist = new TrapWristSubsystem();
+        //wrist = new TrapWristSubsystem();
         climber = new ClimberSubsystem();
-        arm = new TrapArmSubsystem();
+        arm = new FingerSubsystem();
 
         shooterCamera = new PhotonCameraModule(
                 SHOOT_CAMERA_NAME,
@@ -163,7 +163,7 @@ public class Robot extends TimedRobot {
             Robot.swerve.reset();
             Robot.climber.reset();
             Robot.arm.reset();
-            Robot.wrist.reset();
+            //Robot.wrist.reset();
         });
     }
 
@@ -226,8 +226,11 @@ public class Robot extends TimedRobot {
                 () -> Robot.climber.stopRight()
         ));
 
-        xbox.povUp().onTrue(Robot.wrist.runOnce(() -> Robot.wrist.grabNote()));
-        xbox.povDown().onTrue(Robot.wrist.runOnce(() -> Robot.wrist.dropNote()));
+        xbox.povDown().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(0)));
+        xbox.povUp().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(1)));
+
+        //xbox.povUp().onTrue(Robot.wrist.runOnce(() -> Robot.wrist.grabNote()));
+        //xbox.povDown().onTrue(Robot.wrist.runOnce(() -> Robot.wrist.dropNote()));
     }
 
 
@@ -249,15 +252,18 @@ public class Robot extends TimedRobot {
         CommandScheduler.getInstance().run();
         Robot.shooterCamera.update();
 
-        Robot.arm.setExtensionSpeed(deadband(-Robot.xbox.getLeftY()));
-        Robot.arm.setAngleSpeed(deadband(-Robot.xbox.getRightY()/2));
+        //Robot.arm.setExtensionSpeed(deadband(-Robot.xbox.getLeftY()));
+        //Robot.arm.setAngleSpeed(deadband(-Robot.xbox.getRightY()/2));
 
+        /*
         Robot.wrist.translateWrist(
                 GlobalUtils.getDualSpeed(
                         Robot.xbox.getLeftTriggerAxis(),
                         Robot.xbox.getRightTriggerAxis()
                 )/3
         );
+
+         */
     }
 
     @Override public void autonomousInit() { autoChooser.getSelected().schedule(); }

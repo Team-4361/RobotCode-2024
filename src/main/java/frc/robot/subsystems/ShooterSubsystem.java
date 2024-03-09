@@ -2,6 +2,8 @@ package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
+
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.util.math.GlobalUtils;
@@ -64,16 +66,22 @@ public class ShooterSubsystem extends SubsystemBase {
         if (delayTune != null)
             delayTune.update();
 
-        if (fireMode) {
+        if (DriverStation.isAutonomousEnabled()) {
             leftMotor.set(targetSpeed);
             rightMotor.set(targetSpeed);
-        } else if (Robot.intake.hasNote()) {
-            leftMotor.set(SHOOT_IDLE_SPEED);
-            rightMotor.set(SHOOT_IDLE_SPEED);
-        } else if (leftMotor.get() != 0 && rightMotor.get() != 0) {
-            leftMotor.stopMotor();
-            rightMotor.stopMotor();
+        } else {
+            if (fireMode) {
+                leftMotor.set(targetSpeed);
+                rightMotor.set(targetSpeed);
+            } else if (Robot.intake.hasNote()) {
+                leftMotor.set(SHOOT_IDLE_SPEED);
+                rightMotor.set(SHOOT_IDLE_SPEED);
+            } else if (leftMotor.get() != 0 && rightMotor.get() != 0) {
+                leftMotor.stopMotor();
+                rightMotor.stopMotor();
+            }
         }
+      
     }
 
     /**
