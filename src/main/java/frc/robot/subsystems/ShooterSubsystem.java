@@ -66,10 +66,10 @@ public class ShooterSubsystem extends SubsystemBase {
         if (delayTune != null)
             delayTune.update();
 
-        if (DriverStation.isAutonomousEnabled()) {
-            leftMotor.set(targetSpeed);
-            rightMotor.set(targetSpeed);
-        } else {
+        //if (DriverStation.isAutonomousEnabled()) {
+            //leftMotor.set(targetSpeed);
+            //rightMotor.set(targetSpeed);
+        //} else {
             if (fireMode) {
                 leftMotor.set(targetSpeed);
                 rightMotor.set(targetSpeed);
@@ -80,7 +80,7 @@ public class ShooterSubsystem extends SubsystemBase {
                 leftMotor.stopMotor();
                 rightMotor.stopMotor();
             }
-        }
+        //}
       
     }
 

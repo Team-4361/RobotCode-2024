@@ -11,6 +11,7 @@ import static frc.robot.Constants.Shooter.SHOOT_SPEED;
 public class ShootCommand extends Command {
     private long endMillis = 0;
     private long feedMillis = 0;
+    private long timeoutMillis = 0;
 
     /**
      * Default constructor.
@@ -24,6 +25,7 @@ public class ShootCommand extends Command {
     public void initialize() {
         endMillis = 0;
         feedMillis = System.currentTimeMillis() + Robot.shooter.getDelayMS();
+        timeoutMillis = System.currentTimeMillis() + 3000;
 
         Robot.shooter.setTargetSpeed(SHOOT_SPEED);
         Robot.index.setTargetSpeed(INDEX_SPEED);
@@ -72,6 +74,7 @@ public class ShootCommand extends Command {
      */
     @Override
     public boolean isFinished() {
-        return endMillis != 0 && System.currentTimeMillis() >= endMillis;
+        return (endMillis != 0 && System.currentTimeMillis() >= endMillis) ||
+                System.currentTimeMillis() >= timeoutMillis;
     }
 }
