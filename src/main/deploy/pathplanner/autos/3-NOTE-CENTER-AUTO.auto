@@ -18,9 +18,22 @@
           }
         },
         {
-          "type": "path",
+          "type": "race",
           "data": {
-            "pathName": "CENTER-AUTO-1"
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "IntakeCommand"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "CENTER-AUTO-1"
+                }
+              }
+            ]
           }
         },
         {
@@ -36,27 +49,28 @@
           }
         },
         {
-          "type": "path",
+          "type": "race",
           "data": {
-            "pathName": "CENTER-AUTO-3"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "CENTER-AUTO-3"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "IntakeCommand"
+                }
+              }
+            ]
           }
         },
         {
           "type": "path",
           "data": {
             "pathName": "CENTER-AUTO-4"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "CENTER-AUTO-5"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "CENTER-AUTO-6"
           }
         }
       ]

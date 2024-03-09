@@ -150,16 +150,8 @@ public class Robot extends TimedRobot {
         swerve = new SwerveDriveSubsystem();
 
         autoChooser = AutoBuilder.buildAutoChooser();
-//        autoChooser.addOption("NO AUTO", Commands.runOnce(() -> Robot.swerve.reset()));
-//        //autoChooser.addOption("Shoot MIDDLE", new TwoNoteMiddleAutoCommand());
-//        autoChooser.addOption("Shoot LEFT", new TwoNoteOffsetAutoCommand(-56));
-//        autoChooser.addOption("Shoot RIGHT", new TwoNoteOffsetAutoCommand(56));
-//        //autoChooser.addOption("MOVE ONLY", new MoveAutoCommand());
-//        //autoChooser.addOption("Shoot ONLY", new ShootOnlyCommand());
-//        //autoChooser.addOption("MOVE FAR ONLY", new MoveFarAutoCommand());
-//        autoChooser.setDefaultOption("NO AUTO", Commands.runOnce(() -> Robot.swerve.reset()));
-
         SmartDashboard.putData("Auto Chooser", autoChooser);
+
         configureBindings();
 
         NamedCommands.registerCommand("IntakeCommand", new IntakeNoteCommand());
@@ -233,11 +225,6 @@ public class Robot extends TimedRobot {
                 () -> Robot.climber.moveRightUp(),
                 () -> Robot.climber.stopRight()
         ));
-
-
-        //xbox.leftBumper().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset("Zero")));
-        //xbox.rightBumper().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset("One")));
-
 
         xbox.povUp().onTrue(Robot.wrist.runOnce(() -> Robot.wrist.grabNote()));
         xbox.povDown().onTrue(Robot.wrist.runOnce(() -> Robot.wrist.dropNote()));
