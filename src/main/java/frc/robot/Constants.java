@@ -30,9 +30,9 @@ public class Constants {
         public static final boolean INDEX_TUNING_ENABLED = false;
         public static final boolean INTAKE_TUNING_ENABLED = false;
         public static final boolean CLIMBER_TUNING_ENABLED = false;
-        public static final boolean TRAP_ARM_TUNING_ENABLED = false;
-        public static final boolean TRAP_WRIST_TUNING_ENABLED = false;
-        public static final boolean TRAP_ROTATION_TUNING_ENABLED = true;
+        public static final boolean TRAP_ARM_TUNING_ENABLED = true;
+        //public static final boolean TRAP_WRIST_TUNING_ENABLED = false;
+        //public static final boolean TRAP_ROTATION_TUNING_ENABLED = false;
 
         public static final boolean PHOTON_ENABLED = false;
         public static final boolean SWERVE_TUNING_ENABLED = true;
@@ -70,6 +70,7 @@ public class Constants {
         public static final int INTAKE_SENSOR_PORT = 0;
     }
 
+    /*
     public static class Wrist {
         public static final int WRIST_MAX_US = 2000;
         public static final int WRIST_DEAD_BAND_MAX_US = 1500;
@@ -90,6 +91,8 @@ public class Constants {
         public static final GearRatio WRIST_TURN_RATIO = GearRatio.from(63, 1);
         public static final PIDConstants WRIST_PID = new PIDConstants(0.02, 0, 0);
     }
+
+     */
 
     public static class Climber {
         public static final int CLIMBER_LEFT_ID = 13;
@@ -114,24 +117,27 @@ public class Constants {
         //public static final double ARM_SERVO_MAX_MM = 50;
         //public static final int ARM_SERVO_ID = 1;
 
-        public static final double ARM_MAX_ROTATION = -0.5;
+        //public static final double ARM_MAX_ROTATION = -0.5;
 
-        public static final int ARM_ROTATION_MOTOR_ID = 19;
-        public static final int ARM_EXTENSION_MOTOR_ID = 17;
+       // public static final int ARM_ROTATION_MOTOR_ID = 19;
+        public static final int ARM_EXTENSION_MOTOR_ID = 18;
 
         public static final double ARM_EXTENSION_KS = 0;
         public static final double ARM_EXTENSION_KV = 0;
         public static final double ARM_EXTENSION_KA = 0;
 
-        public static final double ARM_ROTATION_KS = 0;
-        public static final double ARM_ROTATION_KV = 0;
-        public static final double ARM_ROTATION_KA = 0;
+//        public static final double ARM_ROTATION_KS = 0;
+//        public static final double ARM_ROTATION_KV = 0;
+//        public static final double ARM_ROTATION_KA = 0;
+        public static final double ARM_MAX_ROTATION = 150;
+        public static final GearRatio ARM_GEAR_RATIO = GearRatio.from(12, 1);
+//        public static final PeakMotorDistance ARM_DISTANCE = new PeakMotorDistance(
+//                Inches.of(12.5),
+//                ARM_MAX_ROTATION
+//        );
 
-        public static final PeakMotorDistance ARM_DISTANCE = new PeakMotorDistance(Inches.of(24), 425.4);
-
-        public static final GearRatio ARM_ROTATION_GEAR_RATIO = new GearRatio(90, 1);
-        public static final PIDConstants ARM_ROTATION_PID = new PIDConstants(0.6, 0, 0);
-        public static final PIDConstants ARM_EXTENSION_PID = new PIDConstants(0.02, 0, 0);
+        //public static final PIDConstants ARM_ROTATION_PID = new PIDConstants(0.6, 0, 0);
+        public static final PIDConstants ARM_EXTENSION_PID = new PIDConstants(0.05, 0, 0);
     }
 
     public static class Control {
@@ -163,13 +169,14 @@ public class Constants {
             TRAP_ARM_ANGLE_PRESETS.put("Zero", 0.0);
 
             TRAP_WRIST_PRESETS.put("One", 0.0);
-            TRAP_ARM_PRESETS.put("One", 0.0);
+            TRAP_ARM_PRESETS.put("One", 12.5);
+        
             TRAP_ARM_ANGLE_PRESETS.put("One", 0.0);
 
             // TODO: add real entries!
             Robot.arm.registerExtensionPresets(TRAP_ARM_PRESETS);
-            Robot.arm.registerAnglePresets(TRAP_ARM_ANGLE_PRESETS);
-            Robot.wrist.registerPresets(TRAP_WRIST_PRESETS);
+            //Robot.arm.registerAnglePresets(TRAP_ARM_ANGLE_PRESETS);
+            //Robot.wrist.registerPresets(TRAP_WRIST_PRESETS);
         }
 
         /** Use this group for interfacing the trap presets!! **/
