@@ -74,7 +74,6 @@ public class ShootCommand extends Command {
      */
     @Override
     public boolean isFinished() {
-        return (endMillis != 0 && System.currentTimeMillis() >= endMillis) ||
-                System.currentTimeMillis() >= timeoutMillis;
+        return (endMillis != 0 && System.currentTimeMillis() >= endMillis);
     }
 }
