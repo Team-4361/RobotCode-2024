@@ -72,6 +72,12 @@
           "data": {
             "pathName": "CENTER-AUTO-4"
           }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ShootCommand"
+          }
         }
       ]
     }

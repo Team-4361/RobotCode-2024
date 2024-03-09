@@ -200,7 +200,10 @@ public class Constants {
         public static final PIDConstants PHOTON_DRIVE_PID = new PIDConstants(0.05, 0, 0);
         public static final PIDConstants PHOTON_TURN_PID = new PIDConstants(0.02, 0, 0);
 
-        public static final PIDConstants AUTO_DRIVE_PID = new PIDConstants(0.3, 0, 0);
-        public static final PIDConstants AUTO_TURN_PID = new PIDConstants(0.23, 0, 0);
+        //public static final PIDConstants AUTO_DRIVE_PID = new PIDConstants(0.3, 0, 0);
+        //public static final PIDConstants AUTO_TURN_PID = new PIDConstants(0.23, 0, 0);
+
+        public static final PIDConstants AUTO_DRIVE_PID = new PIDConstants(5, 0, 0);
+        public static final PIDConstants AUTO_TURN_PID = new PIDConstants(5, 0, 0);
     }
 }

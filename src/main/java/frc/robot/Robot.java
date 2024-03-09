@@ -147,15 +147,15 @@ public class Robot extends TimedRobot {
                 SHOOT_CAMERA_TRANSFORM
         );
 
+        NamedCommands.registerCommand("IntakeCommand", new IntakeNoteCommand());
+        NamedCommands.registerCommand("ShootCommand", new ShootCommand());
+
         swerve = new SwerveDriveSubsystem();
 
         autoChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData("Auto Chooser", autoChooser);
 
         configureBindings();
-
-        NamedCommands.registerCommand("IntakeCommand", new IntakeNoteCommand());
-        NamedCommands.registerCommand("ShootCommand", new ShootCommand());
     }
 
     public static Command resetAllCommand() {
