@@ -129,7 +129,7 @@ public class Constants {
 //        public static final double ARM_ROTATION_KS = 0;
 //        public static final double ARM_ROTATION_KV = 0;
 //        public static final double ARM_ROTATION_KA = 0;
-        public static final double ARM_MAX_ROTATION = 150;
+        public static final double ARM_MAX_ROTATION = 12.5;
         public static final GearRatio ARM_GEAR_RATIO = GearRatio.from(12, 1);
 //        public static final PeakMotorDistance ARM_DISTANCE = new PeakMotorDistance(
 //                Inches.of(12.5),
@@ -137,7 +137,7 @@ public class Constants {
 //        );
 
         //public static final PIDConstants ARM_ROTATION_PID = new PIDConstants(0.6, 0, 0);
-        public static final PIDConstants ARM_EXTENSION_PID = new PIDConstants(0.05, 0, 0);
+        public static final PIDConstants ARM_EXTENSION_PID = new PIDConstants(0.01, 0, 0);
     }
 
     public static class Control {
