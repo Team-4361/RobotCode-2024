@@ -210,7 +210,7 @@ public class Constants {
         //public static final PIDConstants AUTO_DRIVE_PID = new PIDConstants(0.3, 0, 0);
         //public static final PIDConstants AUTO_TURN_PID = new PIDConstants(0.23, 0, 0);
 
-        public static final PIDConstants AUTO_DRIVE_PID = new PIDConstants(6, 0, 0);
-        public static final PIDConstants AUTO_TURN_PID = new PIDConstants(5, 0, 0);
+        public static final PIDConstants AUTO_DRIVE_PID = new PIDConstants(3, 0, 0);
+        public static final PIDConstants AUTO_TURN_PID = new PIDConstants(5.7, 0, 0);
     }
 }
