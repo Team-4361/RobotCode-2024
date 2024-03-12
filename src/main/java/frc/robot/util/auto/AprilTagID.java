@@ -54,10 +54,7 @@ public enum AprilTagID {
         return Optional.empty();
     }
 
-    @Override
-    public String toString() {
-        return name + " - " + alliance.name();
-    }
+    @Override public String toString() { return name + " - " + alliance.name(); }
 
     AprilTagID(int id, String name, Alliance alliance) {
         this.id = id;

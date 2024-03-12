@@ -228,9 +228,6 @@ public class Robot extends TimedRobot {
 
         xbox.povDown().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(0)));
         xbox.povUp().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(1)));
-
-        //xbox.povUp().onTrue(Robot.wrist.runOnce(() -> Robot.wrist.grabNote()));
-        //xbox.povDown().onTrue(Robot.wrist.runOnce(() -> Robot.wrist.dropNote()));
     }
 
 

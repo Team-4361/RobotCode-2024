@@ -35,7 +35,6 @@ public abstract class PIDMechanismBase {
     private boolean simInverted = false;
     private long lastSimUpdateMillis = System.currentTimeMillis();
 
-    private final SimpleMotorFeedforward feedFwd;
     private final DashTunablePID pidTune;
     private final PIDController controller;
     private final String moduleName;
@@ -51,16 +50,17 @@ public abstract class PIDMechanismBase {
     private double lastPower = 0;
 
     private boolean limitBypassEnabled = false;
-    private boolean dashboardEnabled = false;
     private boolean teleopMode = false;
+    private boolean tuningEnabled;
 
     private Supplier<Boolean> pidEnabledSupplier = () -> true;
     private Supplier<Boolean> limitBypassSupplier = () -> false;
 
-    private RelativeEncoder encoder;
+    private final RelativeEncoder encoder;
 
     public MotorModel getModel() { return this.model; }
 
+    //region Encoder Bindings
     private RelativeEncoder getEncoder() {
         RelativeEncoder realEncoder = motor.getEncoder();
         return new RelativeEncoder() {
@@ -153,6 +153,7 @@ public abstract class PIDMechanismBase {
             }
         };
     }
+    //endregion
 
     /**
      * @param motorRotations The motor rotations as reported by the {@link Encoder}.
@@ -166,25 +167,19 @@ public abstract class PIDMechanismBase {
      * Constructs a new {@link PIDMechanismBase}.
      * @param motorId       The motor ID to use.
      * @param constants     The {@link PIDConstants} to use.
-     * @param kS            The {@link SimpleMotorFeedforward} kS constant.
-     * @param kV            The {@link SimpleMotorFeedforward} kV constant.
-     * @param kA            The {@link SimpleMotorFeedforward} kA constant.
      * @param model         The {@link MotorModel} of the {@link CANSparkMax} motor.
      * @param moduleName    The {@link String} module name
      * @param tuningEnabled If PID {@link SmartDashboard} tuning is enabled.
      */
     public PIDMechanismBase(int motorId,
                             PIDConstants constants,
-                            double kS,
-                            double kV,
-                            double kA,
                             MotorModel model,
                             String moduleName,
                             boolean tuningEnabled,
                             boolean rpmControl) {
         this.motor = new CANSparkMax(motorId, kBrushless);
-        this.feedFwd = new SimpleMotorFeedforward(kS, kV, kA);
         this.controller = GlobalUtils.generateController(constants);
+        this.tuningEnabled = tuningEnabled;
         this.rpmControl = rpmControl;
         this.moduleName = moduleName;
         this.model = model;
@@ -212,17 +207,6 @@ public abstract class PIDMechanismBase {
 
     /** @return The {@link String} name of the {@link PIDMechanismBase}. */
     public String getModuleName() { return this.moduleName; }
-
-    /**
-     * Controls if the {@link PIDMechanismBase} should be logged to the {@link SmartDashboard}.
-     * @param enabled The value to use.
-     */
-    public void setDashboardEnabled(boolean enabled) {
-        this.dashboardEnabled = enabled;
-    }
-
-    /** @return If the {@link PIDMechanismBase} should be logged to the {@link SmartDashboard}. */
-    public boolean isDashboardEnabled() { return this.dashboardEnabled; }
 
     /**
      * Sets the inversion of the underlying {@link CANSparkMax} instance.
@@ -280,34 +264,21 @@ public abstract class PIDMechanismBase {
             if (rpmControl) {
                 double targetVelocityRadPerSec = Units.rotationsPerMinuteToRadiansPerSecond(targetValue);
 
-                setVoltage(
-                        feedFwd.calculate(velocityRadPerSec)
-                            + controller.calculate(velocityRadPerSec, targetVelocityRadPerSec)
-                );
+                setPower(controller.calculate(velocityRadPerSec, targetVelocityRadPerSec));
             } else {
                 double positionRad = Units.rotationsToRadians(currentValue);
                 double targetPositionRad = Units.rotationsToRadians(targetValue);
 
-                /*
-                setVoltage(
-                        feedFwd.calculate(velocityRadPerSec)
-                            + controller.calculate(positionRad, targetPositionRad)
-                );
-
-                 */
                 setPower(controller.calculate(positionRad, targetPositionRad));
             }
         }
 
-        if (dashboardEnabled) {
-            //SmartDashboard.putNumber(getModuleName() + "/VelocityRPM", velocityRPM);
-            //SmartDashboard.putNumber(getModuleName() + "/Tolerance", tolerance);
-
-            // On the Shuffleboard, adding a slash hides the value from the main screen, making it harder to access.
+        if (tuningEnabled) {
+            SmartDashboard.putNumber(getModuleName() + " Target", targetValue);
+            SmartDashboard.putNumber(getModuleName() + " Tolerance", tolerance);
         }
-        SmartDashboard.putNumber(getModuleName() + " Target", targetValue);
+
         SmartDashboard.putNumber(getModuleName() + " Value", currentValue);
-        SmartDashboard.putNumber(getModuleName() + "PID Power", motor.get());
     }
 
     /**
@@ -408,8 +379,8 @@ public abstract class PIDMechanismBase {
                 teleopMode = true;
                 setPower(getLimitAdjustedPower(power));
             }
+            lastPower = power;
         }
-        lastPower = power;
     }
 
     /**

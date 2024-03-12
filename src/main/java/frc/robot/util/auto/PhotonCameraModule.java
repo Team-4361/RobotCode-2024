@@ -8,7 +8,6 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.Robot;
 import frc.robot.util.math.GlobalUtils;
 import frc.robot.util.pid.DashTunableNumber;
 import frc.robot.util.pid.DashTunablePID;
@@ -17,6 +16,7 @@ import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
+import frc.robot.Robot;
 import java.util.Optional;
 
 import static frc.robot.Constants.Chassis.*;
@@ -43,12 +43,11 @@ public class PhotonCameraModule extends PhotonCamera {
     private int aprilTagID = 0;
     private double maxDriveSpeed = PHOTON_DRIVE_MAX_SPEED;
 
-
+    public double getMaxDriveSpeed() { return maxDriveSpeed; }
     public void setMaxDriveSpeed(double speed) { this.maxDriveSpeed = speed; }
 
     public PIDController getDriveController() { return this.driveController; }
     public PIDController getTurnController() { return this.turnController; }
-    public double getMaxDriveSpeed() { return maxDriveSpeed; }
 
     public PhotonCameraModule(String name, Transform3d transform) {
         super(name);
@@ -84,12 +83,9 @@ public class PhotonCameraModule extends PhotonCamera {
         if (!PHOTON_ENABLED || RobotBase.isSimulation())
             return;
 
-        if (driveTune != null)
-            driveTune.update();
-        if (turnTune != null)
-            turnTune.update();
-        if (speedTune != null)
-            speedTune.update();
+        if (driveTune != null) driveTune.update();
+        if (turnTune  != null) turnTune.update();
+        if (speedTune != null) speedTune.update();
 
         PhotonPipelineResult result = getLatestResult();
         poseEstimator.update(result);
@@ -119,8 +115,8 @@ public class PhotonCameraModule extends PhotonCamera {
         }
     }
 
+    public String getCameraName() { return this.cameraName; }
     public boolean isTargetFound() { return trackedPose != null; }
     public long getLastFoundMillis() { return this.lastFoundMillis; }
-    public String getCameraName() { return this.cameraName; }
     public int getAprilTagID() { return this.aprilTagID; }
 }

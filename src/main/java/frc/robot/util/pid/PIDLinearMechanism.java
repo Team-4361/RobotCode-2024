@@ -15,7 +15,7 @@ public class PIDLinearMechanism extends PIDMechanismBase {
     private final DistanceUnit unit;
     private boolean tuneMode;
 
-    public enum DistanceUnit {FEET, METERS, INCHES}
+    public enum DistanceUnit { FEET, METERS, INCHES }
 
     public void setDistanceTuningEnabled(boolean enable) {
         setPIDControlSupplier(() -> !enable);
@@ -41,9 +41,6 @@ public class PIDLinearMechanism extends PIDMechanismBase {
      *
      * @param motorId       The {@link CANSparkMax} motor ID to use.
      * @param constants     The {@link PIDConstants} to use.
-     * @param kS            The {@link SimpleMotorFeedforward} kS constant.
-     * @param kV            The {@link SimpleMotorFeedforward} kV constant.
-     * @param kA            The {@link SimpleMotorFeedforward} kA constant.
      * @param model         The {@link MotorModel} of the {@link CANSparkMax} motor.
      * @param moduleName    The {@link String} module name
      * @param tuningEnabled If PID {@link SmartDashboard} tuning is enabled.
@@ -52,15 +49,12 @@ public class PIDLinearMechanism extends PIDMechanismBase {
      */
     public PIDLinearMechanism(int motorId,
                               PIDConstants constants,
-                              double kS,
-                              double kV,
-                              double kA,
                               MotorModel model,
                               String moduleName,
                               boolean tuningEnabled,
                               DistanceUnit unit,
                               PeakMotorDistance maxDistance) {
-        super(motorId, constants, kS, kV, kA, model, moduleName, tuningEnabled, false);
+        super(motorId, constants, model, moduleName, tuningEnabled, false);
         this.unit = unit;
         this.maxDistance = maxDistance;
 

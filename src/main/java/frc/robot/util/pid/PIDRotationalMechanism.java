@@ -19,9 +19,6 @@ public class PIDRotationalMechanism extends PIDMechanismBase {
      *
      * @param motorId       The {@link CANSparkMax} motor ID to use.
      * @param constants     The {@link PIDConstants} to use.
-     * @param kS            The {@link SimpleMotorFeedforward} kS constant.
-     * @param kV            The {@link SimpleMotorFeedforward} kV constant.
-     * @param kA            The {@link SimpleMotorFeedforward} kA constant.
      * @param model         The {@link MotorModel} of the {@link CANSparkMax} motor.
      * @param moduleName    The {@link String} module name
      * @param tuningEnabled If PID {@link SmartDashboard} tuning is enabled.
@@ -30,16 +27,13 @@ public class PIDRotationalMechanism extends PIDMechanismBase {
      */
     public PIDRotationalMechanism(int motorId,
                                   PIDConstants constants,
-                                  double kS,
-                                  double kV,
-                                  double kA,
                                   MotorModel model,
                                   String moduleName,
                                   boolean tuningEnabled,
                                   GearRatio ratio,
                                   RotationUnit unit,
                                   boolean rpmControl) {
-        super(motorId, constants, kS, kV, kA, model, moduleName, tuningEnabled, rpmControl);
+        super(motorId, constants, model, moduleName, tuningEnabled, rpmControl);
         this.ratio = ratio;
         this.unit = unit;
     }

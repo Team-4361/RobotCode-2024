@@ -2,8 +2,6 @@ package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -47,7 +45,7 @@ public class ClimberSubsystem extends SubsystemBase {
         }
     }
 
-    public long getLeftActivatedDuration() { return leftSensor.getActivatedDuration(); }
+    public long getLeftActivatedDuration()  { return leftSensor.getActivatedDuration();  }
     public long getRightActivatedDuration() { return rightSensor.getActivatedDuration(); }
 
     public void reset() {
@@ -58,12 +56,10 @@ public class ClimberSubsystem extends SubsystemBase {
     public boolean isLeftRetracted() { return leftSensor.get(); }
     public boolean isRightRetracted() { return rightSensor.get(); }
 
-    public void moveLeftUp() { leftMotor.set(targetSpeed); }
-    public void moveRightUp() { rightMotor.set(targetSpeed); }
-    public void moveLeftDown() { leftMotor.set(-targetSpeed); }
-    public void moveRightDown() {
-        rightMotor.set(-targetSpeed);
-    }
+    public void moveLeftUp()    { leftMotor.set(targetSpeed);   }
+    public void moveRightUp()   { rightMotor.set(targetSpeed);  }
+    public void moveLeftDown()  { leftMotor.set(-targetSpeed);  }
+    public void moveRightDown() { rightMotor.set(-targetSpeed); }
 
     public void stopLeft() { leftMotor.stopMotor(); }
     public void stopRight() { rightMotor.stopMotor(); }

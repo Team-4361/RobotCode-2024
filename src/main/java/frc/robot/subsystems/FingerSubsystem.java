@@ -26,9 +26,6 @@ public class FingerSubsystem extends SubsystemBase {
         this.extensionMechanism = new PIDRotationalMechanism(
                 ARM_EXTENSION_MOTOR_ID,
                 ARM_EXTENSION_PID,
-                ARM_EXTENSION_KS,
-                ARM_EXTENSION_KV,
-                ARM_EXTENSION_KA,
                 MotorModel.NEO,
                 "Arm",
                 TRAP_ARM_TUNING_ENABLED,
@@ -39,7 +36,6 @@ public class FingerSubsystem extends SubsystemBase {
         );
 
         //extensionMechanism.setDistanceTuningEnabled(TRAP_ARM_TUNING_ENABLED);
-        extensionMechanism.setDashboardEnabled(true);
         extensionMechanism.setInverted(true);
         extensionMechanism.setForwardLimit(ARM_MAX_ROTATION);
     }
