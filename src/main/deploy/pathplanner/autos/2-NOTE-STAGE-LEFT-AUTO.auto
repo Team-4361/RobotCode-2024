@@ -18,15 +18,34 @@
           }
         },
         {
-          "type": "path",
+          "type": "parallel",
           "data": {
-            "pathName": "OFFSET-TOP-1"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "OFFSET-TOP-1"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "IntakeCommand"
+                }
+              }
+            ]
           }
         },
         {
           "type": "path",
           "data": {
             "pathName": "OFFSET-TOP-2"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ShootCommand"
           }
         }
       ]

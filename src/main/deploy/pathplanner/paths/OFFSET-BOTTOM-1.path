@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 0.68,
-        "y": 6.7
+        "x": 0.6836534128589353,
+        "y": 4.4
       },
       "prevControl": null,
       "nextControl": {
-        "x": 0.7300000000000002,
-        "y": 6.7866025403784445
+        "x": 0.7336534128589354,
+        "y": 4.313397459621556
       },
       "isLocked": false,
       "linkedName": null
@@ -17,15 +17,15 @@
     {
       "anchor": {
         "x": 1.9,
-        "y": 6.95
+        "y": 4.15
       },
       "prevControl": {
         "x": 1.5799999999999998,
-        "y": 6.95
+        "y": 4.15
       },
       "nextControl": {
         "x": 2.215935862058191,
-        "y": 6.95
+        "y": 4.15
       },
       "isLocked": false,
       "linkedName": null
@@ -33,11 +33,11 @@
     {
       "anchor": {
         "x": 2.6,
-        "y": 6.95
+        "y": 4.15
       },
       "prevControl": {
         "x": 2.5,
-        "y": 6.95
+        "y": 4.15
       },
       "nextControl": null,
       "isLocked": false,
@@ -47,7 +47,7 @@
   "rotationTargets": [
     {
       "waypointRelativePos": 1,
-      "rotationDegrees": 0.0,
+      "rotationDegrees": 0.4836289525794685,
       "rotateFast": false
     }
   ],
@@ -79,7 +79,7 @@
   "reversed": false,
   "folder": "OFFSET-AUTO",
   "previewStartingState": {
-    "rotation": 60.0,
+    "rotation": -60.0,
     "velocity": 0
   },
   "useDefaultConstraints": true
