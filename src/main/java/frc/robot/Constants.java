@@ -137,7 +137,7 @@ public class Constants {
 //        );
 
         //public static final PIDConstants ARM_ROTATION_PID = new PIDConstants(0.6, 0, 0);
-        public static final PIDConstants ARM_EXTENSION_PID = new PIDConstants(0.01, 0, 0);
+        public static final PIDConstants ARM_EXTENSION_PID = new PIDConstants(0.015, 0, 0);
     }
 
     public static class Control {
@@ -169,7 +169,7 @@ public class Constants {
             TRAP_ARM_ANGLE_PRESETS.put("Zero", 0.0);
 
             TRAP_WRIST_PRESETS.put("One", 0.0);
-            TRAP_ARM_PRESETS.put("One", 12.5);
+            TRAP_ARM_PRESETS.put("One", 13.0);
         
             TRAP_ARM_ANGLE_PRESETS.put("One", 0.0);
 
