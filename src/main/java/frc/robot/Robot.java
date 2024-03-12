@@ -7,6 +7,7 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
@@ -25,14 +26,9 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.commands.*;
-import frc.robot.commands.climber.LeftClimbDownCommand;
-import frc.robot.commands.climber.RightClimbDownCommand;
-import frc.robot.commands.intake.IntakeNoteCommand;
-import frc.robot.commands.shooter.ShootCommand;
-import frc.robot.subsystems.*;
+import frc.robot.commands.DriveToAprilTagCommand;
+import frc.robot.subsystems.SwerveDriveSubsystem;
 import frc.robot.util.auto.PhotonCameraModule;
-import frc.robot.util.math.GlobalUtils;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
@@ -43,8 +39,8 @@ import swervelib.telemetry.Alert.AlertType;
 import static frc.robot.Constants.Control.*;
 import static frc.robot.Constants.Power.POWER_CAN_ID;
 import static frc.robot.Constants.Power.POWER_MODULE_TYPE;
-import static frc.robot.Constants.Presets.TRAP_PRESET_GROUP;
-import static frc.robot.Constants.ShooterCamera.*;
+import static frc.robot.Constants.ShooterCamera.SHOOT_CAMERA_NAME;
+import static frc.robot.Constants.ShooterCamera.SHOOT_CAMERA_TRANSFORM;
 import static frc.robot.util.auto.AprilTagID.BLUE_SPEAKER_MID;
 import static frc.robot.util.auto.AprilTagID.RED_SPEAKER_MID;
 import static frc.robot.util.math.GlobalUtils.deadband;
@@ -63,14 +59,8 @@ public class Robot extends TimedRobot {
     public static CommandJoystick rightStick;
     public static SwerveDriveSubsystem swerve;
     public static PhotonCameraModule shooterCamera;
-    public static ShooterSubsystem shooter;
-    public static IntakeSubsystem intake;
-    public static IndexSubsystem index;
-    //public static TrapWristSubsystem wrist;
-    public static ClimberSubsystem climber;
-    public static FingerSubsystem arm;
 
-    private SendableChooser<Command> autoChooser;
+    //private SendableChooser<Command> autoChooser;
 
     private void startDriverCamera() {
         int width = 360;
@@ -135,25 +125,18 @@ public class Robot extends TimedRobot {
         xbox = new CommandXboxController(XBOX_CONTROLLER_ID);
         pdh = new PowerDistribution(POWER_CAN_ID, POWER_MODULE_TYPE);
 
-        intake = new IntakeSubsystem();
-        shooter = new ShooterSubsystem();
-        index = new IndexSubsystem();
-        //wrist = new TrapWristSubsystem();
-        climber = new ClimberSubsystem();
-        arm = new FingerSubsystem();
-
         shooterCamera = new PhotonCameraModule(
                 SHOOT_CAMERA_NAME,
                 SHOOT_CAMERA_TRANSFORM
         );
 
-        NamedCommands.registerCommand("IntakeCommand", new IntakeNoteCommand());
-        NamedCommands.registerCommand("ShootCommand", new ShootCommand());
+        //NamedCommands.registerCommand("IntakeCommand", Commands.runOnce(() -> {}));
+       // NamedCommands.registerCommand("ShootCommand", Commands.runOnce(() -> {}));
 
         swerve = new SwerveDriveSubsystem();
 
-        autoChooser = AutoBuilder.buildAutoChooser();
-        SmartDashboard.putData("Auto Chooser", autoChooser);
+        //autoChooser = AutoBuilder.buildAutoChooser();
+        //SmartDashboard.putData("Auto Chooser", autoChooser);
 
         configureBindings();
     }
@@ -161,9 +144,6 @@ public class Robot extends TimedRobot {
     public static Command resetAllCommand() {
         return Commands.runOnce(() -> {
             Robot.swerve.reset();
-            Robot.climber.reset();
-            Robot.arm.reset();
-            //Robot.wrist.reset();
         });
     }
 
@@ -201,33 +181,6 @@ public class Robot extends TimedRobot {
                         new Rotation2d(0)
                 ), 27, false, RED_SPEAKER_MID, BLUE_SPEAKER_MID
         ));
-
-        xbox.b().whileTrue(new IntakeNoteCommand());
-        xbox.a().onTrue(new ShootCommand());
-        xbox.y().whileTrue(Robot.intake.runEnd(
-                () -> Robot.intake.startReverse(),
-                () -> Robot.intake.stop()
-        ));
-
-        // Xbox Y --> reverse intake (hold)
-        // each bumper controls each side of the climber
-        // Xbox X --> auto grab note
-        // Xbox left-dpad + right-dpad --> place the note
-
-        xbox.leftBumper().whileTrue(new LeftClimbDownCommand());
-        xbox.rightBumper().whileTrue(new RightClimbDownCommand());
-
-        xbox.back().whileTrue(Commands.runEnd(
-                () -> Robot.climber.moveLeftUp(),
-                () -> Robot.climber.stopLeft()
-        ));
-        xbox.start().whileTrue(Commands.runEnd(
-                () -> Robot.climber.moveRightUp(),
-                () -> Robot.climber.stopRight()
-        ));
-
-        xbox.povDown().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(0)));
-        xbox.povUp().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(1)));
     }
 
 
@@ -248,22 +201,9 @@ public class Robot extends TimedRobot {
         // block in order for anything in the Command-based framework to work.
         CommandScheduler.getInstance().run();
         Robot.shooterCamera.update();
-
-        //Robot.arm.setExtensionSpeed(deadband(-Robot.xbox.getLeftY()));
-        //Robot.arm.setAngleSpeed(deadband(-Robot.xbox.getRightY()/2));
-
-        /*
-        Robot.wrist.translateWrist(
-                GlobalUtils.getDualSpeed(
-                        Robot.xbox.getLeftTriggerAxis(),
-                        Robot.xbox.getRightTriggerAxis()
-                )/3
-        );
-
-         */
     }
 
-    @Override public void autonomousInit() { autoChooser.getSelected().schedule(); }
+ //   @Override public void autonomousInit() { autoChooser.getSelected().schedule(); }
     @Override public void disabledInit() { CommandScheduler.getInstance().cancelAll(); }
     @Override public void testInit() { CommandScheduler.getInstance().cancelAll(); }
     @Override public void teleopInit() { CommandScheduler.getInstance().cancelAll(); }

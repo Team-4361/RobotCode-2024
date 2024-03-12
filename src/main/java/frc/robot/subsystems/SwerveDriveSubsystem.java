@@ -98,6 +98,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         swerveDrive.setMotorIdleMode(true);
         SwerveDriveTelemetry.verbosity = SWERVE_TUNING_ENABLED ? HIGH : MACHINE;
 
+        /* 
         AutoBuilder.configureHolonomic(
                 this::getPose,
                 this::reset,
@@ -115,6 +116,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                 },
                 this
         );
+        */
 
         if (SWERVE_TUNING_ENABLED) {
             this.autoDriveTune = new DashTunablePID("Swerve: Auto Drive PID", AUTO_DRIVE_PID);

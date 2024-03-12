@@ -70,30 +70,6 @@ public class Constants {
         public static final int INTAKE_SENSOR_PORT = 0;
     }
 
-    /*
-    public static class Wrist {
-        public static final int WRIST_MAX_US = 2000;
-        public static final int WRIST_DEAD_BAND_MAX_US = 1500;
-        public static final int WRIST_CENTER_US = 1500;
-        public static final int WRIST_DEAD_BAND_MIN_US = 1500;
-        public static final int WRIST_MIN_US = 1000;
-        public static final int WRIST_MOTOR_ID = 18;
-        public static final int WRIST_SERVO_ID = 0;
-        public static final int WRIST_SERVO_MIN_MM = 0;
-
-        public static final double WRIST_KS = 0;
-        public static final double WRIST_KV = 0;
-        public static final double WRIST_KA = 0;
-        public static final double WRIST_SERVO_MAX_MM = 50;
-
-        public static final boolean WRIST_INVERTED = false;
-
-        public static final GearRatio WRIST_TURN_RATIO = GearRatio.from(63, 1);
-        public static final PIDConstants WRIST_PID = new PIDConstants(0.02, 0, 0);
-    }
-
-     */
-
     public static class Climber {
         public static final int CLIMBER_LEFT_ID = 13;
         public static final int CLIMBER_RIGHT_ID = 14;
@@ -126,17 +102,8 @@ public class Constants {
         public static final double ARM_EXTENSION_KV = 0;
         public static final double ARM_EXTENSION_KA = 0;
 
-//        public static final double ARM_ROTATION_KS = 0;
-//        public static final double ARM_ROTATION_KV = 0;
-//        public static final double ARM_ROTATION_KA = 0;
         public static final double ARM_MAX_ROTATION = 12.5;
         public static final GearRatio ARM_GEAR_RATIO = GearRatio.from(12, 1);
-//        public static final PeakMotorDistance ARM_DISTANCE = new PeakMotorDistance(
-//                Inches.of(12.5),
-//                ARM_MAX_ROTATION
-//        );
-
-        //public static final PIDConstants ARM_ROTATION_PID = new PIDConstants(0.6, 0, 0);
         public static final PIDConstants ARM_EXTENSION_PID = new PIDConstants(0.015, 0, 0);
     }
 
@@ -174,7 +141,6 @@ public class Constants {
             TRAP_ARM_ANGLE_PRESETS.put("One", 0.0);
 
             // TODO: add real entries!
-            Robot.arm.registerExtensionPresets(TRAP_ARM_PRESETS);
             //Robot.arm.registerAnglePresets(TRAP_ARM_ANGLE_PRESETS);
             //Robot.wrist.registerPresets(TRAP_WRIST_PRESETS);
         }
