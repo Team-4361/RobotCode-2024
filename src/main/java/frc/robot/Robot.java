@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -232,11 +233,23 @@ public class Robot extends TimedRobot {
         ));
 
         xbox.povDown().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(0)));
+        /* 
         xbox.povUp().onTrue(
                 TRAP_PRESET_GROUP.setPresetCommand(1)
                         .andThen(new WaitCommand(1))
                         .andThen(TRAP_PRESET_GROUP.setPresetCommand(2))
         );
+        */
+
+        xbox.povUp().onTrue(new SequentialCommandGroup(
+            Commands.runOnce(() -> arm.setMaxPower(0.25)),
+            TRAP_PRESET_GROUP.setPresetCommand(1),
+            new WaitCommand(1),
+            Commands.runOnce(() -> arm.setMaxPower(0.60)),
+               TRAP_PRESET_GROUP.setPresetCommand(2)
+        ));
+
+        xbox.povUp().onTrue(TRAP_PRESET_GROUP.setPresetCommand(2));
     }
 
 

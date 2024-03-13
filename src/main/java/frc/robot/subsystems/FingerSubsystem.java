@@ -37,7 +37,7 @@ public class FingerSubsystem extends SubsystemBase {
         //extensionMechanism.setPIDControlSupplier(() -> false);
         extensionMechanism.setInverted(true);
         extensionMechanism.setForwardLimit(ARM_MAX_ROTATION);
-        extensionMechanism.setMaxPower(0.33);
+        extensionMechanism.setMaxPower(0.30);
     }
 
     @Override
@@ -47,6 +47,10 @@ public class FingerSubsystem extends SubsystemBase {
 
     public void registerExtensionPresets(PresetMap<Double> map) {
         extensionMechanism.registerPresets(map);
+    }
+
+    public void setMaxPower(double power) {
+        extensionMechanism.setMaxPower(power);
     }
 
     /**
