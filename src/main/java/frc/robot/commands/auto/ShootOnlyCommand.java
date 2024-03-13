@@ -5,7 +5,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.Robot;
 import frc.robot.commands.shooter.ShootCommand;
 
-import static frc.robot.Constants.TrapArm.ARM_MAX_ROTATION;
+import static frc.robot.Constants.TrapFinger.ARM_MAX_ROTATION;
 
 public class ShootOnlyCommand extends SequentialCommandGroup {
     public ShootOnlyCommand() {

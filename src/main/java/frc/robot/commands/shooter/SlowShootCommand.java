@@ -1,32 +1,33 @@
-package frc.robot.commands.intake;
+package frc.robot.commands.shooter;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
 
+import static frc.robot.Constants.Indexer.INDEX_SPEED;
+import static frc.robot.Constants.Indexer.SLOW_INDEX_SPEED;
 import static frc.robot.Constants.Intake.INTAKE_SPEED;
+import static frc.robot.Constants.Intake.SLOW_INTAKE_SPEED;
+import static frc.robot.Constants.Shooter.*;
 
-public class IntakeNoteCommand extends Command {
-    private long endMillis = -1;
+public class SlowShootCommand extends Command {
 
-    public IntakeNoteCommand() {
-        addRequirements(Robot.intake);
-    }
+    /**
+     * Default constructor.
+     */
+    public SlowShootCommand() { addRequirements(Robot.shooter, Robot.index, Robot.intake); }
 
     /**
      * The initial subroutine of a command. Called once when the command is initially scheduled.
      */
     @Override
     public void initialize() {
-        Robot.intake.setTargetSpeed(INTAKE_SPEED);
-        Robot.intake.startNormal();
-        endMillis = -1;
-    }
+        Robot.shooter.setTargetSpeed(SLOW_SHOOT_SPEED);
+        Robot.index.setTargetSpeed(SLOW_INDEX_SPEED);
+        Robot.intake.setTargetSpeed(SLOW_INTAKE_SPEED);
 
-    @Override
-    public void execute() {
-        if (Robot.intake.hasNote() && endMillis < 0) {
-            endMillis = System.currentTimeMillis() + 250;
-        }
+        Robot.shooter.setEnabled(true);
+        Robot.intake.startNormal();
+        Robot.index.start();
     }
 
     /**
@@ -40,6 +41,8 @@ public class IntakeNoteCommand extends Command {
      */
     @Override
     public void end(boolean interrupted) {
+        Robot.shooter.setEnabled(false);
+        Robot.index.stop();
         Robot.intake.stop();
     }
 
@@ -51,6 +54,6 @@ public class IntakeNoteCommand extends Command {
      */
     @Override
     public boolean isFinished() {
-        return endMillis > 0 && System.currentTimeMillis() >= endMillis;
+        return false;
     }
 }

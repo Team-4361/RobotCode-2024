@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -30,6 +31,7 @@ import frc.robot.commands.climber.LeftClimbDownCommand;
 import frc.robot.commands.climber.RightClimbDownCommand;
 import frc.robot.commands.intake.IntakeNoteCommand;
 import frc.robot.commands.shooter.ShootCommand;
+import frc.robot.commands.shooter.SlowShootCommand;
 import frc.robot.subsystems.*;
 import frc.robot.util.auto.PhotonCameraModule;
 import frc.robot.util.math.GlobalUtils;
@@ -204,10 +206,13 @@ public class Robot extends TimedRobot {
 
         xbox.b().whileTrue(new IntakeNoteCommand());
         xbox.a().onTrue(new ShootCommand());
+        /*
         xbox.y().whileTrue(Robot.intake.runEnd(
                 () -> Robot.intake.startReverse(),
                 () -> Robot.intake.stop()
         ));
+         */
+        xbox.y().whileTrue(new SlowShootCommand());
 
         // Xbox Y --> reverse intake (hold)
         // each bumper controls each side of the climber
@@ -227,7 +232,11 @@ public class Robot extends TimedRobot {
         ));
 
         xbox.povDown().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(0)));
-        xbox.povUp().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(1)));
+        xbox.povUp().onTrue(
+                TRAP_PRESET_GROUP.setPresetCommand(1)
+                        .andThen(new WaitCommand(1))
+                        .andThen(TRAP_PRESET_GROUP.setPresetCommand(2))
+        );
     }
 
 
@@ -249,7 +258,7 @@ public class Robot extends TimedRobot {
         CommandScheduler.getInstance().run();
         Robot.shooterCamera.update();
 
-        //Robot.arm.setExtensionSpeed(deadband(-Robot.xbox.getLeftY()));
+        Robot.arm.setExtensionSpeed(deadband(-Robot.xbox.getLeftY()/6));
         //Robot.arm.setAngleSpeed(deadband(-Robot.xbox.getRightY()/2));
 
         /*

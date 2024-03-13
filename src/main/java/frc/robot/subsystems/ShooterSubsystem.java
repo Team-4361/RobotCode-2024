@@ -73,9 +73,6 @@ public class ShooterSubsystem extends SubsystemBase {
             if (fireMode) {
                 leftMotor.set(targetSpeed);
                 rightMotor.set(targetSpeed);
-            } else if (Robot.intake.hasNote()) {
-                leftMotor.set(SHOOT_IDLE_SPEED);
-                rightMotor.set(SHOOT_IDLE_SPEED);
             } else if (leftMotor.get() != 0 && rightMotor.get() != 0) {
                 leftMotor.stopMotor();
                 rightMotor.stopMotor();

@@ -11,7 +11,7 @@ import frc.robot.Robot;
 import frc.robot.commands.DriveToPoseCommand;
 import frc.robot.commands.shooter.ShootCommand;
 
-import static frc.robot.Constants.TrapArm.ARM_MAX_ROTATION;
+import static frc.robot.Constants.TrapFinger.ARM_MAX_ROTATION;
 
 public class TwoNoteOffsetAutoCommand extends SequentialCommandGroup {
 

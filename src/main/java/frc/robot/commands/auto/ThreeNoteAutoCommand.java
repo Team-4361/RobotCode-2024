@@ -12,8 +12,6 @@ import frc.robot.commands.DriveToPoseCommand;
 import frc.robot.commands.intake.IntakeNoteCommand;
 import frc.robot.commands.shooter.ShootCommand;
 
-import static frc.robot.Constants.TrapArm.ARM_MAX_ROTATION;
-
 public class ThreeNoteAutoCommand extends SequentialCommandGroup {
 
     public ThreeNoteAutoCommand() {

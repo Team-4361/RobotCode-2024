@@ -5,14 +5,12 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.util.math.GearRatio;
 import frc.robot.util.motor.MotorModel;
-import frc.robot.util.pid.PIDLinearMechanism;
-import frc.robot.util.pid.PIDLinearMechanism.DistanceUnit;
 import frc.robot.util.pid.PIDRotationalMechanism;
 import frc.robot.util.pid.PIDRotationalMechanism.RotationUnit;
 import frc.robot.util.preset.PresetMap;
 
 import static frc.robot.Constants.Debug.TRAP_ARM_TUNING_ENABLED;
-import static frc.robot.Constants.TrapArm.*;
+import static frc.robot.Constants.TrapFinger.*;
 
 /**
  * This {@link FingerSubsystem} is designed to control the {@link Robot}'s arm. It has an Actuonix L16-50-35-6R
@@ -36,8 +34,10 @@ public class FingerSubsystem extends SubsystemBase {
         );
 
         //extensionMechanism.setDistanceTuningEnabled(TRAP_ARM_TUNING_ENABLED);
+        //extensionMechanism.setPIDControlSupplier(() -> false);
         extensionMechanism.setInverted(true);
         extensionMechanism.setForwardLimit(ARM_MAX_ROTATION);
+        extensionMechanism.setMaxPower(0.33);
     }
 
     @Override

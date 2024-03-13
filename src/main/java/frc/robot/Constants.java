@@ -7,11 +7,9 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import frc.robot.util.math.GearRatio;
-import frc.robot.util.math.PeakMotorDistance;
 import frc.robot.util.preset.PresetGroup;
 import frc.robot.util.preset.PresetMap;
 
-import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.wpilibj.PowerDistribution.ModuleType.kRev;
 
 /**
@@ -50,7 +48,7 @@ public class Constants {
         public static final int SHOOT_RIGHT_MOTOR_ID = 16;
         public static final long SHOOT_END_DELAY_MS = 1200;
         public static final double SHOOT_SPEED = 1;
-        public static final double SHOOT_IDLE_SPEED = 0.25;
+        public static final double SHOOT_IDLE_SPEED = 0;
         public static final double SLOW_SHOOT_SPEED = 0.1;
     }
 
@@ -69,31 +67,6 @@ public class Constants {
         public static final int INTAKE_MOTOR_ID = 12;
         public static final int INTAKE_SENSOR_PORT = 0;
     }
-
-    /*
-    public static class Wrist {
-        public static final int WRIST_MAX_US = 2000;
-        public static final int WRIST_DEAD_BAND_MAX_US = 1500;
-        public static final int WRIST_CENTER_US = 1500;
-        public static final int WRIST_DEAD_BAND_MIN_US = 1500;
-        public static final int WRIST_MIN_US = 1000;
-        public static final int WRIST_MOTOR_ID = 18;
-        public static final int WRIST_SERVO_ID = 0;
-        public static final int WRIST_SERVO_MIN_MM = 0;
-
-        public static final double WRIST_KS = 0;
-        public static final double WRIST_KV = 0;
-        public static final double WRIST_KA = 0;
-        public static final double WRIST_SERVO_MAX_MM = 50;
-
-        public static final boolean WRIST_INVERTED = false;
-
-        public static final GearRatio WRIST_TURN_RATIO = GearRatio.from(63, 1);
-        public static final PIDConstants WRIST_PID = new PIDConstants(0.02, 0, 0);
-    }
-
-     */
-
     public static class Climber {
         public static final int CLIMBER_LEFT_ID = 13;
         public static final int CLIMBER_RIGHT_ID = 14;
@@ -105,38 +78,10 @@ public class Constants {
         public static final long CLIMBER_SENSOR_DELAY_MS = 150;
     }
 
-    public static class TrapArm {
-        /*
-        public static final int ARM_MAX_US = 2000;
-        public static final int ARM_DEAD_BAND_MAX_US = 1500;
-        public static final int ARM_CENTER_US = 1500;
-        public static final int ARM_DEAD_BAND_MIN_US = 1500;
-        public static final int ARM_MIN_US = 1000;
-        public static final int ARM_SERVO_MIN_MM = 3;
-         */
-        //public static final double ARM_SERVO_MAX_MM = 50;
-        //public static final int ARM_SERVO_ID = 1;
-
-        //public static final double ARM_MAX_ROTATION = -0.5;
-
-       // public static final int ARM_ROTATION_MOTOR_ID = 19;
+    public static class TrapFinger {
         public static final int ARM_EXTENSION_MOTOR_ID = 18;
-
-        public static final double ARM_EXTENSION_KS = 0;
-        public static final double ARM_EXTENSION_KV = 0;
-        public static final double ARM_EXTENSION_KA = 0;
-
-//        public static final double ARM_ROTATION_KS = 0;
-//        public static final double ARM_ROTATION_KV = 0;
-//        public static final double ARM_ROTATION_KA = 0;
-        public static final double ARM_MAX_ROTATION = 12.5;
+        public static final double ARM_MAX_ROTATION = 12;
         public static final GearRatio ARM_GEAR_RATIO = GearRatio.from(12, 1);
-//        public static final PeakMotorDistance ARM_DISTANCE = new PeakMotorDistance(
-//                Inches.of(12.5),
-//                ARM_MAX_ROTATION
-//        );
-
-        //public static final PIDConstants ARM_ROTATION_PID = new PIDConstants(0.6, 0, 0);
         public static final PIDConstants ARM_EXTENSION_PID = new PIDConstants(0.015, 0, 0);
     }
 
@@ -160,18 +105,11 @@ public class Constants {
 
     public static class Presets {
         public static final PresetMap<Double> TRAP_ARM_PRESETS = new PresetMap<>("Trap Arm", true);
-        public static final PresetMap<Double> TRAP_WRIST_PRESETS = new PresetMap<>("Trap Wrist", true);
-        public static final PresetMap<Double> TRAP_ARM_ANGLE_PRESETS = new PresetMap<>("Trap Angle", true);
 
         static {
             TRAP_ARM_PRESETS.put("Zero", 0.0);
-            TRAP_WRIST_PRESETS.put("Zero", 0.0);
-            TRAP_ARM_ANGLE_PRESETS.put("Zero", 0.0);
-
-            TRAP_WRIST_PRESETS.put("One", 0.0);
-            TRAP_ARM_PRESETS.put("One", 13.0);
-        
-            TRAP_ARM_ANGLE_PRESETS.put("One", 0.0);
+            TRAP_ARM_PRESETS.put("One", 3.0);
+            TRAP_ARM_PRESETS.put("Two", 12.0);
 
             // TODO: add real entries!
             Robot.arm.registerExtensionPresets(TRAP_ARM_PRESETS);
@@ -182,9 +120,7 @@ public class Constants {
         /** Use this group for interfacing the trap presets!! **/
         public static final PresetGroup TRAP_PRESET_GROUP = new PresetGroup(
                 "Trap Group",
-                TRAP_ARM_PRESETS,
-                TRAP_WRIST_PRESETS,
-                TRAP_ARM_ANGLE_PRESETS
+                TRAP_ARM_PRESETS
         );
     }
 
