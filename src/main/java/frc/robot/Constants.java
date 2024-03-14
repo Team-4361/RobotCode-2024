@@ -24,7 +24,7 @@ import static edu.wpi.first.wpilibj.PowerDistribution.ModuleType.kRev;
 public class Constants {
     public static class Debug {
         public static final boolean PHOTON_TUNING_ENABLED = false;
-        public static final boolean SHOOTER_TUNING_ENABLED = true;
+        public static final boolean SHOOTER_TUNING_ENABLED = false; // FIXME: caused issues with slow shoot.
         public static final boolean INDEX_TUNING_ENABLED = false;
         public static final boolean INTAKE_TUNING_ENABLED = false;
         public static final boolean CLIMBER_TUNING_ENABLED = false;
@@ -49,7 +49,7 @@ public class Constants {
         public static final long SHOOT_END_DELAY_MS = 1200;
         public static final double SHOOT_SPEED = 1;
         public static final double SHOOT_IDLE_SPEED = 0;
-        public static final double SLOW_SHOOT_SPEED = 0.1;
+        public static final double SLOW_SHOOT_SPEED = 0.08;
 
         public static final PIDConstants SHOOT_PID = new PIDConstants(0.1, 0, 0);
     }
@@ -59,7 +59,7 @@ public class Constants {
         public static final int INDEX_LEFT_MOTOR_ID = 11;
         public static final int INDEX_RIGHT_MOTOR_ID = 15;
         public static final double INDEX_SPEED = 0.6;
-        public static final double SLOW_INDEX_SPEED = 0.1;
+        public static final double SLOW_INDEX_SPEED = 0.08;
     }
 
     /** This {@link Intake} class represents all values regarding the {@link Robot}'s in-taking mechanism. */

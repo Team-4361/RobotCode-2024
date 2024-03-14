@@ -10,6 +10,7 @@ import static frc.robot.Constants.Intake.SLOW_INTAKE_SPEED;
 import static frc.robot.Constants.Shooter.*;
 
 public class SlowShootCommand extends Command {
+    private long endMillis = System.currentTimeMillis();
 
     /**
      * Default constructor.
@@ -28,6 +29,8 @@ public class SlowShootCommand extends Command {
         Robot.shooter.setEnabled(true);
         Robot.intake.startNormal();
         Robot.index.start();
+
+        endMillis = System.currentTimeMillis() + 1000;
     }
 
     /**
@@ -54,6 +57,6 @@ public class SlowShootCommand extends Command {
      */
     @Override
     public boolean isFinished() {
-        return false;
+        return System.currentTimeMillis() >= endMillis;
     }
 }
