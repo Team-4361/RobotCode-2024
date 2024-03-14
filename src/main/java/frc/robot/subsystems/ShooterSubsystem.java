@@ -34,6 +34,8 @@ public class ShooterSubsystem extends SubsystemBase {
     private long delayMs = SHOOT_END_DELAY_MS;
     private boolean fireMode = false;
 
+    // TODO: make it work off PID!
+
     /**Constructs a new {@link ShooterSubsystem} using all <code>CONSTANTS</code> values. */
     public ShooterSubsystem() {
 

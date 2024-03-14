@@ -30,6 +30,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.*;
 import frc.robot.commands.climber.LeftClimbDownCommand;
 import frc.robot.commands.climber.RightClimbDownCommand;
+import frc.robot.commands.intake.AmpCommand;
 import frc.robot.commands.intake.IntakeNoteCommand;
 import frc.robot.commands.shooter.ShootCommand;
 import frc.robot.commands.shooter.SlowShootCommand;
@@ -152,6 +153,8 @@ public class Robot extends TimedRobot {
 
         NamedCommands.registerCommand("IntakeCommand", new IntakeNoteCommand());
         NamedCommands.registerCommand("ShootCommand", new ShootCommand());
+        NamedCommands.registerCommand("AmpUpCommand", new AmpCommand());
+        NamedCommands.registerCommand("AmpDownCommand", Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(0)));
 
         swerve = new SwerveDriveSubsystem();
 
@@ -213,7 +216,7 @@ public class Robot extends TimedRobot {
                 () -> Robot.intake.stop()
         ));
          */
-        xbox.y().whileTrue(new SlowShootCommand());
+        xbox.y().whileTrue(new SlowShootCommand(false));
 
         // Xbox Y --> reverse intake (hold)
         // each bumper controls each side of the climber
@@ -241,15 +244,9 @@ public class Robot extends TimedRobot {
         );
         */
 
-        xbox.povUp().onTrue(new SequentialCommandGroup(
-            Commands.runOnce(() -> arm.setMaxPower(0.25)),
-            TRAP_PRESET_GROUP.setPresetCommand(1),
-            new WaitCommand(1),
-            Commands.runOnce(() -> arm.setMaxPower(0.60)),
-               TRAP_PRESET_GROUP.setPresetCommand(2)
-        ));
+        xbox.povUp().onTrue(new AmpCommand());
 
-        xbox.povUp().onTrue(TRAP_PRESET_GROUP.setPresetCommand(2));
+        //xbox.povUp().onTrue(TRAP_PRESET_GROUP.setPresetCommand(2));
     }
 
 

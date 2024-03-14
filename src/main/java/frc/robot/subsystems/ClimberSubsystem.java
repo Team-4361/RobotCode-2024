@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.CANSparkBase;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -9,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.motor.TimedDigitalInput;
 import frc.robot.util.pid.DashTunableNumber;
 
+import static com.revrobotics.CANSparkBase.IdleMode.kBrake;
 import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 import static frc.robot.Constants.Climber.*;
 import static frc.robot.Constants.Debug.CLIMBER_TUNING_ENABLED;
@@ -30,6 +32,9 @@ public class ClimberSubsystem extends SubsystemBase {
         this.rightMotor = new CANSparkMax(CLIMBER_RIGHT_ID, kBrushless);
         this.leftSensor = new TimedDigitalInput(CLIMBER_LEFT_DIO);
         this.rightSensor = new TimedDigitalInput(CLIMBER_RIGHT_DIO);
+
+        leftMotor.setIdleMode(kBrake);
+        rightMotor.setIdleMode(kBrake);
 
         this.leftEncoder = leftMotor.getEncoder();
         this.rightEncoder = rightMotor.getEncoder();

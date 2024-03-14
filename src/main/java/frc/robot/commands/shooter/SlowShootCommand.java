@@ -11,11 +11,15 @@ import static frc.robot.Constants.Shooter.*;
 
 public class SlowShootCommand extends Command {
     private long endMillis = System.currentTimeMillis();
+    private final boolean timed;
 
     /**
      * Default constructor.
      */
-    public SlowShootCommand() { addRequirements(Robot.shooter, Robot.index, Robot.intake); }
+    public SlowShootCommand(boolean timed) {
+        addRequirements(Robot.shooter, Robot.index, Robot.intake);
+        this.timed = timed;
+    }
 
     /**
      * The initial subroutine of a command. Called once when the command is initially scheduled.
@@ -30,7 +34,7 @@ public class SlowShootCommand extends Command {
         Robot.intake.startNormal();
         Robot.index.start();
 
-        endMillis = System.currentTimeMillis() + 1000;
+        endMillis = System.currentTimeMillis() + 1350;
     }
 
     /**
@@ -57,6 +61,6 @@ public class SlowShootCommand extends Command {
      */
     @Override
     public boolean isFinished() {
-        return System.currentTimeMillis() >= endMillis;
+        return timed && System.currentTimeMillis() >= endMillis;
     }
 }
