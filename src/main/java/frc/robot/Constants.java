@@ -24,7 +24,7 @@ import static edu.wpi.first.wpilibj.PowerDistribution.ModuleType.kRev;
 public class Constants {
     public static class Debug {
         public static final boolean PHOTON_TUNING_ENABLED = false;
-        public static final boolean SHOOTER_TUNING_ENABLED = false;
+        public static final boolean SHOOTER_TUNING_ENABLED = true;
         public static final boolean INDEX_TUNING_ENABLED = false;
         public static final boolean INTAKE_TUNING_ENABLED = false;
         public static final boolean CLIMBER_TUNING_ENABLED = false;
@@ -50,6 +50,8 @@ public class Constants {
         public static final double SHOOT_SPEED = 1;
         public static final double SHOOT_IDLE_SPEED = 0;
         public static final double SLOW_SHOOT_SPEED = 0.1;
+
+        public static final PIDConstants SHOOT_PID = new PIDConstants(0.1, 0, 0);
     }
 
     /** This {@link Indexer} class represents all values regarding the {@link Robot}'s index mechanism. */

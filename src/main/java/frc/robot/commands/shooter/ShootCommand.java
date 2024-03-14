@@ -40,7 +40,7 @@ public class ShootCommand extends Command {
      */
     @Override
     public void execute() {
-        if (Robot.shooter.getShooterRPM() >= 5000) {
+        if (System.currentTimeMillis() >= (timeoutMillis-2000)) {
             Robot.index.start();
             Robot.intake.startNormal();
             if (endMillis == 0)

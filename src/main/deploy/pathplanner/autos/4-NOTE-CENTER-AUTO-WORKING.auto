@@ -2,10 +2,10 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 1.27,
+      "x": 1.34,
       "y": 5.574556013976893
     },
-    "rotation": 0
+    "rotation": 0.5121216321482402
   },
   "command": {
     "type": "sequential",
@@ -55,7 +55,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "CENTER-AUTO-3-DIAG"
+                  "pathName": "CENTER-AUTO-3.5"
                 }
               },
               {

@@ -6,8 +6,12 @@ import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
+import frc.robot.util.math.GearRatio;
 import frc.robot.util.math.GlobalUtils;
+import frc.robot.util.motor.MotorModel;
 import frc.robot.util.pid.DashTunableNumber;
+import frc.robot.util.pid.PIDRotationalMechanism;
+import frc.robot.util.pid.PIDRotationalMechanism.RotationUnit;
 
 import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 import static frc.robot.Constants.Debug.SHOOTER_TUNING_ENABLED;
@@ -18,18 +22,21 @@ import static frc.robot.Constants.Shooter.*;
  * mechanism contains two motors which need to be driven opposite to each other.
  */
 public class ShooterSubsystem extends SubsystemBase {
+
     private final CANSparkMax leftMotor;
     private final CANSparkMax rightMotor;
     private final DashTunableNumber shootTune;
     private final DashTunableNumber delayTune;
     private final RelativeEncoder leftEncoder;
     private final RelativeEncoder rightEncoder;
+
     private double targetSpeed = SHOOT_SPEED;
     private long delayMs = SHOOT_END_DELAY_MS;
     private boolean fireMode = false;
 
     /**Constructs a new {@link ShooterSubsystem} using all <code>CONSTANTS</code> values. */
     public ShooterSubsystem() {
+
         if (SHOOTER_TUNING_ENABLED) {
             shootTune = new DashTunableNumber("Shooter: Speed", SHOOT_SPEED);
             delayTune = new DashTunableNumber("Shooter: Delay", SHOOT_END_DELAY_MS);
@@ -58,6 +65,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
     public void setDelayMS(double delayMs) { this.delayMs = (long)delayMs; }
     public void setTargetSpeed(double speed) { this.targetSpeed = speed; }
+
 
     @Override
     public void periodic() {
