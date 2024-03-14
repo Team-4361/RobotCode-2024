@@ -234,6 +234,7 @@ public class Robot extends TimedRobot {
                 () -> Robot.climber.moveRightUp(),
                 () -> Robot.climber.stopRight()
         ));
+        xbox.x().whileTrue(new OuttakeNoteCommand())
 
         xbox.povDown().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(0)));
         /* 
