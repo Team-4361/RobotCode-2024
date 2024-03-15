@@ -14,7 +14,7 @@ public class AmpCommand extends SequentialCommandGroup {
             Commands.runOnce(() -> Robot.arm.setMaxPower(0.25)),
             TRAP_PRESET_GROUP.setPresetCommand(1),
             new SlowShootCommand(true),
-            new WaitCommand(1),
+            new WaitCommand(0.75),
             Commands.runOnce(() -> Robot.arm.setMaxPower(0.60)),
                TRAP_PRESET_GROUP.setPresetCommand(2)
         );

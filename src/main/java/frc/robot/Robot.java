@@ -22,8 +22,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -37,7 +35,6 @@ import frc.robot.commands.shooter.ShootCommand;
 import frc.robot.commands.shooter.SlowShootCommand;
 import frc.robot.subsystems.*;
 import frc.robot.util.auto.PhotonCameraModule;
-import frc.robot.util.math.GlobalUtils;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
@@ -211,18 +208,8 @@ public class Robot extends TimedRobot {
 
         xbox.b().whileTrue(new IntakeNoteCommand());
         xbox.a().onTrue(new ShootCommand());
-        /*
-        xbox.y().whileTrue(Robot.intake.runEnd(
-                () -> Robot.intake.startReverse(),
-                () -> Robot.intake.stop()
-        ));
-         */
         xbox.y().whileTrue(new SlowShootCommand(false));
-
-        // Xbox Y --> reverse intake (hold)
-        // each bumper controls each side of the climber
-        // Xbox X --> auto grab note
-        // Xbox left-dpad + right-dpad --> place the note
+        xbox.x().whileTrue(new OuttakeNoteCommand());
 
         xbox.leftBumper().whileTrue(new LeftClimbDownCommand());
         xbox.rightBumper().whileTrue(new RightClimbDownCommand());
@@ -235,22 +222,15 @@ public class Robot extends TimedRobot {
                 () -> Robot.climber.moveRightUp(),
                 () -> Robot.climber.stopRight()
         ));
-        xbox.x().whileTrue(new OuttakeNoteCommand());
+
+        xbox.rightTrigger().whileTrue(Commands.runEnd(
+                () -> Robot.shooter.startTargetToDefault(),
+                () -> Robot.shooter.stop()
+        ));
 
         xbox.povDown().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(0)));
-        /* 
-        xbox.povUp().onTrue(
-                TRAP_PRESET_GROUP.setPresetCommand(1)
-                        .andThen(new WaitCommand(1))
-                        .andThen(TRAP_PRESET_GROUP.setPresetCommand(2))
-        );
-        */
-
         xbox.povUp().onTrue(new AmpCommand());
-
-        //xbox.povUp().onTrue(TRAP_PRESET_GROUP.setPresetCommand(2));
     }
-
 
     /**
      * This method is called every 20 ms, no matter the mode. Use this for items like diagnostics
@@ -270,7 +250,7 @@ public class Robot extends TimedRobot {
         CommandScheduler.getInstance().run();
         Robot.shooterCamera.update();
 
-        Robot.arm.setExtensionSpeed(deadband(-Robot.xbox.getLeftY()/6));
+        //Robot.arm.setExtensionSpeed(deadband(-Robot.xbox.getLeftY()/6));
         //Robot.arm.setAngleSpeed(deadband(-Robot.xbox.getRightY()/2));
 
         /*

@@ -17,7 +17,7 @@ public class ShootCommand extends Command {
      * Default constructor.
      */
     public ShootCommand(double rpm) {
-        addRequirements(Robot.shooter, Robot.index, Robot.intake);
+        addRequirements(Robot.index, Robot.intake);
         this.targetRPM = rpm;
     }
 
@@ -33,7 +33,7 @@ public class ShootCommand extends Command {
 
         Robot.index.setTargetSpeed(INDEX_SPEED);
         Robot.intake.setTargetSpeed(INTAKE_SPEED);
-        Robot.shooter.startTargetRPM(targetRPM);
+        Robot.shooter.startTargetToDefault();
 
         Robot.index.stop();
         Robot.intake.stop();

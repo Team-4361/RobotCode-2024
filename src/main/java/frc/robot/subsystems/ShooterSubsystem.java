@@ -29,9 +29,6 @@ public class ShooterSubsystem extends SubsystemBase {
     private long delayMs = SHOOT_END_DELAY_MS;
     private double targetRPM = 0;
 
-    // TODO: make it work off PID!
-    // TODO: add rev button!
-
     /**Constructs a new {@link ShooterSubsystem} using all <code>CONSTANTS</code> values. */
     public ShooterSubsystem() {
 
@@ -91,11 +88,9 @@ public class ShooterSubsystem extends SubsystemBase {
         rightShooter.setTarget(rpm);
     }
 
-    public boolean atTarget(double tolerance) {
-        return inTolerance(targetRPM, getShooterRPM(), tolerance);
-    }
+    public boolean atTarget(double tolerance) { return inTolerance(targetRPM, getShooterRPM(), tolerance); }
+    public void startTargetToDefault() { startTargetRPM(defaultRPM); }
 
-    public void setTargetToDefault() { startTargetRPM(defaultRPM); }
     public void stop() {
         if (!DriverStation.isAutonomous())
             startTargetRPM(0);
