@@ -16,6 +16,7 @@ import frc.robot.util.pid.PIDRotationalMechanism.RotationUnit;
 import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 import static frc.robot.Constants.Debug.SHOOTER_TUNING_ENABLED;
 import static frc.robot.Constants.Shooter.*;
+import static frc.robot.util.math.GlobalUtils.averageDouble;
 
 /**
  * This {@link ShooterSubsystem} is designed to enable the {@link Robot} to shoot. Physically, this
@@ -27,6 +28,9 @@ public class ShooterSubsystem extends SubsystemBase {
     private final CANSparkMax rightMotor;
     private final DashTunableNumber shootTune;
     private final DashTunableNumber delayTune;
+
+    private final RelativeEncoder leftEncoder;
+    private final RelativeEncoder rightEncoder;
 
     private double targetSpeed = SHOOT_SPEED;
     private long delayMs = SHOOT_END_DELAY_MS;
@@ -52,12 +56,19 @@ public class ShooterSubsystem extends SubsystemBase {
 
         leftMotor.setInverted(true);
         rightMotor.setInverted(false);
+
+        leftEncoder = leftMotor.getEncoder();
+        rightEncoder = rightMotor.getEncoder();
     }
 
     public long getDelayMS() { return this.delayMs; }
 
     public void setDelayMS(double delayMs) { this.delayMs = (long)delayMs; }
     public void setTargetSpeed(double speed) { this.targetSpeed = speed; }
+
+    public boolean atTarget(double rpm) {
+        return averageDouble(Math.abs(leftEncoder.getVelocity()), Math.abs(rightEncoder.getVelocity())) >= rpm;
+    }
 
     @Override
     public void periodic() {

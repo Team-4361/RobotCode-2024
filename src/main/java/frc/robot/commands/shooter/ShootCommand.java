@@ -16,9 +16,9 @@ public class ShootCommand extends Command {
     /**
      * Default constructor.
      */
-    public ShootCommand(double rpm) {
+    public ShootCommand(double speed) {
         addRequirements(Robot.index, Robot.intake);
-        this.shootSpeed = rpm;
+        this.shootSpeed = speed;
     }
 
     public ShootCommand() { this(Constants.Shooter.SHOOT_SPEED); }
@@ -45,7 +45,7 @@ public class ShootCommand extends Command {
      */
     @Override
     public void execute() {
-        if (System.currentTimeMillis() >= (timeoutMillis-2000)) {
+        if (System.currentTimeMillis() >= (timeoutMillis-2000) || Robot.shooter.atTarget(shootSpeed * 5400)) {
             Robot.index.start();
             Robot.intake.startNormal();
             if (endMillis == 0)
