@@ -3,9 +3,7 @@ package frc.robot.commands.shooter;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
 
-import static frc.robot.Constants.Indexer.INDEX_SPEED;
 import static frc.robot.Constants.Indexer.SLOW_INDEX_SPEED;
-import static frc.robot.Constants.Intake.INTAKE_SPEED;
 import static frc.robot.Constants.Intake.SLOW_INTAKE_SPEED;
 import static frc.robot.Constants.Shooter.*;
 
@@ -26,11 +24,11 @@ public class SlowShootCommand extends Command {
      */
     @Override
     public void initialize() {
-        Robot.shooter.setTargetSpeed(SLOW_SHOOT_SPEED);
         Robot.index.setTargetSpeed(SLOW_INDEX_SPEED);
         Robot.intake.setTargetSpeed(SLOW_INTAKE_SPEED);
 
-        Robot.shooter.setEnabled(true);
+       // Robot.shooter.startTargetRPM(SLOW_SHOOT_RPM);
+        Robot.shooter.translateMotor(SLOW_SHOOT_SPEED);
         Robot.intake.startNormal();
         Robot.index.start();
 
@@ -48,7 +46,7 @@ public class SlowShootCommand extends Command {
      */
     @Override
     public void end(boolean interrupted) {
-        Robot.shooter.setEnabled(false);
+        Robot.shooter.stop();
         Robot.index.stop();
         Robot.intake.stop();
     }

@@ -27,7 +27,7 @@ import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
  *
  * @author Eric Gold
  */
-public abstract class PIDMechanismBase {
+public abstract class PIDMechanismBase implements IUpdatable {
     private final CANSparkMax motor;
     private final DCMotorSim motorSim;
     private final MotorModel model;
@@ -48,6 +48,7 @@ public abstract class PIDMechanismBase {
     private double reverseLimit = Double.MIN_VALUE;
     private double maxSpeed = 1;
     private double lastPower = 0;
+    private double velocityRPM = 0;
 
     private boolean limitBypassEnabled = false;
     private boolean teleopMode = false;
@@ -220,14 +221,11 @@ public abstract class PIDMechanismBase {
      * Sets the inversion of the underlying {@link CANSparkMax} instance.
      * @param inverted The value to apply.
      */
-    public void setInverted(boolean inverted) {
-        motor.setInverted(inverted);
-    }
+    public void setInverted(boolean inverted) { motor.setInverted(inverted); }
 
-    public void registerPresets(PresetMap<Double> map) {
-        map.addListener((mapName, value) -> targetValue = value);
-    }
+    public void registerPresets(PresetMap<Double> map) { map.addListener((mapName, value) -> targetValue = value); }
 
+    public double getVelocity() { return this.velocityRPM; }
 
     /** @return If the {@link PIDMechanismBase} is at target. */
     public boolean atTarget() {
@@ -248,6 +246,7 @@ public abstract class PIDMechanismBase {
     }
 
     /** Updates the {@link PIDMechanismBase}. <b>This MUST be called in a periodic/execute method!</b> */
+    @Override
     public void update() {
         if (pidTune != null)
             pidTune.update();
@@ -257,7 +256,7 @@ public abstract class PIDMechanismBase {
             lastSimUpdateMillis = System.currentTimeMillis();
         }
 
-        double velocityRPM = encoder.getVelocity();
+        velocityRPM = encoder.getVelocity();
         currentValue = getCurrentPosition(encoder.getPosition());
 
         // It is required to pull the direct values of these suppliers since AdvantageKit CANNOT log suppliers

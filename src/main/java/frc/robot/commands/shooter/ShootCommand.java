@@ -6,16 +6,22 @@ import frc.robot.Robot;
 import static frc.robot.Constants.Indexer.INDEX_SPEED;
 import static frc.robot.Constants.Intake.INTAKE_SPEED;
 import static frc.robot.Constants.Shooter.SHOOT_END_DELAY_MS;
-import static frc.robot.Constants.Shooter.SHOOT_SPEED;
+import static frc.robot.Constants.Shooter.SHOOT_RPM;
 
 public class ShootCommand extends Command {
     private long endMillis = 0;
     private long timeoutMillis = 0;
+    private final double targetRPM;
 
     /**
      * Default constructor.
      */
-    public ShootCommand() { addRequirements(Robot.shooter, Robot.index, Robot.intake); }
+    public ShootCommand(double rpm) {
+        addRequirements(Robot.shooter, Robot.index, Robot.intake);
+        this.targetRPM = rpm;
+    }
+
+    public ShootCommand() { this(SHOOT_RPM); }
 
     /**
      * The initial subroutine of a command. Called once when the command is initially scheduled.
@@ -25,11 +31,9 @@ public class ShootCommand extends Command {
         endMillis = 0;
         timeoutMillis = System.currentTimeMillis() + 3000;
 
-        Robot.shooter.setTargetSpeed(SHOOT_SPEED);
         Robot.index.setTargetSpeed(INDEX_SPEED);
         Robot.intake.setTargetSpeed(INTAKE_SPEED);
-
-        Robot.shooter.setEnabled(true);
+        Robot.shooter.startTargetRPM(targetRPM);
 
         Robot.index.stop();
         Robot.intake.stop();
@@ -40,7 +44,7 @@ public class ShootCommand extends Command {
      */
     @Override
     public void execute() {
-        if (System.currentTimeMillis() >= (timeoutMillis-2000)) {
+        if (Robot.shooter.atTarget(100) || System.currentTimeMillis() >= (timeoutMillis-2000)) {
             Robot.index.start();
             Robot.intake.startNormal();
             if (endMillis == 0)
@@ -59,7 +63,7 @@ public class ShootCommand extends Command {
      */
     @Override
     public void end(boolean interrupted) {
-        Robot.shooter.setEnabled(false);
+        Robot.shooter.stop();
         Robot.index.stop();
         Robot.intake.stop();
     }

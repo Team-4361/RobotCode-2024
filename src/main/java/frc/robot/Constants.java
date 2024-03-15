@@ -28,10 +28,7 @@ public class Constants {
         public static final boolean INDEX_TUNING_ENABLED = false;
         public static final boolean INTAKE_TUNING_ENABLED = false;
         public static final boolean CLIMBER_TUNING_ENABLED = false;
-        public static final boolean TRAP_ARM_TUNING_ENABLED = true;
-        //public static final boolean TRAP_WRIST_TUNING_ENABLED = false;
-        //public static final boolean TRAP_ROTATION_TUNING_ENABLED = false;
-
+        public static final boolean TRAP_ARM_TUNING_ENABLED = false;
         public static final boolean PHOTON_ENABLED = false;
         public static final boolean SWERVE_TUNING_ENABLED = true;
     }
@@ -46,10 +43,11 @@ public class Constants {
     public static class Shooter {
         public static final int SHOOT_LEFT_MOTOR_ID = 10;
         public static final int SHOOT_RIGHT_MOTOR_ID = 16;
-        public static final long SHOOT_END_DELAY_MS = 1200;
-        public static final double SHOOT_SPEED = 1;
+        public static final long SHOOT_END_DELAY_MS = 750;
+        public static final double SHOOT_RPM = 5400;
         public static final double SHOOT_IDLE_SPEED = 0;
         public static final double SLOW_SHOOT_SPEED = 0.07;
+        public static final double SLOW_SHOOT_RPM = 350;
 
         public static final PIDConstants SHOOT_PID = new PIDConstants(0.1, 0, 0);
     }

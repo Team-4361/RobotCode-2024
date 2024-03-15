@@ -3,7 +3,7 @@ package frc.robot.util.pid;
 import com.pathplanner.lib.util.PIDConstants;
 import java.util.function.Consumer;
 
-public class DashTunablePID {
+public class DashTunablePID implements IUpdatable {
     private final String name;
     private final DashTunableNumber tuneP, tuneI, tuneD;
 
@@ -49,6 +49,7 @@ public class DashTunablePID {
      * Updates the {@link DashTunablePID}. <b>This method is required to be called!</b>
      * @see DashTunableNumber#update()
      */
+    @Override
     public void update() {
         tuneP.update();
         tuneI.update();

@@ -32,6 +32,7 @@ import frc.robot.commands.climber.LeftClimbDownCommand;
 import frc.robot.commands.climber.RightClimbDownCommand;
 import frc.robot.commands.intake.AmpCommand;
 import frc.robot.commands.intake.IntakeNoteCommand;
+import frc.robot.commands.intake.OuttakeNoteCommand;
 import frc.robot.commands.shooter.ShootCommand;
 import frc.robot.commands.shooter.SlowShootCommand;
 import frc.robot.subsystems.*;
@@ -142,7 +143,6 @@ public class Robot extends TimedRobot {
         intake = new IntakeSubsystem();
         shooter = new ShooterSubsystem();
         index = new IndexSubsystem();
-        //wrist = new TrapWristSubsystem();
         climber = new ClimberSubsystem();
         arm = new FingerSubsystem();
 
@@ -153,6 +153,7 @@ public class Robot extends TimedRobot {
 
         NamedCommands.registerCommand("IntakeCommand", new IntakeNoteCommand());
         NamedCommands.registerCommand("ShootCommand", new ShootCommand());
+        NamedCommands.registerCommand("FirstShootCommand", new ShootCommand(4000));
         NamedCommands.registerCommand("AmpUpCommand", new AmpCommand());
         NamedCommands.registerCommand("AmpDownCommand", Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(0)));
 
@@ -234,7 +235,7 @@ public class Robot extends TimedRobot {
                 () -> Robot.climber.moveRightUp(),
                 () -> Robot.climber.stopRight()
         ));
-        xbox.x().whileTrue(new OuttakeNoteCommand())
+        xbox.x().whileTrue(new OuttakeNoteCommand());
 
         xbox.povDown().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(0)));
         /* 

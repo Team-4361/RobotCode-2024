@@ -9,7 +9,7 @@ import java.util.function.Consumer;
  * This {@link DashTunableNumber} class provides the Driver/Operator with an easy-to-use way to
  * tune values <b>without re-deployment</b>. This allows for a significant speed boost in tuning!
  */
-public class DashTunableNumber {
+public class DashTunableNumber implements IUpdatable {
     private final String name;
     private final String dashString;
     private final ArrayList<Consumer<Double>> consumers;
@@ -57,6 +57,7 @@ public class DashTunableNumber {
     public double getValue() { return this.value; }
 
     /** Updates the registered value with the {@link SmartDashboard} entry. <b>This method call is required!</b> */
+    @Override
     public void update() {
         if (System.currentTimeMillis() < nextMillis)
             return;
