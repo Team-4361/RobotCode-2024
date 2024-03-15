@@ -1,27 +1,27 @@
 package frc.robot.commands.shooter;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants;
 import frc.robot.Robot;
 
 import static frc.robot.Constants.Indexer.INDEX_SPEED;
 import static frc.robot.Constants.Intake.INTAKE_SPEED;
 import static frc.robot.Constants.Shooter.SHOOT_END_DELAY_MS;
-import static frc.robot.Constants.Shooter.SHOOT_RPM;
 
 public class ShootCommand extends Command {
     private long endMillis = 0;
     private long timeoutMillis = 0;
-    private final double targetRPM;
+    private final double shootSpeed;
 
     /**
      * Default constructor.
      */
     public ShootCommand(double rpm) {
         addRequirements(Robot.index, Robot.intake);
-        this.targetRPM = rpm;
+        this.shootSpeed = rpm;
     }
 
-    public ShootCommand() { this(SHOOT_RPM); }
+    public ShootCommand() { this(Constants.Shooter.SHOOT_SPEED); }
 
     /**
      * The initial subroutine of a command. Called once when the command is initially scheduled.
@@ -33,8 +33,9 @@ public class ShootCommand extends Command {
 
         Robot.index.setTargetSpeed(INDEX_SPEED);
         Robot.intake.setTargetSpeed(INTAKE_SPEED);
-        Robot.shooter.startTargetToDefault();
+        Robot.shooter.setTargetSpeed(shootSpeed);
 
+        Robot.shooter.setEnabled(true);
         Robot.index.stop();
         Robot.intake.stop();
     }
@@ -44,7 +45,7 @@ public class ShootCommand extends Command {
      */
     @Override
     public void execute() {
-        if (Robot.shooter.atTarget(100) || System.currentTimeMillis() >= (timeoutMillis-2000)) {
+        if (System.currentTimeMillis() >= (timeoutMillis-2000)) {
             Robot.index.start();
             Robot.intake.startNormal();
             if (endMillis == 0)
@@ -63,7 +64,7 @@ public class ShootCommand extends Command {
      */
     @Override
     public void end(boolean interrupted) {
-        Robot.shooter.stop();
+        Robot.shooter.setEnabled(false);
         Robot.index.stop();
         Robot.intake.stop();
     }

@@ -46,6 +46,7 @@ import static frc.robot.Constants.Control.*;
 import static frc.robot.Constants.Power.POWER_CAN_ID;
 import static frc.robot.Constants.Power.POWER_MODULE_TYPE;
 import static frc.robot.Constants.Presets.TRAP_PRESET_GROUP;
+import static frc.robot.Constants.Shooter.SHOOT_SPEED;
 import static frc.robot.Constants.ShooterCamera.*;
 import static frc.robot.util.auto.AprilTagID.BLUE_SPEAKER_MID;
 import static frc.robot.util.auto.AprilTagID.RED_SPEAKER_MID;
@@ -150,7 +151,7 @@ public class Robot extends TimedRobot {
 
         NamedCommands.registerCommand("IntakeCommand", new IntakeNoteCommand());
         NamedCommands.registerCommand("ShootCommand", new ShootCommand());
-        NamedCommands.registerCommand("FirstShootCommand", new ShootCommand(4000));
+        NamedCommands.registerCommand("FirstShootCommand", new ShootCommand(0.75));
         NamedCommands.registerCommand("AmpUpCommand", new AmpCommand());
         NamedCommands.registerCommand("AmpDownCommand", Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(0)));
 
@@ -224,8 +225,8 @@ public class Robot extends TimedRobot {
         ));
 
         xbox.rightTrigger().whileTrue(Commands.runEnd(
-                () -> Robot.shooter.startTargetToDefault(),
-                () -> Robot.shooter.stop()
+                () -> {Robot.shooter.setTargetSpeed(SHOOT_SPEED); Robot.shooter.setEnabled(true);},
+                () -> Robot.shooter.setEnabled(false)
         ));
 
         xbox.povDown().onTrue(Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(0)));

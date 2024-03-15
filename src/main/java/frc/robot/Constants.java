@@ -44,10 +44,9 @@ public class Constants {
         public static final int SHOOT_LEFT_MOTOR_ID = 10;
         public static final int SHOOT_RIGHT_MOTOR_ID = 16;
         public static final long SHOOT_END_DELAY_MS = 750;
-        public static final double SHOOT_RPM = 5400;
+        public static final double SHOOT_SPEED = 1;
         public static final double SHOOT_IDLE_SPEED = 0;
         public static final double SLOW_SHOOT_SPEED = 0.07;
-        public static final double SLOW_SHOOT_RPM = 350;
 
         public static final PIDConstants SHOOT_PID = new PIDConstants(0.1, 0, 0);
     }
