@@ -14,7 +14,7 @@
         {
           "type": "named",
           "data": {
-            "name": "ShootCommand"
+            "name": "FirstShootCommand"
           }
         },
         {
@@ -77,6 +77,12 @@
           "type": "path",
           "data": {
             "pathName": "CENTER-AUTO-6"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ResetGyroCommand"
           }
         },
         {

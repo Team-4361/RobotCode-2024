@@ -3,12 +3,13 @@ package frc.robot.commands.intake;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
 
+import static frc.robot.Constants.Indexer.INDEX_SPEED;
 import static frc.robot.Constants.Intake.INTAKE_SPEED;
 
 public class OuttakeNoteCommand extends Command {
 
     public OuttakeNoteCommand() {
-        addRequirements(Robot.intake);
+        addRequirements(Robot.intake, Robot.index);
     }
 
     /**
@@ -17,7 +18,10 @@ public class OuttakeNoteCommand extends Command {
     @Override
     public void initialize() {
         Robot.intake.setTargetSpeed(INTAKE_SPEED);
+        Robot.index.setTargetSpeed(INDEX_SPEED);
+
         Robot.intake.startReverse();
+        Robot.index.startReverse();
     }
 
     /**
@@ -32,6 +36,7 @@ public class OuttakeNoteCommand extends Command {
     @Override
     public void end(boolean interrupted) {
         Robot.intake.stop();
+        Robot.index.stop();
     }
 
     /**

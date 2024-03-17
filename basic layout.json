@@ -11,62 +11,6 @@
         "vgap": 16.0,
         "titleType": 0,
         "tiles": {
-          "0,0": {
-            "size": [
-              2,
-              1
-            ],
-            "content": {
-              "_type": "Alerts",
-              "_source0": "network_table:///SmartDashboard/Alerts",
-              "_title": "Alerts",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
-          "2,0": {
-            "size": [
-              2,
-              2
-            ],
-            "content": {
-              "_type": "Gyro",
-              "_source0": "network_table:///SmartDashboard/navX-Sensor[4]",
-              "_title": "navX-Sensor[4]",
-              "_glyph": 148,
-              "_showGlyph": false,
-              "Visuals/Major tick spacing": 45.0,
-              "Visuals/Starting angle": 180.0,
-              "Visuals/Show tick mark ring": true,
-              "Visuals/Counter clockwise": false
-            }
-          },
-          "2,3": {
-            "size": [
-              1,
-              1
-            ],
-            "content": {
-              "_type": "Alerts",
-              "_source0": "network_table:///SmartDashboard/IMU",
-              "_title": "IMU",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
-          "3,3": {
-            "size": [
-              1,
-              1
-            ],
-            "content": {
-              "_type": "Alerts",
-              "_source0": "network_table:///SmartDashboard/Motors",
-              "_title": "Motors",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
           "0,1": {
             "size": [
               2,
@@ -142,7 +86,7 @@
               "imageHeight": 0
             }
           },
-          "4,3": {
+          "3,3": {
             "size": [
               1,
               1
@@ -213,6 +157,115 @@
               "Colors/Color when true": "#7CFC00FF",
               "Colors/Color when false": "#8B0000FF"
             }
+          },
+          "8,3": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Swerve: Auto Drive PID: P",
+              "_title": "Swerve: Auto Drive PID: P",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "9,3": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Swerve: Auto Drive PID: I",
+              "_title": "Swerve: Auto Drive PID: I",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "2,1": {
+            "size": [
+              2,
+              1
+            ],
+            "content": {
+              "_type": "Simple Dial",
+              "_source0": "network_table:///SmartDashboard/Shooter RPM",
+              "_title": "Shooter RPM",
+              "_glyph": 148,
+              "_showGlyph": false,
+              "Range/Min": 0.0,
+              "Range/Max": 5000.0,
+              "Visuals/Show value": true
+            }
+          },
+          "2,0": {
+            "size": [
+              2,
+              1
+            ],
+            "content": {
+              "_type": "Boolean Box",
+              "_source0": "network_table:///SmartDashboard/Shooter At Target",
+              "_title": "SmartDashboard/Shooter At Target",
+              "_glyph": 148,
+              "_showGlyph": false,
+              "Colors/Color when true": "#7CFC00FF",
+              "Colors/Color when false": "#8B0000FF"
+            }
+          },
+          "0,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/navX-Sensor[4]/Value",
+              "_title": "navX-Sensor[4]/Value",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "1,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Alerts",
+              "_source0": "network_table:///SmartDashboard/IMU",
+              "_title": "IMU",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "2,3": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Alerts",
+              "_source0": "network_table:///SmartDashboard/Motors",
+              "_title": "Motors",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "4,3": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Alerts",
+              "_source0": "network_table:///SmartDashboard/Alerts",
+              "_title": "Alerts",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
           }
         }
       }
@@ -233,8 +286,8 @@
   ],
   "windowGeometry": {
     "x": -6.857142925262451,
-    "y": -6.857142925262451,
-    "width": 1476.5714111328125,
-    "height": 796.5714111328125
+    "y": 0.0,
+    "width": 1473.142822265625,
+    "height": 578.8571166992188
   }
 }

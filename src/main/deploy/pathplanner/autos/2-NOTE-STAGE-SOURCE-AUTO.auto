@@ -14,7 +14,7 @@
         {
           "type": "named",
           "data": {
-            "name": "ShootCommand"
+            "name": "FirstShootCommand"
           }
         },
         {
@@ -40,6 +40,12 @@
           "type": "path",
           "data": {
             "pathName": "OFFSET-BOTTOM-2"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ResetGyroCommand"
           }
         },
         {

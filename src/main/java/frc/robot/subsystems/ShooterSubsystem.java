@@ -4,6 +4,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.util.math.GearRatio;
@@ -66,8 +67,12 @@ public class ShooterSubsystem extends SubsystemBase {
     public void setDelayMS(double delayMs) { this.delayMs = (long)delayMs; }
     public void setTargetSpeed(double speed) { this.targetSpeed = speed; }
 
+    public double getRPM() {
+        return averageDouble(Math.abs(leftEncoder.getVelocity()), Math.abs(rightEncoder.getVelocity()));
+    }
+
     public boolean atTarget(double rpm) {
-        return averageDouble(Math.abs(leftEncoder.getVelocity()), Math.abs(rightEncoder.getVelocity())) >= rpm;
+        return getRPM() >= rpm;
     }
 
     @Override
@@ -76,6 +81,9 @@ public class ShooterSubsystem extends SubsystemBase {
             shootTune.update();
         if (delayTune != null)
             delayTune.update();
+
+        SmartDashboard.putNumber("Shooter RPM", getRPM());
+        SmartDashboard.putBoolean("Shooter At Target", atTarget(5000));
 
         if (DriverStation.isAutonomousEnabled()) {
             leftMotor.set(targetSpeed);

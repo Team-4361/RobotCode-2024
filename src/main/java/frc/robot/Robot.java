@@ -7,6 +7,8 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
@@ -14,6 +16,7 @@ import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -22,6 +25,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -42,6 +46,10 @@ import org.opencv.imgproc.Imgproc;
 import swervelib.telemetry.Alert;
 import swervelib.telemetry.Alert.AlertType;
 
+import java.util.Optional;
+
+import static frc.robot.Constants.Chassis.*;
+import static frc.robot.Constants.Chassis.SIDE_LENGTH_METERS;
 import static frc.robot.Constants.Control.*;
 import static frc.robot.Constants.Power.POWER_CAN_ID;
 import static frc.robot.Constants.Power.POWER_MODULE_TYPE;
@@ -149,13 +157,35 @@ public class Robot extends TimedRobot {
                 SHOOT_CAMERA_TRANSFORM
         );
 
+        swerve = new SwerveDriveSubsystem();
+
         NamedCommands.registerCommand("IntakeCommand", new IntakeNoteCommand());
         NamedCommands.registerCommand("ShootCommand", new ShootCommand());
-        NamedCommands.registerCommand("FirstShootCommand", new ShootCommand(0.75));
+        NamedCommands.registerCommand("FirstShootCommand", new ShootCommand(1));
         NamedCommands.registerCommand("AmpUpCommand", new AmpCommand());
         NamedCommands.registerCommand("AmpDownCommand", Commands.runOnce(() -> TRAP_PRESET_GROUP.setPreset(0)));
+        NamedCommands.registerCommand("ResetGyroCommand", Commands.runOnce(() -> {
+            Robot.swerve.reset();
+            Robot.swerve.hasResetGyro = true; // force it in auto
+        }));
 
-        swerve = new SwerveDriveSubsystem();
+        AutoBuilder.configureHolonomic(
+                () -> Robot.swerve.getPose(),
+                (pose) -> Robot.swerve.reset(pose),
+                () -> Robot.swerve.getRobotVelocity(),
+                (speeds) -> Robot.swerve.setChassisSpeeds(speeds),
+                new HolonomicPathFollowerConfig(
+                        AUTO_DRIVE_PID,
+                        AUTO_TURN_PID,
+                        MAX_SPEED_MPS,
+                        Math.hypot(SIDE_LENGTH_METERS/2, SIDE_LENGTH_METERS/2),
+                        new ReplanningConfig()
+                ), () -> {
+                    Optional<DriverStation.Alliance> alliance = DriverStation.getAlliance();
+                    return alliance.filter(value -> value == DriverStation.Alliance.Red).isPresent();
+                },
+                Robot.swerve
+        );
 
         autoChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData("Auto Chooser", autoChooser);
@@ -182,6 +212,7 @@ public class Robot extends TimedRobot {
      * joysticks}.
      */
     private void configureBindings() {
+
         Command teleopFlightDriveCommand = Robot.swerve.driveCommand(
                 () -> -deadband(leftStick.getY()), // +X forward | -X reverse
                 () -> -deadband(leftStick.getX()), // +Y left | -Y right
@@ -193,11 +224,11 @@ public class Robot extends TimedRobot {
                 () -> -deadband(xbox.getRightX())
         );
 
-        Robot.swerve.setDefaultCommand(teleopFlightDriveCommand); // will be set this way on real robot.
-        //Robot.swerve.setDefaultCommand(teleopXboxDriveCommand);
+        //Robot.swerve.setDefaultCommand(new DriveCommand()); // will be set this way on real robot.
+        Robot.swerve.setDefaultCommand(teleopFlightDriveCommand);
 
         leftStick.button(11).onTrue(Robot.resetAllCommand());
-        leftStick.button(12).onTrue(swerve.toggleFieldOrientedCommand());
+        //leftStick.button(12).onTrue(swerve.toggleFieldOrientedCommand());
         leftStick.trigger().whileTrue(swerve.toggleSlowModeCommand());
 
         leftStick.button(4).whileTrue(new DriveToAprilTagCommand(
@@ -250,19 +281,6 @@ public class Robot extends TimedRobot {
         // block in order for anything in the Command-based framework to work.
         CommandScheduler.getInstance().run();
         Robot.shooterCamera.update();
-
-        //Robot.arm.setExtensionSpeed(deadband(-Robot.xbox.getLeftY()/6));
-        //Robot.arm.setAngleSpeed(deadband(-Robot.xbox.getRightY()/2));
-
-        /*
-        Robot.wrist.translateWrist(
-                GlobalUtils.getDualSpeed(
-                        Robot.xbox.getLeftTriggerAxis(),
-                        Robot.xbox.getRightTriggerAxis()
-                )/3
-        );
-
-         */
     }
 
     @Override public void autonomousInit() { autoChooser.getSelected().schedule(); }

@@ -2,10 +2,10 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 1.272016237726169,
+      "x": 1.34,
       "y": 5.574556013976893
     },
-    "rotation": 0
+    "rotation": 0.5121216321482402
   },
   "command": {
     "type": "sequential",
@@ -14,7 +14,7 @@
         {
           "type": "named",
           "data": {
-            "name": "ShootCommand"
+            "name": "FirstShootCommand"
           }
         },
         {
@@ -30,7 +30,38 @@
               {
                 "type": "path",
                 "data": {
+                  "pathName": "CENTER-AUTO-3"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "CENTER-AUTO-4"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ShootCommand"
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
                   "pathName": "CENTER-AUTO-1"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "IntakeCommand"
                 }
               }
             ]
@@ -55,7 +86,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "CENTER-AUTO-3"
+                  "pathName": "CENTER-AUTO-5"
                 }
               },
               {
@@ -70,7 +101,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "CENTER-AUTO-4"
+            "pathName": "CENTER-AUTO-6"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ResetGyroCommand"
           }
         },
         {
@@ -82,6 +119,6 @@
       ]
     }
   },
-  "folder": "New Folder",
+  "folder": null,
   "choreoAuto": false
 }

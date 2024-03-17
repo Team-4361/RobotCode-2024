@@ -65,6 +65,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     public boolean fieldOriented = true;
     public boolean slowMode = false;
 
+    public boolean hasResetGyro = false;
+
     private double maxAutoDriveSpeed = AUTO_DRIVE_MAX_SPEED;
 
     public PIDController getAutoDriveController() { return this.autoDriveController; }
@@ -97,24 +99,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         swerveDrive.setCosineCompensator(false);
         swerveDrive.setMotorIdleMode(true);
         SwerveDriveTelemetry.verbosity = SWERVE_TUNING_ENABLED ? HIGH : MACHINE;
-
-        AutoBuilder.configureHolonomic(
-                this::getPose,
-                this::reset,
-                this::getRobotVelocity,
-                this::setChassisSpeeds,
-                new HolonomicPathFollowerConfig(
-                        AUTO_DRIVE_PID,
-                        AUTO_TURN_PID,
-                        MAX_SPEED_MPS,
-                        Math.hypot(SIDE_LENGTH_METERS/2, SIDE_LENGTH_METERS/2),
-                        new ReplanningConfig()
-                ), () -> {
-                    Optional<DriverStation.Alliance> alliance = DriverStation.getAlliance();
-                    return alliance.filter(value -> value == DriverStation.Alliance.Red).isPresent();
-                },
-                this
-        );
 
         if (SWERVE_TUNING_ENABLED) {
             this.autoDriveTune = new DashTunablePID("Swerve: Auto Drive PID", AUTO_DRIVE_PID);
@@ -220,7 +204,20 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         swerveDrive.zeroGyro();
         swerveDrive.resetOdometry(pose);
         swerveDrive.synchronizeModuleEncoders();
+        if (DriverStation.isTeleop())
+            hasResetGyro = true;
     }
+
+    public void rawDrive(
+            Translation2d translation,
+            double rotation,
+            boolean fieldRelative,
+            boolean isOpenLoop) {
+        swerveDrive.drive(translation, rotation, fieldRelative, isOpenLoop);
+    }
+
+    public double getMaximumVelocity() { return swerveDrive.getMaximumVelocity(); }
+    public double getMaximumAngularVelocity() { return swerveDrive.getMaximumAngularVelocity(); }
 
     /**
      * Command to drive the robot using translative values and heading as angular velocity.
@@ -234,7 +231,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                                 DoubleSupplier translationY,
                                 DoubleSupplier angularRotationX) {
         return run(() -> {
-            // Make the robot move
             swerveDrive.drive(
                 new Translation2d(
                         Math.pow(translationX.getAsDouble(), 3) * swerveDrive.getMaximumVelocity(),

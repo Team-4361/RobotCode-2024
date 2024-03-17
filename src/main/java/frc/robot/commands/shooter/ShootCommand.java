@@ -1,5 +1,6 @@
 package frc.robot.commands.shooter;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Robot;
@@ -44,9 +45,9 @@ public class ShootCommand extends Command {
      * The main body of a command. Called repeatedly while the command is scheduled.
      */
     @Override
-    public void execute() {
-        if (System.currentTimeMillis() >= (timeoutMillis-2000) || Robot.shooter.atTarget(shootSpeed * 5400)) {
-            Robot.index.start();
+    public void execute() { 
+        if (Robot.shooter.getRPM() >= (shootSpeed*4950) || System.currentTimeMillis() >= (timeoutMillis-1500)) {
+            Robot.index.startNormal();
             Robot.intake.startNormal();
             if (endMillis == 0)
                 endMillis = System.currentTimeMillis() + SHOOT_END_DELAY_MS;

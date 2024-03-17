@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkMax;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.pid.DashTunableNumber;
 
@@ -34,12 +35,20 @@ public class IndexSubsystem extends SubsystemBase {
     public void periodic() {
         if (indexTune != null)
             indexTune.update();
+
+        SmartDashboard.putNumber("Index: Left Amps", leftMotor.getOutputCurrent());
+        SmartDashboard.putNumber("Index: Right Amps", rightMotor.getOutputCurrent());
+    }
+
+    public void startReverse() {
+        leftMotor.set(-targetSpeed);
+        rightMotor.set(-targetSpeed);
     }
 
     /**
      * Sets the target of the {@link IndexSubsystem}.
      */
-    public void start() {
+    public void startNormal() {
         leftMotor.set(targetSpeed);
         rightMotor.set(targetSpeed);
     }
