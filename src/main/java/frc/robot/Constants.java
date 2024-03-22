@@ -25,17 +25,17 @@ import static edu.wpi.first.wpilibj.PowerDistribution.ModuleType.kRev;
  */
 public class Constants {
     public static class Debug {
-        public static final boolean PHOTON_TUNING_ENABLED = false;
+        public static final boolean PHOTON_TUNING_ENABLED = true;
         public static final boolean SHOOTER_TUNING_ENABLED = false;
         public static final boolean INDEX_TUNING_ENABLED = false;
         public static final boolean INTAKE_TUNING_ENABLED = false;
         public static final boolean CLIMBER_TUNING_ENABLED = false;
-        public static final boolean TRAP_ARM_TUNING_ENABLED = true;
+        public static final boolean TRAP_ARM_TUNING_ENABLED = false;
         //public static final boolean TRAP_WRIST_TUNING_ENABLED = false;
         //public static final boolean TRAP_ROTATION_TUNING_ENABLED = false;
 
-        public static final boolean PHOTON_ENABLED = false;
-        public static final boolean SWERVE_TUNING_ENABLED = true;
+        public static final boolean PHOTON_ENABLED = true;
+        public static final boolean SWERVE_TUNING_ENABLED = false;
     }
 
     public static class Power {
@@ -170,8 +170,8 @@ public class Constants {
         public static final double AUTO_DRIVE_MAX_SPEED = 0.5;
         public static final double AUTO_TURN_MAX_SPEED = 0.2;
 
-        public static final PIDConstants PHOTON_DRIVE_PID = new PIDConstants(0.05, 0, 0);
-        public static final PIDConstants PHOTON_TURN_PID = new PIDConstants(0.02, 0, 0);
+        public static final PIDConstants PHOTON_DRIVE_PID = new PIDConstants(0.1, 0, 0);
+        public static final PIDConstants PHOTON_TURN_PID = new PIDConstants(0.1, 0, 0);
 
         //public static final PIDConstants AUTO_DRIVE_PID = new PIDConstants(0.3, 0, 0);
         //public static final PIDConstants AUTO_TURN_PID = new PIDConstants(0.23, 0, 0);

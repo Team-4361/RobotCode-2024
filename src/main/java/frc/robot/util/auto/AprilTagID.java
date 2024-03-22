@@ -26,6 +26,14 @@ public enum AprilTagID {
     BLUE_STAGE_LEFT(15, "Stage-Left", Blue),
     BLUE_STAGE_RIGHT(16, "Stage-Right", Blue);
 
+    public static int[] toIDs(AprilTagID[] ids) {
+        int[] output = new int[ids.length];
+        for (int i=0; i<ids.length; i++) {
+            output[i] = ids[i].getID();
+        }
+        return output;
+    }
+
 
     private final int id;
     private final String name;

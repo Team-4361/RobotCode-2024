@@ -1,7 +1,6 @@
 package frc.robot.commands;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -13,7 +12,6 @@ import java.util.Optional;
 
 public class DriveToAprilTagCommand extends Command {
     private final Pose2d desiredPose;
-    private final double targetHeightMeters;
     private final int[] ids;
 
     private Pose2d currentPose;
@@ -22,31 +20,22 @@ public class DriveToAprilTagCommand extends Command {
     private final boolean stopOnEnd;
     private long initTimeout = System.currentTimeMillis() + 5000;
 
-    public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, boolean stopOnEnd, int... ids) {
+    public DriveToAprilTagCommand(Pose2d desiredPose, boolean stopOnEnd, int... ids) {
         addRequirements(Robot.swerve);
+        this.currentPose = new Pose2d();
         this.desiredPose = desiredPose;
-        this.targetHeightMeters = targetHeightMeters;
         this.noTarget = false;
         this.firstTarget = false;
         this.stopOnEnd = stopOnEnd;
         this.ids = ids;
     }
 
-    public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, boolean stopOnEnd, AprilTagID... tags) {
-        this.desiredPose = desiredPose;
-        this.targetHeightMeters = targetHeightMeters;
-        this.noTarget = false;
-        this.firstTarget = false;
-        this.stopOnEnd = stopOnEnd;
-        this.ids = new int[tags.length];
-
-        for (int i=0; i<tags.length; i++) {
-            ids[i] = tags[i].getID();
-        }
+    public DriveToAprilTagCommand(Pose2d desiredPose, boolean stopOnEnd, AprilTagID... tags) {
+        this(desiredPose, stopOnEnd, AprilTagID.toIDs(tags));
     }
 
-    public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, boolean stopOnEnd) {
-        this(desiredPose, targetHeightMeters, stopOnEnd, new int[0]);
+    public DriveToAprilTagCommand(Pose2d desiredPose, boolean stopOnEnd) {
+        this(desiredPose, stopOnEnd, new int[0]);
     }
 
     @Override
@@ -61,7 +50,7 @@ public class DriveToAprilTagCommand extends Command {
      */
     @Override
     public void execute() {
-        Optional<Pose2d> storedPose = Robot.shooterCamera.getTrackedPose();
+        Optional<Transform3d> storedPose = Robot.shooterCamera.getTargetTransform();
         boolean bad = storedPose.isEmpty();
         if (ids.length > 0 && ids[0] != 0) {
             for (int id : ids) {
@@ -83,7 +72,20 @@ public class DriveToAprilTagCommand extends Command {
 
         if (firstTarget)
             firstTarget = false;
-        currentPose = storedPose.get();
+
+        Transform3d transform = storedPose.get();
+
+        // TODO: do the conversion to transformation!
+        currentPose = new Pose2d(
+                new Translation2d(
+                        transform.getX(),
+                        transform.getY()
+                ),
+                transform
+                        .getRotation()
+                        .toRotation2d()
+        );
+
 
         Robot.swerve.setChassisSpeeds(Robot.swerve.calculateSpeedsToPose(currentPose, desiredPose, true));
     }
@@ -123,8 +125,16 @@ public class DriveToAprilTagCommand extends Command {
         if (stopOnEnd) {
             return noTarget ||
                     (
-                            GlobalUtils.inTolerance(desiredPose.getX(), currentPose.getX(), 0.1)
-                                    && GlobalUtils.inTolerance(desiredPose.getY(), currentPose.getY(), 0.1)
+                            GlobalUtils.inTolerance(desiredPose.getX(), currentPose.getX(), 0.1) &&
+                                    GlobalUtils.inTolerance(desiredPose.getY(), currentPose.getY(), 0.1) &&
+                                    GlobalUtils.inTolerance(
+                                            desiredPose
+                                                    .getRotation()
+                                                    .getDegrees(),
+                                            currentPose
+                                                    .getRotation()
+                                                    .getDegrees(),
+                                            2)
                     );
         } else {
             return false;

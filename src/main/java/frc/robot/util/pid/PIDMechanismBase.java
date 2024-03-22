@@ -7,7 +7,6 @@ import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
@@ -28,7 +27,7 @@ import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
  *
  * @author Eric Gold
  */
-public abstract class PIDMechanismBase {
+public abstract class PIDMechanismBase implements IUpdatable {
     private final CANSparkMax motor;
     private final DCMotorSim motorSim;
     private final MotorModel model;
@@ -47,7 +46,9 @@ public abstract class PIDMechanismBase {
     private boolean pidEnabled = true;
     private double forwardLimit = Double.MAX_VALUE;
     private double reverseLimit = Double.MIN_VALUE;
+    private double maxSpeed = 1;
     private double lastPower = 0;
+    private double velocityRPM = 0;
 
     private boolean limitBypassEnabled = false;
     private boolean teleopMode = false;
@@ -59,6 +60,7 @@ public abstract class PIDMechanismBase {
     private final RelativeEncoder encoder;
 
     public MotorModel getModel() { return this.model; }
+    public double getMaxSpeed() { return this.maxSpeed; }
 
     //region Encoder Bindings
     private RelativeEncoder getEncoder() {
@@ -205,6 +207,13 @@ public abstract class PIDMechanismBase {
         encoder.setPosition(0);
     }
 
+    /**
+     * Sets the maximum speed of this {@link PIDMechanismBase}. Applies to both PID
+     * and human control.
+     * @param speed The power from 0.0 to +1.0
+     */
+    public void setMaxPower(double speed) { this.maxSpeed = Math.abs(speed); }
+
     /** @return The {@link String} name of the {@link PIDMechanismBase}. */
     public String getModuleName() { return this.moduleName; }
 
@@ -212,14 +221,11 @@ public abstract class PIDMechanismBase {
      * Sets the inversion of the underlying {@link CANSparkMax} instance.
      * @param inverted The value to apply.
      */
-    public void setInverted(boolean inverted) {
-        motor.setInverted(inverted);
-    }
+    public void setInverted(boolean inverted) { motor.setInverted(inverted); }
 
-    public void registerPresets(PresetMap<Double> map) {
-        map.addListener((mapName, value) -> targetValue = value);
-    }
+    public void registerPresets(PresetMap<Double> map) { map.addListener((mapName, value) -> targetValue = value); }
 
+    public double getVelocity() { return this.velocityRPM; }
 
     /** @return If the {@link PIDMechanismBase} is at target. */
     public boolean atTarget() {
@@ -240,6 +246,7 @@ public abstract class PIDMechanismBase {
     }
 
     /** Updates the {@link PIDMechanismBase}. <b>This MUST be called in a periodic/execute method!</b> */
+    @Override
     public void update() {
         if (pidTune != null)
             pidTune.update();
@@ -249,7 +256,7 @@ public abstract class PIDMechanismBase {
             lastSimUpdateMillis = System.currentTimeMillis();
         }
 
-        double velocityRPM = encoder.getVelocity();
+        velocityRPM = encoder.getVelocity();
         currentValue = getCurrentPosition(encoder.getPosition());
 
         // It is required to pull the direct values of these suppliers since AdvantageKit CANNOT log suppliers
@@ -328,12 +335,12 @@ public abstract class PIDMechanismBase {
         } else if (reverseLimit != Double.MIN_VALUE && power < 0 && encoder.getPosition() <= reverseLimit) {
             return 0; // Stop at reverse limit
         } else {
-            return power; // No limits reached, return original power
+            return MathUtil.clamp(power, -maxSpeed, maxSpeed); // No limits reached, return original power
         }
     }
 
     private void setPower(final double speed) {
-        double adjustedSpeed = MathUtil.clamp(speed, -1, 1);
+        double adjustedSpeed = MathUtil.clamp(speed, -maxSpeed, maxSpeed);
         if (RobotBase.isSimulation() && motorSim != null) {
             motorSim.setInputVoltage(adjustedSpeed * 12);
         } else {

@@ -1,5 +1,8 @@
 package frc.robot.util.preset;
 
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,6 +52,9 @@ public class PresetGroup extends ArrayList<IPresetContainer> implements IPresetC
                 .max()
                 .orElse(0);
     }
+
+    public Command setPresetCommand(int idx) { return Commands.runOnce(() -> setPreset(idx)); }
+    public Command setPresetCommand(String name) { return Commands.runOnce(() -> setPreset(name)); }
 
     /**
      * Attempts to set the Preset to the specific Index.

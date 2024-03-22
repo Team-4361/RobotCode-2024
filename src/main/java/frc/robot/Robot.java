@@ -177,9 +177,9 @@ public class Robot extends TimedRobot {
 
         leftStick.button(4).whileTrue(new DriveToAprilTagCommand(
                 new Pose2d(
-                        new Translation2d(2, 0),
+                        new Translation2d(0.5, 0),
                         new Rotation2d(0)
-                ), 27, false, RED_SPEAKER_MID, BLUE_SPEAKER_MID
+                ), false, 6
         ));
     }
 
