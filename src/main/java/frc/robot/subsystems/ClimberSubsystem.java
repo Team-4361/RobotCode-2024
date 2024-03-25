@@ -1,25 +1,25 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.CANSparkBase;
+import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.util.motor.FRCSparkMax;
-import frc.robot.util.motor.MotorModel;
+import frc.robot.util.motor.TimedDigitalInput;
 import frc.robot.util.pid.DashTunableNumber;
 
+import static com.revrobotics.CANSparkBase.IdleMode.kBrake;
 import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 import static frc.robot.Constants.Climber.*;
 import static frc.robot.Constants.Debug.CLIMBER_TUNING_ENABLED;
 
 public class ClimberSubsystem extends SubsystemBase {
-    private final FRCSparkMax leftMotor;
-    private final FRCSparkMax rightMotor;
-    private final DigitalInput leftSensor;
-    private final DigitalInput rightSensor;
+    private final CANSparkMax leftMotor;
+    private final CANSparkMax rightMotor;
+    private final TimedDigitalInput leftSensor;
+    private final TimedDigitalInput rightSensor;
     private final DashTunableNumber speedTune;
     private final RelativeEncoder leftEncoder;
     private final RelativeEncoder rightEncoder;
@@ -28,10 +28,13 @@ public class ClimberSubsystem extends SubsystemBase {
     public void setTargetSpeed(double speed) { this.targetSpeed = speed; }
 
     public ClimberSubsystem(){
-        this.leftMotor = new FRCSparkMax(CLIMBER_LEFT_ID, kBrushless, MotorModel.NEO_550);
-        this.rightMotor = new FRCSparkMax(CLIMBER_RIGHT_ID, kBrushless, MotorModel.NEO_550);
-        this.leftSensor = new DigitalInput(CLIMBER_LEFT_DIO);
-        this.rightSensor = new DigitalInput(CLIMBER_RIGHT_DIO);
+        this.leftMotor = new CANSparkMax(CLIMBER_LEFT_ID, kBrushless);
+        this.rightMotor = new CANSparkMax(CLIMBER_RIGHT_ID, kBrushless);
+        this.leftSensor = new TimedDigitalInput(CLIMBER_LEFT_DIO);
+        this.rightSensor = new TimedDigitalInput(CLIMBER_RIGHT_DIO);
+
+        leftMotor.setIdleMode(kBrake);
+        rightMotor.setIdleMode(kBrake);
 
         this.leftEncoder = leftMotor.getEncoder();
         this.rightEncoder = rightMotor.getEncoder();
@@ -47,6 +50,9 @@ public class ClimberSubsystem extends SubsystemBase {
         }
     }
 
+    public long getLeftActivatedDuration()  { return leftSensor.getActivatedDuration();  }
+    public long getRightActivatedDuration() { return rightSensor.getActivatedDuration(); }
+
     public void reset() {
         leftEncoder.setPosition(0);
         rightEncoder.setPosition(0);
@@ -55,9 +61,9 @@ public class ClimberSubsystem extends SubsystemBase {
     public boolean isLeftRetracted() { return leftSensor.get(); }
     public boolean isRightRetracted() { return rightSensor.get(); }
 
-    public void moveLeftUp() { leftMotor.set(targetSpeed); }
-    public void moveRightUp() { rightMotor.set(targetSpeed); }
-    public void moveLeftDown() { leftMotor.set(-targetSpeed); }
+    public void moveLeftUp()    { leftMotor.set(targetSpeed);   }
+    public void moveRightUp()   { rightMotor.set(targetSpeed);  }
+    public void moveLeftDown()  { leftMotor.set(-targetSpeed);  }
     public void moveRightDown() { rightMotor.set(-targetSpeed); }
 
     public void stopLeft() { leftMotor.stopMotor(); }
@@ -71,14 +77,12 @@ public class ClimberSubsystem extends SubsystemBase {
      */
     @Override
     public void periodic() {
-        if (RobotBase.isSimulation()) {
-            leftMotor.updateSim();
-            rightMotor.updateSim();
-        }
         if (speedTune != null)
             speedTune.update();
+        leftSensor.update();
+        rightSensor.update();
 
-        SmartDashboard.putNumber("Climber: Left Position", leftEncoder.getPosition());
-        SmartDashboard.putNumber("Climber: Right Position", rightEncoder.getPosition());
+        SmartDashboard.putBoolean("Climber: Left Down", leftSensor.get());
+        SmartDashboard.putBoolean("Climber: Right Down", rightSensor.get());
     }
 }

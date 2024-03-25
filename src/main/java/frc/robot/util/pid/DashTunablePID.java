@@ -3,7 +3,7 @@ package frc.robot.util.pid;
 import com.pathplanner.lib.util.PIDConstants;
 import java.util.function.Consumer;
 
-public class DashTunablePID {
+public class DashTunablePID implements IUpdatable {
     private final String name;
     private final DashTunableNumber tuneP, tuneI, tuneD;
 
@@ -17,15 +17,6 @@ public class DashTunablePID {
         tuneP = new DashTunableNumber(name + ": P", constants.kP, false);
         tuneI = new DashTunableNumber(name + ": I", constants.kI, false);
         tuneD = new DashTunableNumber(name + ": D", constants.kD, false);
-    }
-
-    /**
-     * Constructs a new {@link DashTunablePID} with the specified parameters.
-     * @param name      The name of the {@link DashTunablePID}.
-     * @param constants The {@link PIDConstantsAK} to initialize with.
-     */
-    public DashTunablePID(String name, PIDConstantsAK constants) {
-        this(name, constants.get());
     }
 
     /**
@@ -58,6 +49,7 @@ public class DashTunablePID {
      * Updates the {@link DashTunablePID}. <b>This method is required to be called!</b>
      * @see DashTunableNumber#update()
      */
+    @Override
     public void update() {
         tuneP.update();
         tuneI.update();

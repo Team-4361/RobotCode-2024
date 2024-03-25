@@ -1,6 +1,8 @@
 package frc.robot.util.math;
 
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.pathplanner.lib.util.PIDConstants;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -20,11 +22,15 @@ public class GlobalUtils {
     public static final Random rand = new Random();
 
     public static double getDualSpeed(double negativeAxis, double positiveAxis) {
-        negativeAxis = deadband(negativeAxis);
-        positiveAxis = deadband(positiveAxis);
+        negativeAxis = deadband(Math.abs(negativeAxis));
+        positiveAxis = deadband(Math.abs(positiveAxis));
         if (negativeAxis > 0) { return -negativeAxis; }
         if (positiveAxis > 0) { return positiveAxis; }
         return 0;
+    }
+
+    public static PIDController generateController(PIDConstants constants) {
+        return new PIDController(constants.kP, constants.kI, constants.kD);
     }
 
     /**
@@ -111,15 +117,15 @@ public class GlobalUtils {
      * @param values The {@link List} to use.
      * @return The calculated average.
      */
-    public static double average(List<Long> values) {
-        if (values == null || values.isEmpty()) {
+    public static double average(long...values) {
+        if (values == null || values.length == 0) {
             throw new IllegalArgumentException("List is null or empty");
         }
         long sum = 0;
         for (long number : values) {
             sum += number;
         }
-        return (double) sum/values.size();
+        return (double) sum/values.length;
     }
 
     public static double deadband(double value) { return deadband(value, 0.05); }
@@ -130,60 +136,14 @@ public class GlobalUtils {
      * @param values The {@link List} to use.
      * @return The calculated average.
      */
-    public static double averageDouble(List<Double> values) {
-        if (values == null || values.isEmpty()) {
+    public static double averageDouble(double... values) {
+        if (values == null || values.length == 0) {
             throw new IllegalArgumentException("List is null or empty");
         }
         double sum = 0;
         for (double number : values) {
             sum += number;
         }
-        return sum/values.size();
-    }
-
-    //https://github.com/SuperiorRoboworksTeam857/2024Crescendo/blob/main/src/main/java/frc/robot/subsystems/SwerveModule.java
-
-    /**
-     * Minimize the change in heading the desired swerve module state would require by potentially
-     * reversing the direction the wheel spins. Customized from WPILib's version to include placing in
-     * appropriate scope for CTRE and REV onboard control as both controllers as of writing don't have
-     * support for continuous input.
-     *
-     * @param desiredState The desired state.
-     * @param currentAngle The current module angle.
-     */
-    public static SwerveModuleState optimize(SwerveModuleState desiredState, Rotation2d currentAngle) {
-        double targetAngle =
-                placeInAppropriate0To360Scope(currentAngle.getDegrees(), desiredState.angle.getDegrees());
-        double targetSpeed = desiredState.speedMetersPerSecond;
-        double delta = targetAngle - currentAngle.getDegrees();
-        if (Math.abs(delta) > 90) {
-            targetSpeed = -targetSpeed;
-            targetAngle += delta > 90 ? -180 : 180;
-        }
-        return new SwerveModuleState(targetSpeed, Rotation2d.fromDegrees(targetAngle));
-    }
-
-    /**
-     * @param scopeReference Current Angle
-     * @param newAngle Target Angle
-     * @return Closest angle within scope
-     */
-    private static double placeInAppropriate0To360Scope(double scopeReference, double newAngle) {
-        double lowerBound;
-        double upperBound;
-        double lowerOffset = scopeReference % 360;
-        if (lowerOffset >= 0) {
-            lowerBound = scopeReference - lowerOffset;
-            upperBound = scopeReference + (360 - lowerOffset);
-        } else {
-            upperBound = scopeReference - lowerOffset;
-            lowerBound = scopeReference - (360 + lowerOffset);
-        }
-        while (newAngle < lowerBound) { newAngle += 360; }
-        while (newAngle > upperBound) { newAngle -= 360; }
-        if (newAngle - scopeReference > 180) { newAngle -= 360; }
-        else if (newAngle - scopeReference < -180) { newAngle += 360; }
-        return newAngle;
+        return sum/values.length;
     }
 }

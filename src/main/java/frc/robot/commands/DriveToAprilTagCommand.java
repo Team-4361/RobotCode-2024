@@ -1,25 +1,20 @@
 package frc.robot.commands;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
+import frc.robot.util.auto.AprilTagID;
 import frc.robot.util.math.GlobalUtils;
 
 import java.util.Optional;
 
-import static frc.robot.Constants.Chassis.MAX_SPEED_MPS;
-import static frc.robot.Constants.Chassis.PHOTON_TURN_MAX_SPEED;
-
 public class DriveToAprilTagCommand extends Command {
     private final Pose2d desiredPose;
     private final double targetHeightMeters;
-    private final int id;
+    private final int[] ids;
 
     private Pose2d currentPose;
     private boolean noTarget;
@@ -27,24 +22,35 @@ public class DriveToAprilTagCommand extends Command {
     private final boolean stopOnEnd;
     private long initTimeout = System.currentTimeMillis() + 5000;
 
-    public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, int id, boolean stopOnEnd) {
+    public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, boolean stopOnEnd, int... ids) {
         addRequirements(Robot.swerve);
         this.desiredPose = desiredPose;
         this.targetHeightMeters = targetHeightMeters;
         this.noTarget = false;
         this.firstTarget = false;
         this.stopOnEnd = stopOnEnd;
-        this.id = id;
+        this.ids = ids;
+    }
+
+    public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, boolean stopOnEnd, AprilTagID... tags) {
+        this.desiredPose = desiredPose;
+        this.targetHeightMeters = targetHeightMeters;
+        this.noTarget = false;
+        this.firstTarget = false;
+        this.stopOnEnd = stopOnEnd;
+        this.ids = new int[tags.length];
+
+        for (int i=0; i<tags.length; i++) {
+            ids[i] = tags[i].getID();
+        }
     }
 
     public DriveToAprilTagCommand(Pose2d desiredPose, double targetHeightMeters, boolean stopOnEnd) {
-        this(desiredPose, targetHeightMeters, 0, stopOnEnd);
+        this(desiredPose, targetHeightMeters, stopOnEnd, new int[0]);
     }
 
     @Override
     public void initialize() {
-        Robot.shooterCamera.setTargetHeight(targetHeightMeters);
-
         initTimeout = System.currentTimeMillis() + 5000;
         noTarget = false;
         firstTarget = true;
@@ -56,7 +62,17 @@ public class DriveToAprilTagCommand extends Command {
     @Override
     public void execute() {
         Optional<Pose2d> storedPose = Robot.shooterCamera.getTrackedPose();
-        if (storedPose.isEmpty() || (id > 0 && Robot.shooterCamera.getAprilTagID() != id)) {
+        boolean bad = storedPose.isEmpty();
+        if (ids.length > 0 && ids[0] != 0) {
+            for (int id : ids) {
+                if (Robot.shooterCamera.getAprilTagID() != id) {
+                    bad = true;
+                    break;
+                }
+            }
+        }
+
+        if (bad) {
             Robot.swerve.stop();
             if (!firstTarget && System.currentTimeMillis() > initTimeout) {
                 noTarget = true;
@@ -69,32 +85,9 @@ public class DriveToAprilTagCommand extends Command {
             firstTarget = false;
         currentPose = storedPose.get();
 
-        Robot.swerve.setChassisSpeeds(calculateSpeeds());
+        Robot.swerve.setChassisSpeeds(Robot.swerve.calculateSpeedsToPose(currentPose, desiredPose, true));
     }
-
-    private ChassisSpeeds calculateSpeeds() {
-        PIDController driveController = Robot.shooterCamera.getDriveController();
-        PIDController turnController = Robot.shooterCamera.getTurnController();
-
-        //double mX = PHOTON_DRIVE_MAX_SPEED.getValue();
-        double mX = Robot.shooterCamera.getMaxDriveSpeed();
-        double jX = MathUtil.clamp(driveController.calculate(currentPose.getX(), desiredPose.getX()), -mX, mX);
-        double jY = MathUtil.clamp(driveController.calculate(currentPose.getY(), desiredPose.getY()),-mX,mX);
-        double jO = MathUtil.clamp(
-                turnController.calculate(
-                    currentPose.getRotation().getRadians(),
-                    desiredPose.getRotation().getRadians()
-                ),
-                -PHOTON_TURN_MAX_SPEED,
-                PHOTON_TURN_MAX_SPEED
-        );
-        return ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(
-                jX * MAX_SPEED_MPS,
-                jY * MAX_SPEED_MPS,
-                jO * MAX_SPEED_MPS
-        ), Robot.swerve.getOdometryHeading());
-    }
-
+    
     /**
      * The action to take when the command ends. Called when either the command finishes normally, or
      * when it interrupted/canceled.

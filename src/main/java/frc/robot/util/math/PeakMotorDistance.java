@@ -4,6 +4,7 @@ import edu.wpi.first.units.Distance;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 
 /**
@@ -42,6 +43,10 @@ public class PeakMotorDistance {
     /** @return rotation to distance based on unit */
     public double rotationToMeters(double currentRotation) {
         return (currentRotation / maxRotation) * maxDistance.in(Meters);
+    }
+
+    public double rotationToInches(double currentRotation) {
+        return (currentRotation / maxRotation) * maxDistance.in(Inches);
     }
 
     public double metersToRotation(double currentDistance) {

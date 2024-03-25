@@ -1,20 +1,21 @@
 package frc.robot.util.pid;
 
 
+import com.pathplanner.lib.util.PIDConstants;
+import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.util.math.PeakMotorDistance;
-import frc.robot.util.motor.FRCSparkMax;
-import frc.robot.util.motor.IMotorModel;
+import frc.robot.util.motor.MotorModel;
 
 public class PIDLinearMechanism extends PIDMechanismBase {
     private final PeakMotorDistance maxDistance;
     private final DistanceUnit unit;
     private boolean tuneMode;
 
-    public enum DistanceUnit {FEET, METERS, INCHES}
+    public enum DistanceUnit { FEET, METERS, INCHES }
 
     public void setDistanceTuningEnabled(boolean enable) {
         setPIDControlSupplier(() -> !enable);
@@ -38,28 +39,22 @@ public class PIDLinearMechanism extends PIDMechanismBase {
     /**
      * Constructs a new {@link PIDLinearMechanism}.
      *
-     * @param motorId       The {@link FRCSparkMax} motor ID to use.
-     * @param constants     The {@link PIDConstantsAK} to use.
-     * @param kS            The {@link SimpleMotorFeedforward} kS constant.
-     * @param kV            The {@link SimpleMotorFeedforward} kV constant.
-     * @param kA            The {@link SimpleMotorFeedforward} kA constant.
-     * @param model         The {@link IMotorModel} of the {@link FRCSparkMax} motor.
+     * @param motorId       The {@link CANSparkMax} motor ID to use.
+     * @param constants     The {@link PIDConstants} to use.
+     * @param model         The {@link MotorModel} of the {@link CANSparkMax} motor.
      * @param moduleName    The {@link String} module name
      * @param tuningEnabled If PID {@link SmartDashboard} tuning is enabled.
      * @param unit          The conversion unit of the {@link PIDLinearMechanism}. <b>MUST BE CONSISTENT!</b>
      * @param maxDistance   The {@link PeakMotorDistance} used by the {@link PIDLinearMechanism}.
      */
     public PIDLinearMechanism(int motorId,
-                              PIDConstantsAK constants,
-                              double kS,
-                              double kV,
-                              double kA,
-                              IMotorModel model,
+                              PIDConstants constants,
+                              MotorModel model,
                               String moduleName,
                               boolean tuningEnabled,
                               DistanceUnit unit,
                               PeakMotorDistance maxDistance) {
-        super(motorId, constants, kS, kV, kA, model, moduleName, tuningEnabled, false);
+        super(motorId, constants, model, moduleName, tuningEnabled, false);
         this.unit = unit;
         this.maxDistance = maxDistance;
 
