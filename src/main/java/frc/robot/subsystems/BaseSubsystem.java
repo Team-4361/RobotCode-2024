@@ -11,7 +11,10 @@ import frc.robot.util.math.GlobalUtils;
 import frc.robot.util.pid.TunableNumber;
 import frc.robot.util.pid.TunablePID;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -131,6 +134,7 @@ public class BaseSubsystem extends SubsystemBase {
         for (CANSparkMax motor : motors)
             motor.set(speed);
     }
+
     protected void stopAll() { startAll(0); }
     protected void startAll() { startAll(getConstant("Speed")); }
     protected boolean setIndex(int idx, double speed) {
