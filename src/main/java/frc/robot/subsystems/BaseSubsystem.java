@@ -111,12 +111,13 @@ public class BaseSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        if (System.currentTimeMillis() >= nextUpdate && tuningEnabled) {
-            for (TunableNumber tune : tunes)
-                tune.update();
-            for (int i = 0; i < motors.length; i++)
-                SmartDashboard.putNumber(name + "/Motor " + i + " Amps", motors[i].getOutputCurrent());
-
+        if (System.currentTimeMillis() >= nextUpdate) {
+            if (tuningEnabled) {
+                for (TunableNumber tune : tunes)
+                    tune.update();
+                for (int i = 0; i < motors.length; i++)
+                    SmartDashboard.putNumber(name + "/Motor " + i + " Amps", motors[i].getOutputCurrent());
+            }
             if (dashUpdate != null)
                 dashUpdate.run();
 
