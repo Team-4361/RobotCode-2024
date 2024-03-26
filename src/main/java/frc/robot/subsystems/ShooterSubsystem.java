@@ -4,7 +4,6 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.util.pid.TunableNumber;
 
@@ -18,16 +17,7 @@ import static frc.robot.util.math.GlobalUtils.averageDouble;
  * mechanism contains two motors which need to be driven opposite to each other.
  */
 public class ShooterSubsystem extends BaseSubsystem {
-
-    private final CANSparkMax leftMotor;
-    private final CANSparkMax rightMotor;
-    private final TunableNumber shootTune;
     private final TunableNumber delayTune;
-
-    private final RelativeEncoder leftEncoder;
-    private final RelativeEncoder rightEncoder;
-
-    private double targetSpeed = SHOOT_SPEED;
     private long delayMs = SHOOT_END_DELAY_MS;
     private boolean fireMode = false;
 
@@ -38,8 +28,6 @@ public class ShooterSubsystem extends BaseSubsystem {
 
         if (SHOOTER_TUNING_ENABLED) {
             shootTune = new TunableNumber("Shooter: Speed", SHOOT_SPEED);
-            delayTune = new TunableNumber("Shooter: Delay", SHOOT_END_DELAY_MS);
-            shootTune.addConsumer(this::setTargetSpeed);
             delayTune.addConsumer(this::setDelayMS);
         } else {
             shootTune = null;

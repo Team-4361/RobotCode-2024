@@ -33,6 +33,11 @@ public class TunableNumber implements IUpdatable {
         SmartDashboard.putNumber(dashString, value);
     }
 
+    public void setValue(double value) {
+        this.value = value;
+        SmartDashboard.putNumber(dashString, value);
+    }
+
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
     public boolean isEnabled() { return this.enabled; }
 
