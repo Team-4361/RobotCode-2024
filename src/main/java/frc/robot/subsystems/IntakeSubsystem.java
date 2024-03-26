@@ -1,55 +1,36 @@
 package frc.robot.subsystems;
 
-import com.revrobotics.CANSparkMax;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.util.pid.TunableNumber;
 
-import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
+import java.util.Map;
+
 import static frc.robot.Constants.Debug.INTAKE_TUNING_ENABLED;
 import static frc.robot.Constants.Intake.*;
+import static java.util.Map.entry;
 
-public class IntakeSubsystem extends SubsystemBase {
-    private final CANSparkMax motor;
-    private final TunableNumber intakeTune;
+public class IntakeSubsystem extends BaseSubsystem {
     private final DigitalInput sensor;
-    private double targetSpeed = INTAKE_SPEED;
     private boolean sensorActivated;
 
-    public IntakeSubsystem() {
-        if (INTAKE_TUNING_ENABLED) {
-            intakeTune = new TunableNumber("Intake: Speed", INTAKE_SPEED);
-            intakeTune.addConsumer(this::setTargetSpeed);
-        } else {
-            intakeTune = null;
-        }
+    public IntakeSubsystem(){
+        super(
+                "Intake",
+                INTAKE_SPEED,
+                INTAKE_TUNING_ENABLED,
+                Map.ofEntries(
+                        entry(INTAKE_MOTOR_ID, false)
+                )
+        );
         this.sensor = new DigitalInput(INTAKE_SENSOR_PORT);
-        this.motor = new CANSparkMax(INTAKE_MOTOR_ID, kBrushless);
+        setDashUpdate(()-> {
+            if (!RobotBase.isSimulation()) {
+                sensorActivated = sensor.get();
+            }
+
+            SmartDashboard.putBoolean("Intake: Has Note", hasNote());
+        });
     }
-
-    public void setTargetSpeed(double speed) { this.targetSpeed = speed; }
-
-    @Override
-    public void periodic() {
-        if (intakeTune != null)
-            intakeTune.update();
-
-        if (!RobotBase.isSimulation()) {
-            sensorActivated = sensor.get();
-        }
-
-        SmartDashboard.putBoolean("Intake: Has Note", hasNote());
-    }
-
-    public void startNormal() { motor.set(targetSpeed); }
-    public void startReverse() { motor.set(-targetSpeed); }
-
-    /** Stops the {@link IndexSubsystem} from spinning. */
-    public void stop() {
-        motor.stopMotor();
-    }
-
     public boolean hasNote() { return !sensorActivated; }
 }
