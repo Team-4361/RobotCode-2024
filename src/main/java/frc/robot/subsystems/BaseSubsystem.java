@@ -20,6 +20,7 @@ public class BaseSubsystem extends SubsystemBase {
     private final String name;
     private final CANSparkMax[] motors;
     private long nextUpdate = System.currentTimeMillis();
+    private Runnable dashUpdate = () -> {};
     private double speed;
     private boolean tuningEnabled;
 
@@ -29,9 +30,10 @@ public class BaseSubsystem extends SubsystemBase {
     public void setTargetSpeed(double speed) { this.speed = speed; }
     public void setTuningEnabled(boolean enabled) { this.tuningEnabled = enabled; }
 
-    public void registerConstant(String name, double value, Consumer<Double> consumer) {
+    public void registerConstant(String name, double value) {
         TunableNumber tune = new TunableNumber(name, value, tuningEnabled);
-        tune.addConsumer(consumer);
+        //tune.addConsumer(consumer);
+        tunes.add(tune);
     }
 
     public double getConstant(String name) {
@@ -61,8 +63,7 @@ public class BaseSubsystem extends SubsystemBase {
         this.motors = new CANSparkMax[ids.size()];
         this.tunes = new ArrayList<>();
         this.tuningEnabled = tuningEnabled;
-
-        registerConstant("Speed", speed, this::setTargetSpeed);
+        registerConstant("Speed", speed);
 
         if (initSystems.contains(name)) {
             // Do not double-initialize!
@@ -81,6 +82,8 @@ public class BaseSubsystem extends SubsystemBase {
         });
     }
 
+    public void setDashUpdate(Runnable runnable) { this.dashUpdate = runnable; }
+
     public double getRPM() {
         double sum = 0;
         for (CANSparkMax motor : motors) {
@@ -97,15 +100,14 @@ public class BaseSubsystem extends SubsystemBase {
             motor.stopMotor();
     }
 
-    public void startNormal() {
+    public void start(double speed) {
         for (CANSparkMax motor : motors)
             motor.set(speed);
     }
 
-    public void startReverse() {
-        for (CANSparkMax motor : motors)
-            motor.set(speed);
-    }
+    public void startReverse(double speed) { start(-Math.abs(speed)); }
+    public void startReverse() { startReverse(speed); }
+    public void start() { start(speed); }
 
     @Override
     public void periodic() {
@@ -114,6 +116,9 @@ public class BaseSubsystem extends SubsystemBase {
                 tune.update();
             for (int i = 0; i < motors.length; i++)
                 SmartDashboard.putNumber(name + "/Motor " + i + " Amps", motors[i].getOutputCurrent());
+
+            if (dashUpdate != null)
+                dashUpdate.run();
 
             nextUpdate = System.currentTimeMillis() + 1000;
         }

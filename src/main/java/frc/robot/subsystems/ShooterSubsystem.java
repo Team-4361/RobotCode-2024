@@ -1,85 +1,52 @@
 package frc.robot.subsystems;
 
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Robot;
-import frc.robot.util.pid.TunableNumber;
 
-import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 import static frc.robot.Constants.Debug.SHOOTER_TUNING_ENABLED;
 import static frc.robot.Constants.Shooter.*;
-import static frc.robot.util.math.GlobalUtils.averageDouble;
+import static java.util.Map.entry;
+import static java.util.Map.ofEntries;
 
 /**
  * This {@link ShooterSubsystem} is designed to enable the {@link Robot} to shoot. Physically, this
  * mechanism contains two motors which need to be driven opposite to each other.
  */
 public class ShooterSubsystem extends BaseSubsystem {
-    private final TunableNumber delayTune;
-    private long delayMs = SHOOT_END_DELAY_MS;
     private boolean fireMode = false;
-
-    // TODO: make it work off PID!
 
     /**Constructs a new {@link ShooterSubsystem} using all <code>CONSTANTS</code> values. */
     public ShooterSubsystem() {
-
-        if (SHOOTER_TUNING_ENABLED) {
-            shootTune = new TunableNumber("Shooter: Speed", SHOOT_SPEED);
-            delayTune.addConsumer(this::setDelayMS);
-        } else {
-            shootTune = null;
-            delayTune = null;
-        }
-
-        this.leftMotor = new CANSparkMax(SHOOT_LEFT_MOTOR_ID, kBrushless);
-        this.rightMotor = new CANSparkMax(SHOOT_RIGHT_MOTOR_ID, kBrushless);
-
-        leftMotor.setInverted(true);
-        rightMotor.setInverted(false);
-
-        leftEncoder = leftMotor.getEncoder();
-        rightEncoder = rightMotor.getEncoder();
+        super(
+                "Shooter",
+                SHOOT_SPEED,
+                SHOOTER_TUNING_ENABLED,
+                ofEntries(
+                        entry(SHOOT_LEFT_MOTOR_ID, true),
+                        entry(SHOOT_RIGHT_MOTOR_ID, false)
+                )
+        );
+        registerConstant("DelayMS", SHOOT_END_DELAY_MS);
     }
 
-    public long getDelayMS() { return this.delayMs; }
-
-    public void setDelayMS(double delayMs) { this.delayMs = (long)delayMs; }
-    public void setTargetSpeed(double speed) { this.targetSpeed = speed; }
-
-    public double getRPM() {
-        return averageDouble(Math.abs(leftEncoder.getVelocity()), Math.abs(rightEncoder.getVelocity()));
-    }
-
-    public boolean atTarget(double rpm) {
-        return getRPM() >= rpm;
-    }
+    public long getDelayMS() { return (long) getConstant("DelayMS"); }
+    public boolean atTarget(double rpm) { return getRPM() >= rpm;}
 
     @Override
     public void periodic() {
-        if (shootTune != null)
-            shootTune.update();
-        if (delayTune != null)
-            delayTune.update();
-
         SmartDashboard.putNumber("Shooter RPM", getRPM());
         SmartDashboard.putBoolean("Shooter At Target", atTarget(5000));
 
         if (DriverStation.isAutonomousEnabled()) {
-            leftMotor.set(targetSpeed);
-            rightMotor.set(targetSpeed);
+            start();
         } else {
             if (fireMode) {
-                leftMotor.set(targetSpeed);
-                rightMotor.set(targetSpeed);
-            } else if (leftMotor.get() != 0 && rightMotor.get() != 0) {
-                leftMotor.stopMotor();
-                rightMotor.stopMotor();
+                start();
+            } else {
+                stop();
             }
         }
-      
     }
 
     /**
