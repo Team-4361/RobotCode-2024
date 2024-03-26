@@ -8,6 +8,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.subsystems.BaseSubsystem;
 import frc.robot.util.math.GlobalUtils;
 import frc.robot.util.pid.TunableNumber;
 import frc.robot.util.pid.TunablePID;
@@ -17,57 +18,50 @@ import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 import frc.robot.Robot;
+
+import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import static frc.robot.Constants.Chassis.*;
 import static frc.robot.Constants.Debug.PHOTON_ENABLED;
 import static frc.robot.Constants.Debug.PHOTON_TUNING_ENABLED;
 
-public class PhotonCameraModule extends PhotonCamera {
+public class PhotonCameraModule extends BaseSubsystem {
 
     public static final AprilTagFieldLayout FIELD_LAYOUT =
             AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
 
-    private final String cameraName;
-    private final PIDController driveController;
-    private final PIDController turnController;
-    private final TunablePID driveTune;
-    private final TunablePID turnTune;
-    private final TunableNumber speedTune;
-    private final PhotonPoseEstimator poseEstimator;
+    protected static final String DRIVE_PID_NAME = "DrivePID";
+    protected static final String TURN_PID_NAME = "TurnPID";
+
+    private final Supplier<PIDController> drivePID;
+    private final Supplier<PIDController> turnPID;
     private final Transform3d cameraTransform;
+    private final PhotonCamera camera;
 
     private Pose2d trackedPose = new Pose2d();
     private long lastFoundMillis = System.currentTimeMillis();
     private int aprilTagID = 0;
-    private double maxDriveSpeed = PHOTON_DRIVE_MAX_SPEED;
 
-    public double getMaxDriveSpeed() { return maxDriveSpeed; }
-    public void setMaxDriveSpeed(double speed) { this.maxDriveSpeed = speed; }
+    public double getMaxDriveSpeed() { return getTargetSpeed(); }
+    public void setMaxDriveSpeed(double speed) { setTargetSpeed(speed); }
 
-    public PIDController getDriveController() { return this.driveController; }
-    public PIDController getTurnController() { return this.turnController; }
+    public PIDController getDriveController() { return drivePID.get(); }
+    public PIDController getTurnController() { return turnPID.get(); }
 
     public PhotonCameraModule(String name, Transform3d transform) {
-        super(name);
-        this.cameraName = name;
+        super(
+                name,
+                PHOTON_DRIVE_MAX_SPEED,
+                PHOTON_TUNING_ENABLED,
+                new HashMap<>()
+        );
+        this.camera = new PhotonCamera(name);
+        this.drivePID = registerPID(DRIVE_PID_NAME, PHOTON_DRIVE_PID);
+        this.turnPID = registerPID(TURN_PID_NAME, PHOTON_TURN_PID);
         this.cameraTransform = transform;
-        this.driveController = GlobalUtils.generateController(PHOTON_DRIVE_PID);
-        this.turnController = GlobalUtils.generateController(PHOTON_TURN_PID);
-
-        if (PHOTON_TUNING_ENABLED) {
-            this.driveTune = new TunablePID("Photon: Drive PID", PHOTON_DRIVE_PID);
-            this.turnTune = new TunablePID("Photon: Turn PID", PHOTON_TURN_PID);
-            this.speedTune = new TunableNumber("Photon: Max Speed", PHOTON_DRIVE_MAX_SPEED);
-
-            speedTune.addConsumer(this::setMaxDriveSpeed);
-            driveTune.addConsumer(driveController::setP, driveController::setI, driveController::setD);
-            turnTune.addConsumer(turnController::setP, turnController::setI, turnController::setD);
-        } else {
-            driveTune = null;
-            turnTune = null;
-            speedTune = null;
-        }
     }
 
     public Transform3d getCameraTransform() { return this.cameraTransform; }
@@ -77,12 +71,7 @@ public class PhotonCameraModule extends PhotonCamera {
         if (!PHOTON_ENABLED || RobotBase.isSimulation())
             return;
 
-        if (driveTune != null) driveTune.update();
-        if (turnTune  != null) turnTune.update();
-        if (speedTune != null) speedTune.update();
-
-        PhotonPipelineResult result = getLatestResult();
-        poseEstimator.update(result);
+        PhotonPipelineResult result = camera.getLatestResult();
 
         if (result.hasTargets()) {
             PhotonTrackedTarget target = result.getBestTarget();

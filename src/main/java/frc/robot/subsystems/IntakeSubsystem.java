@@ -33,4 +33,6 @@ public class IntakeSubsystem extends BaseSubsystem {
         });
     }
     public boolean hasNote() { return !sensorActivated; }
+    public void startNormal() { startAll(); }
+    public void startReverse() { startAll(-getTargetSpeed());}
 }

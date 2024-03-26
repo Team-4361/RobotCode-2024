@@ -12,11 +12,17 @@ public class TunablePID implements IUpdatable {
      * @param name      The name of the {@link TunablePID}.
      * @param constants The {@link PIDConstants} to initialize with.
      */
-    public TunablePID(String name, PIDConstants constants) {
+    public TunablePID(String name, PIDConstants constants, boolean enabled) {
         this.name = name;
-        tuneP = new TunableNumber(name + ": P", constants.kP, false);
-        tuneI = new TunableNumber(name + ": I", constants.kI, false);
-        tuneD = new TunableNumber(name + ": D", constants.kD, false);
+        tuneP = new TunableNumber(name + ": P", constants.kP, enabled);
+        tuneI = new TunableNumber(name + ": I", constants.kI, enabled);
+        tuneD = new TunableNumber(name + ": D", constants.kD, enabled);
+    }
+
+    public void setEnabled(boolean enabled) {
+        tuneP.setEnabled(enabled);
+        tuneI.setEnabled(enabled);
+        tuneD.setEnabled(enabled);
     }
 
     /**
