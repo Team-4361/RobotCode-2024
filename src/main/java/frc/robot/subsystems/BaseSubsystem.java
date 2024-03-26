@@ -109,6 +109,8 @@ public class BaseSubsystem extends SubsystemBase {
     public void startReverse() { startReverse(speed); }
     public void start() { start(speed); }
 
+    public void startIndex(double index, )
+
     @Override
     public void periodic() {
         if (System.currentTimeMillis() >= nextUpdate) {
