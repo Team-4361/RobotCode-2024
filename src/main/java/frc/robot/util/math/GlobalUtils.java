@@ -21,6 +21,15 @@ import java.util.Random;
 public class GlobalUtils {
     public static final Random rand = new Random();
 
+    public static void executeWithDelay(Runnable run, long millis) {
+        new Thread(() -> {
+            try {
+                Thread.sleep(millis);
+            } catch (Exception ignored) {}
+            run.run();
+        });
+    }
+
     public static double getDualSpeed(double negativeAxis, double positiveAxis) {
         negativeAxis = deadband(Math.abs(negativeAxis));
         positiveAxis = deadband(Math.abs(positiveAxis));

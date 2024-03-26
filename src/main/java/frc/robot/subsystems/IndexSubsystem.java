@@ -3,21 +3,21 @@ package frc.robot.subsystems;
 import com.revrobotics.CANSparkMax;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.util.pid.DashTunableNumber;
+import frc.robot.util.pid.TunableNumber;
 
 import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 import static frc.robot.Constants.Debug.INDEX_TUNING_ENABLED;
 import static frc.robot.Constants.Indexer.*;
 
 public class IndexSubsystem extends SubsystemBase {
-    private final DashTunableNumber indexTune;
+    private final TunableNumber indexTune;
     private final CANSparkMax leftMotor;
     private final CANSparkMax rightMotor;
     private double targetSpeed = INDEX_SPEED;
 
     public IndexSubsystem() {
         if (INDEX_TUNING_ENABLED) {
-            indexTune = new DashTunableNumber("Index: Speed", INDEX_SPEED);
+            indexTune = new TunableNumber("Index: Speed", INDEX_SPEED);
             indexTune.addConsumer(this::setTargetSpeed);
         } else {
             indexTune = null;

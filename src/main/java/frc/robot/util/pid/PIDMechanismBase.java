@@ -34,7 +34,7 @@ public abstract class PIDMechanismBase implements IUpdatable {
     private boolean simInverted = false;
     private long lastSimUpdateMillis = System.currentTimeMillis();
 
-    private final DashTunablePID pidTune;
+    private final TunablePID pidTune;
     private final PIDController controller;
     private final String moduleName;
     private final boolean rpmControl;
@@ -192,7 +192,7 @@ public abstract class PIDMechanismBase implements IUpdatable {
         motor.enableVoltageCompensation(12.0);
 
         if (tuningEnabled) {
-            pidTune = new DashTunablePID(moduleName + ": PID", constants);
+            pidTune = new TunablePID(moduleName + ": PID", constants);
             pidTune.addConsumer(controller::setP, controller::setI, controller::setD);
         } else {
             pidTune = null;

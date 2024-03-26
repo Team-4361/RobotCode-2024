@@ -9,8 +9,8 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.util.math.GlobalUtils;
-import frc.robot.util.pid.DashTunableNumber;
-import frc.robot.util.pid.DashTunablePID;
+import frc.robot.util.pid.TunableNumber;
+import frc.robot.util.pid.TunablePID;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.targeting.PhotonPipelineResult;
@@ -22,7 +22,6 @@ import java.util.Optional;
 import static frc.robot.Constants.Chassis.*;
 import static frc.robot.Constants.Debug.PHOTON_ENABLED;
 import static frc.robot.Constants.Debug.PHOTON_TUNING_ENABLED;
-import static org.photonvision.PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR;
 
 public class PhotonCameraModule extends PhotonCamera {
 
@@ -32,9 +31,9 @@ public class PhotonCameraModule extends PhotonCamera {
     private final String cameraName;
     private final PIDController driveController;
     private final PIDController turnController;
-    private final DashTunablePID driveTune;
-    private final DashTunablePID turnTune;
-    private final DashTunableNumber speedTune;
+    private final TunablePID driveTune;
+    private final TunablePID turnTune;
+    private final TunableNumber speedTune;
     private final PhotonPoseEstimator poseEstimator;
     private final Transform3d cameraTransform;
 
@@ -55,16 +54,11 @@ public class PhotonCameraModule extends PhotonCamera {
         this.cameraTransform = transform;
         this.driveController = GlobalUtils.generateController(PHOTON_DRIVE_PID);
         this.turnController = GlobalUtils.generateController(PHOTON_TURN_PID);
-        this.poseEstimator = new PhotonPoseEstimator(
-                FIELD_LAYOUT,
-                MULTI_TAG_PNP_ON_COPROCESSOR,
-                cameraTransform
-        );
 
         if (PHOTON_TUNING_ENABLED) {
-            this.driveTune = new DashTunablePID("Photon: Drive PID", PHOTON_DRIVE_PID);
-            this.turnTune = new DashTunablePID("Photon: Turn PID", PHOTON_TURN_PID);
-            this.speedTune = new DashTunableNumber("Photon: Max Speed", PHOTON_DRIVE_MAX_SPEED);
+            this.driveTune = new TunablePID("Photon: Drive PID", PHOTON_DRIVE_PID);
+            this.turnTune = new TunablePID("Photon: Turn PID", PHOTON_TURN_PID);
+            this.speedTune = new TunableNumber("Photon: Max Speed", PHOTON_DRIVE_MAX_SPEED);
 
             speedTune.addConsumer(this::setMaxDriveSpeed);
             driveTune.addConsumer(driveController::setP, driveController::setI, driveController::setD);

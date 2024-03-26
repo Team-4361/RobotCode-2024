@@ -1,9 +1,6 @@
 package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
-import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -11,33 +8,23 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.util.sendable.Sendable;
-import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.util.math.GlobalUtils;
-import frc.robot.util.pid.DashTunableNumber;
-import frc.robot.util.pid.DashTunablePID;
+import frc.robot.util.pid.TunableNumber;
+import frc.robot.util.pid.TunablePID;
 import swervelib.SwerveDrive;
 import swervelib.SwerveModule;
-import swervelib.math.SwerveMath;
-import swervelib.parser.SwerveControllerConfiguration;
-import swervelib.parser.SwerveDriveConfiguration;
-import swervelib.parser.SwerveModuleConfiguration;
 import swervelib.parser.SwerveParser;
-import swervelib.parser.json.ModuleJson;
 import swervelib.telemetry.SwerveDriveTelemetry;
 import swervelib.telemetry.Alert;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Optional;
 import java.util.function.DoubleSupplier;
 
 import static edu.wpi.first.wpilibj.Filesystem.getDeployDirectory;
@@ -57,9 +44,9 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     private final Alert focDisabledAlert;
     private final PIDController autoDriveController;
     private final PIDController autoTurnController;
-    private final DashTunablePID autoDriveTune;
-    private final DashTunablePID autoTurnTune;
-    private final DashTunableNumber autoSpeedTune;
+    private final TunablePID autoDriveTune;
+    private final TunablePID autoTurnTune;
+    private final TunableNumber autoSpeedTune;
     private final SwerveDrive swerveDrive;
 
     public boolean fieldOriented = true;
@@ -101,9 +88,9 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         SwerveDriveTelemetry.verbosity = SWERVE_TUNING_ENABLED ? HIGH : MACHINE;
 
         if (SWERVE_TUNING_ENABLED) {
-            this.autoDriveTune = new DashTunablePID("Swerve: Auto Drive PID", AUTO_DRIVE_PID);
-            this.autoTurnTune = new DashTunablePID("Swerve: Auto Turn PID", AUTO_TURN_PID);
-            this.autoSpeedTune = new DashTunableNumber("Swerve: AD Speed", AUTO_DRIVE_MAX_SPEED);
+            this.autoDriveTune = new TunablePID("Swerve: Auto Drive PID", AUTO_DRIVE_PID);
+            this.autoTurnTune = new TunablePID("Swerve: Auto Turn PID", AUTO_TURN_PID);
+            this.autoSpeedTune = new TunableNumber("Swerve: AD Speed", AUTO_DRIVE_MAX_SPEED);
 
             autoSpeedTune.addConsumer(this::setMaxAutoDriveSpeed);
             autoDriveTune.addConsumer(autoDriveController::setP, autoDriveController::setI, autoDriveController::setD);

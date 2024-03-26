@@ -3,29 +3,29 @@ package frc.robot.util.pid;
 import com.pathplanner.lib.util.PIDConstants;
 import java.util.function.Consumer;
 
-public class DashTunablePID implements IUpdatable {
+public class TunablePID implements IUpdatable {
     private final String name;
-    private final DashTunableNumber tuneP, tuneI, tuneD;
+    private final TunableNumber tuneP, tuneI, tuneD;
 
     /**
-     * Constructs a new {@link DashTunablePID} with the specified parameters.
-     * @param name      The name of the {@link DashTunablePID}.
+     * Constructs a new {@link TunablePID} with the specified parameters.
+     * @param name      The name of the {@link TunablePID}.
      * @param constants The {@link PIDConstants} to initialize with.
      */
-    public DashTunablePID(String name, PIDConstants constants) {
+    public TunablePID(String name, PIDConstants constants) {
         this.name = name;
-        tuneP = new DashTunableNumber(name + ": P", constants.kP, false);
-        tuneI = new DashTunableNumber(name + ": I", constants.kI, false);
-        tuneD = new DashTunableNumber(name + ": D", constants.kD, false);
+        tuneP = new TunableNumber(name + ": P", constants.kP, false);
+        tuneI = new TunableNumber(name + ": I", constants.kI, false);
+        tuneD = new TunableNumber(name + ": D", constants.kD, false);
     }
 
     /**
-     * Adds a new {@link Consumer} set to the {@link DashTunablePID}.
+     * Adds a new {@link Consumer} set to the {@link TunablePID}.
      *
      * @param pC The {@link Consumer} to use for the Proportional variable.
      * @param iC The {@link Consumer} to use for the Integral variable.
      * @param dC The {@link Consumer} to use for the Derivative variable.
-     * @see DashTunableNumber#addConsumer(Consumer)
+     * @see TunableNumber#addConsumer(Consumer)
      */
     public void addConsumer(Consumer<Double> pC, Consumer<Double> iC, Consumer<Double> dC) {
         tuneP.addConsumer(pC);
@@ -42,12 +42,12 @@ public class DashTunablePID implements IUpdatable {
     /** @return The current Derivative value. */
     public double getD() { return tuneD.getValue(); }
 
-    /** @return The current {@link String} name for the {@link DashTunablePID}. */
+    /** @return The current {@link String} name for the {@link TunablePID}. */
     public String getName() { return this.name; }
 
     /**
-     * Updates the {@link DashTunablePID}. <b>This method is required to be called!</b>
-     * @see DashTunableNumber#update()
+     * Updates the {@link TunablePID}. <b>This method is required to be called!</b>
+     * @see TunableNumber#update()
      */
     @Override
     public void update() {

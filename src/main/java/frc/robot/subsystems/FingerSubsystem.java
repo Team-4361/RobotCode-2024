@@ -27,23 +27,18 @@ public class FingerSubsystem extends SubsystemBase {
                 MotorModel.NEO,
                 "Arm",
                 TRAP_ARM_TUNING_ENABLED,
-                //ARM_GEAR_RATIO,
                 GearRatio.DIRECT_DRIVE,
                 RotationUnit.ROTATIONS,
                 false
         );
 
-        //extensionMechanism.setDistanceTuningEnabled(TRAP_ARM_TUNING_ENABLED);
-        //extensionMechanism.setPIDControlSupplier(() -> false);
         extensionMechanism.setInverted(true);
         extensionMechanism.setForwardLimit(ARM_MAX_ROTATION);
         extensionMechanism.setMaxPower(0.30);
     }
 
     @Override
-    public void periodic() {
-        extensionMechanism.update();
-    }
+    public void periodic() { extensionMechanism.update(); }
 
     public void registerExtensionPresets(PresetMap<Double> map) {
         extensionMechanism.registerPresets(map);

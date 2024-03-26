@@ -6,38 +6,42 @@ import java.util.ArrayList;
 import java.util.function.Consumer;
 
 /**
- * This {@link DashTunableNumber} class provides the Driver/Operator with an easy-to-use way to
+ * This {@link TunableNumber} class provides the Driver/Operator with an easy-to-use way to
  * tune values <b>without re-deployment</b>. This allows for a significant speed boost in tuning!
  */
-public class DashTunableNumber implements IUpdatable {
+public class TunableNumber implements IUpdatable {
     private final String name;
     private final String dashString;
     private final ArrayList<Consumer<Double>> consumers;
     private double value;
     private long nextMillis;
+    private boolean enabled;
 
     /**
-     * Constructs a {@link DashTunableNumber} instance with the specified parameters.
-     * @param name         The {@link String} name of the {@link DashTunableNumber}.
-     * @param initialValue The initial {@link Double} of the {@link DashTunableNumber}
-     * @param usePrefix    If the {@link SmartDashboard} entry should contain a prefix.
+     * Constructs a {@link TunableNumber} instance with the specified parameters.
+     * @param name         The {@link String} name of the {@link TunableNumber}.
+     * @param initialValue The initial {@link Double} of the {@link TunableNumber}
      */
-    public DashTunableNumber(String name, double initialValue, boolean usePrefix) {
+    public TunableNumber(String name, double initialValue, boolean enabled) {
         this.name = name;
         this.value = initialValue;
-        this.dashString = usePrefix ? name + ": Number" : name;
+        this.dashString = name.contains(":") ? name + ": Number" : name;
         this.consumers = new ArrayList<>();
         this.nextMillis = System.currentTimeMillis();
+        this.enabled = enabled;
 
         SmartDashboard.putNumber(dashString, value);
     }
 
+    public void setEnabled(boolean enabled) { this.enabled = enabled; }
+    public boolean isEnabled() { return this.enabled; }
+
     /**
-     * Constructs a {@link DashTunableNumber} instance with the specified parameters; <b>prefix is enabled.</b>
-     * @param name         The {@link String} name of the {@link DashTunableNumber}.
-     * @param initialValue The initial {@link Double} of the {@link DashTunableNumber}.
+     * Constructs a {@link TunableNumber} instance with the specified parameters; <b>prefix is enabled.</b>
+     * @param name         The {@link String} name of the {@link TunableNumber}.
+     * @param initialValue The initial {@link Double} of the {@link TunableNumber}.
      */
-    public DashTunableNumber(String name, double initialValue){
+    public TunableNumber(String name, double initialValue){
         this(name, initialValue, true);
     }
 
@@ -47,10 +51,10 @@ public class DashTunableNumber implements IUpdatable {
      */
     public void addConsumer(Consumer<Double> consumer) { consumers.add(consumer); }
 
-    /** @return The current {@link String} name of the {@link DashTunableNumber}. */
+    /** @return The current {@link String} name of the {@link TunableNumber}. */
     public String getName() { return this.name; }
 
-    /** @return All registered {@link Consumer} instances in the {@link DashTunableNumber} */
+    /** @return All registered {@link Consumer} instances in the {@link TunableNumber} */
     public ArrayList<Consumer<Double>> getConsumers() { return this.consumers; }
 
     /** @return The currently selected value. */
@@ -59,7 +63,7 @@ public class DashTunableNumber implements IUpdatable {
     /** Updates the registered value with the {@link SmartDashboard} entry. <b>This method call is required!</b> */
     @Override
     public void update() {
-        if (System.currentTimeMillis() < nextMillis)
+        if (!enabled || System.currentTimeMillis() < nextMillis)
             return;
 
         double temp = SmartDashboard.getNumber(dashString, value);

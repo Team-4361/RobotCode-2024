@@ -2,17 +2,11 @@ package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
-import frc.robot.util.math.GearRatio;
-import frc.robot.util.math.GlobalUtils;
-import frc.robot.util.motor.MotorModel;
-import frc.robot.util.pid.DashTunableNumber;
-import frc.robot.util.pid.PIDRotationalMechanism;
-import frc.robot.util.pid.PIDRotationalMechanism.RotationUnit;
+import frc.robot.util.pid.TunableNumber;
 
 import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 import static frc.robot.Constants.Debug.SHOOTER_TUNING_ENABLED;
@@ -23,12 +17,12 @@ import static frc.robot.util.math.GlobalUtils.averageDouble;
  * This {@link ShooterSubsystem} is designed to enable the {@link Robot} to shoot. Physically, this
  * mechanism contains two motors which need to be driven opposite to each other.
  */
-public class ShooterSubsystem extends SubsystemBase {
+public class ShooterSubsystem extends BaseSubsystem {
 
     private final CANSparkMax leftMotor;
     private final CANSparkMax rightMotor;
-    private final DashTunableNumber shootTune;
-    private final DashTunableNumber delayTune;
+    private final TunableNumber shootTune;
+    private final TunableNumber delayTune;
 
     private final RelativeEncoder leftEncoder;
     private final RelativeEncoder rightEncoder;
@@ -43,8 +37,8 @@ public class ShooterSubsystem extends SubsystemBase {
     public ShooterSubsystem() {
 
         if (SHOOTER_TUNING_ENABLED) {
-            shootTune = new DashTunableNumber("Shooter: Speed", SHOOT_SPEED);
-            delayTune = new DashTunableNumber("Shooter: Delay", SHOOT_END_DELAY_MS);
+            shootTune = new TunableNumber("Shooter: Speed", SHOOT_SPEED);
+            delayTune = new TunableNumber("Shooter: Delay", SHOOT_END_DELAY_MS);
             shootTune.addConsumer(this::setTargetSpeed);
             delayTune.addConsumer(this::setDelayMS);
         } else {

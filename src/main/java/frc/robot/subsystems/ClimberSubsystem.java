@@ -1,6 +1,5 @@
 package frc.robot.subsystems;
 
-import com.revrobotics.CANSparkBase;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -8,7 +7,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.motor.TimedDigitalInput;
-import frc.robot.util.pid.DashTunableNumber;
+import frc.robot.util.pid.TunableNumber;
 
 import static com.revrobotics.CANSparkBase.IdleMode.kBrake;
 import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
@@ -20,7 +19,7 @@ public class ClimberSubsystem extends SubsystemBase {
     private final CANSparkMax rightMotor;
     private final TimedDigitalInput leftSensor;
     private final TimedDigitalInput rightSensor;
-    private final DashTunableNumber speedTune;
+    private final TunableNumber speedTune;
     private final RelativeEncoder leftEncoder;
     private final RelativeEncoder rightEncoder;
     private double targetSpeed = CLIMBER_SPEED;
@@ -43,7 +42,7 @@ public class ClimberSubsystem extends SubsystemBase {
         rightMotor.setInverted(CLIMBER_RIGHT_INVERTED);
 
         if (CLIMBER_TUNING_ENABLED) {
-            speedTune = new DashTunableNumber("Climber: Speed", CLIMBER_SPEED);
+            speedTune = new TunableNumber("Climber: Speed", CLIMBER_SPEED);
             speedTune.addConsumer(this::setTargetSpeed);
         } else {
             speedTune = null;
