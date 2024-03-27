@@ -40,7 +40,7 @@ public class Constants {
         public static final SubsystemConfig SHOOT_CAMERA = new SubsystemConfig(
                 "ShooterCamera",
                 true,
-                false
+                true
         );
         public static final SubsystemConfig SHOOTER = new SubsystemConfig(
                 "Shooter",
@@ -70,7 +70,7 @@ public class Constants {
         public static final SubsystemConfig SWERVE = new SubsystemConfig(
                 "Swerve",
                 true,
-                true
+                false
         );
     }
 

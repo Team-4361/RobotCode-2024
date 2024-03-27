@@ -25,7 +25,7 @@ public class TunableNumber implements IUpdatable {
     public TunableNumber(String name, double initialValue, boolean enabled) {
         this.name = name;
         this.value = initialValue;
-        this.dashString = name.contains(":") ? name + ": Number" : name;
+        this.dashString = name.contains(":") ? name : name + ": Value";
         this.consumers = new ArrayList<>();
         this.nextMillis = System.currentTimeMillis();
         this.enabled = enabled;
