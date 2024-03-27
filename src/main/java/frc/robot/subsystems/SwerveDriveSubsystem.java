@@ -14,9 +14,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Robot;
 import frc.robot.subsystems.base.BaseSubsystem;
-import frc.robot.util.math.GlobalUtils;
-import frc.robot.util.pid.TunableNumber;
-import frc.robot.util.pid.TunablePID;
 import swervelib.SwerveDrive;
 import swervelib.SwerveModule;
 import swervelib.parser.SwerveParser;
@@ -25,12 +22,12 @@ import swervelib.telemetry.SwerveDriveTelemetry;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import static edu.wpi.first.wpilibj.Filesystem.getDeployDirectory;
 import static frc.robot.Constants.Chassis.*;
-import static frc.robot.Constants.Debug.SWERVE_TUNING_ENABLED;
 import static frc.robot.Constants.Systems.SWERVE;
 import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.HIGH;
 import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.MACHINE;
@@ -75,24 +72,26 @@ public class SwerveDriveSubsystem extends BaseSubsystem {
      * Constructs a new {@link SwerveDriveSubsystem} with the specified modules.
      */
     public SwerveDriveSubsystem() {
-        super(
-                SWERVE,
-        )
+        super(SWERVE, new HashMap<>());
+
         try {
             swerveDrive = new SwerveParser(new File(getDeployDirectory(), "swerve"))
                     .createSwerveDrive(MAX_SPEED_MPS);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        this.autoDrivePID = GlobalUtils.generateController(AUTO_DRIVE_PID);
-        this.autoTurnPID = GlobalUtils.generateController(AUTO_TURN_PID);
+        this.autoDrivePID = registerPID("AutoDrive", AUTO_DRIVE_PID);
+        this.autoTurnPID = registerPID("AutoTurn", AUTO_TURN_PID);
         this.focDisabledAlert = new Alert("Swerve FOC disabled!", Alert.AlertType.WARNING);
+
+        registerConstant("ADSpeed", AUTO_DRIVE_MAX_SPEED);
 
         swerveDrive.setHeadingCorrection(false);
         swerveDrive.setCosineCompensator(false);
         swerveDrive.setMotorIdleMode(true);
-        SwerveDriveTelemetry.verbosity = SWERVE_TUNING_ENABLED ? HIGH : MACHINE;
+        SwerveDriveTelemetry.verbosity = isTuningEnabled() ? HIGH : MACHINE;
 
+        /*
         if (SWERVE_TUNING_ENABLED) {
             this.autoDriveTune = new TunablePID("Swerve: Auto Drive PID", AUTO_DRIVE_PID);
             this.autoTurnTune = new TunablePID("Swerve: Auto Turn PID", AUTO_TURN_PID);
@@ -106,6 +105,18 @@ public class SwerveDriveSubsystem extends BaseSubsystem {
             autoTurnTune = null;
             autoSpeedTune = null;
         }
+         */
+
+        setDashUpdate(() -> {
+            if (isTuningEnabled()) {
+                SmartDashboard.putNumber("FL Turn", swerveDrive.getModuleMap().get("frontleft").getAbsolutePosition());
+                SmartDashboard.putNumber("FR Turn", swerveDrive.getModuleMap().get("frontright").getAbsolutePosition());
+                SmartDashboard.putNumber("BL Turn", swerveDrive.getModuleMap().get("backleft").getAbsolutePosition());
+                SmartDashboard.putNumber("BR Turn", swerveDrive.getModuleMap().get("backright").getAbsolutePosition());
+            }
+            SmartDashboard.putString("Pose", getPose().toString());
+            focDisabledAlert.set(!fieldOriented);
+        });
     }
 
     /** @return A {@link Command} used to toggle teleoperated field-oriented. */
@@ -138,7 +149,7 @@ public class SwerveDriveSubsystem extends BaseSubsystem {
         if (usePhoton) {
             driveController = Robot.shooterCamera.getDriveController();
             turnController = Robot.shooterCamera.getTurnController();
-            mX = Robot.shooterCamera.getMaxDriveSpeed();
+            mX = Robot.shooterCamera.getMaxDrivePower();
             mO = PHOTON_TURN_MAX_SPEED;
         } else {
             driveController = Robot.swerve.getAutoDrivePID();
@@ -169,29 +180,6 @@ public class SwerveDriveSubsystem extends BaseSubsystem {
     }
 
     public void setStates(SwerveModuleState[] states) { swerveDrive.setModuleStates(states, false); }
-
-    public void addVisionMeasurement(Pose2d pose, double timestamp) {
-        swerveDrive.addVisionMeasurement(pose, timestamp);
-    }
-
-    @Override
-    public void periodic() {
-        if (SWERVE_TUNING_ENABLED) {
-            SmartDashboard.putNumber("FL Turn", swerveDrive.getModuleMap().get("frontleft").getAbsolutePosition());
-            SmartDashboard.putNumber("FR Turn", swerveDrive.getModuleMap().get("frontright").getAbsolutePosition());
-            SmartDashboard.putNumber("BL Turn", swerveDrive.getModuleMap().get("backleft").getAbsolutePosition());
-            SmartDashboard.putNumber("BR Turn", swerveDrive.getModuleMap().get("backright").getAbsolutePosition());
-        }
-        if (autoTurnTune != null)
-            autoTurnTune.update();
-        if (autoDriveTune != null)
-            autoDriveTune.update();
-        if (autoSpeedTune != null)
-            autoSpeedTune.update();
-
-        SmartDashboard.putString("Pose", getPose().toString());
-        focDisabledAlert.set(!fieldOriented);
-    }
 
     public void reset(Pose2d pose) {
         swerveDrive.zeroGyro();

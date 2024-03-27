@@ -23,6 +23,9 @@ public class PhotonCameraModule extends BaseSubsystem {
 
     protected static final String DRIVE_PID_NAME = "DrivePID";
     protected static final String TURN_PID_NAME = "TurnPID";
+    protected static final String DRIVE_POWER_NAME = "DrivePower";
+    protected static final String TURN_POWER_NAME = "TurnPower";
+    protected static final String TIMEOUT_NAME = "Timeout";
 
     private final Supplier<PIDController> drivePID;
     private final Supplier<PIDController> turnPID;
@@ -36,16 +39,22 @@ public class PhotonCameraModule extends BaseSubsystem {
     private long lastFoundMillis = System.currentTimeMillis();
     private AprilTagID aprilTag;
 
-    public void setMaxDriveSpeed(double speed) { setTargetSpeed(speed); }
 
     public String getCameraName() { return camera.getName(); }
     public Optional<AprilTagID> getAprilTag() { return Optional.of(aprilTag); }
     public PIDController getDriveController() { return drivePID.get(); }
     public PIDController getTurnController() { return turnPID.get(); }
-    public double getMaxDriveSpeed() { return getTargetSpeed(); }
+
+    public double getMaxDrivePower() { return getConstant(DRIVE_POWER_NAME); }
+    public double getMaxTurnPower() { return getConstant(TURN_POWER_NAME); }
+
+    public void setMaxDrivePower(double power) { setConstant(DRIVE_POWER_NAME, power); }
+    public void setMaxTurnPower(double power)  { setConstant(TURN_POWER_NAME, power);  }
+
+    // TODO: implement timeout!!!
 
     public PhotonCameraModule(SubsystemConfig config, Transform3d transform) {
-        super(config, PHOTON_DRIVE_MAX_SPEED, new HashMap<>());
+        super(config, new HashMap<>());
 
         this.camera = new PhotonCamera(config.name());
         this.pipelines = new ArrayList<>();
@@ -54,7 +63,9 @@ public class PhotonCameraModule extends BaseSubsystem {
         this.turnPID = registerPID(TURN_PID_NAME, PHOTON_TURN_PID);
         this.cameraTransform = transform;
 
-        registerConstant("Timeout", 500);
+        registerConstant(TIMEOUT_NAME, 500);
+        registerConstant(DRIVE_POWER_NAME, PHOTON_DRIVE_MAX_SPEED);
+        registerConstant(TURN_POWER_NAME, PHOTON_TURN_MAX_SPEED);
     }
 
     @SuppressWarnings("unusedReturn")
