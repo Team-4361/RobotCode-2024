@@ -7,7 +7,6 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.SubsystemConfig;
 import frc.robot.util.math.GlobalUtils;
 import frc.robot.util.pid.TunableNumber;
 import frc.robot.util.pid.TunablePID;

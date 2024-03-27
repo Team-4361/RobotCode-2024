@@ -19,18 +19,23 @@ public class ClimberSubsystem extends BaseSubsystem {
     public enum MoveDirection { UP, DOWN }
 
     public ClimberSubsystem(){
-        super(CLIMBER, CLIMBER_SPEED, Map.ofEntries(
+        super(CLIMBER, Map.ofEntries(
                 entry(CLIMBER_LEFT_ID, CLIMBER_LEFT_INVERTED),
-                entry(CLIMBER_RIGHT_ID,CLIMBER_RIGHT_INVERTED))
+                entry(CLIMBER_RIGHT_ID, CLIMBER_RIGHT_INVERTED))
         );
         this.leftSensor = new TimedDigitalInput(CLIMBER_LEFT_DIO);
         this.rightSensor = new TimedDigitalInput(CLIMBER_RIGHT_DIO);
+
+        registerConstant("Speed", CLIMBER_SPEED);
 
         setDashUpdate(() -> {
             SmartDashboard.putBoolean("Climber: Left Down", leftSensor.get());
             SmartDashboard.putBoolean("Climber: Right Down", rightSensor.get());
         });
     }
+
+    public double getTargetSpeed() { return getConstant("Speed"); }
+    public void setTargetSpeed(double speed) { setConstant("Speed", speed); }
 
     public long getLeftActivatedDuration()  { return leftSensor.getActivatedDuration();  }
     public long getRightActivatedDuration() { return rightSensor.getActivatedDuration(); }
@@ -48,6 +53,8 @@ public class ClimberSubsystem extends BaseSubsystem {
             case DOWN: setIndex(1, -getTargetSpeed()); break;
         }
     }
+    public void stopLeft() { setIndex(0, 0); }
+    public void stopRight() { setIndex(1, 0); }
 
     public boolean isLeftRetracted() { return leftSensor.get(); }
     public boolean isRightRetracted() { return rightSensor.get(); }

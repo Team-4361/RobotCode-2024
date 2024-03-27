@@ -38,6 +38,7 @@ import frc.robot.commands.shooter.ShootCommand;
 import frc.robot.commands.shooter.SlowShootCommand;
 import frc.robot.subsystems.*;
 import frc.robot.util.auto.PhotonCameraModule;
+import frc.robot.util.auto.PipelineOption;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
@@ -56,6 +57,7 @@ import static frc.robot.Constants.Presets.TRAP_PRESET_GROUP;
 import static frc.robot.Constants.Shooter.SHOOT_SPEED;
 import static frc.robot.Constants.ShooterCamera.*;
 import static frc.robot.Constants.Systems.SHOOT_CAMERA;
+import static frc.robot.subsystems.ClimberSubsystem.MoveDirection.UP;
 import static frc.robot.util.auto.AprilTagID.BLUE_SPEAKER_MID;
 import static frc.robot.util.auto.AprilTagID.RED_SPEAKER_MID;
 import static frc.robot.util.math.GlobalUtils.deadband;
@@ -152,7 +154,7 @@ public class Robot extends TimedRobot {
         arm = new FingerSubsystem();
 
         shooterCamera = new PhotonCameraModule(SHOOT_CAMERA, BACK_CAMERA_TRANSFORM)
-        );
+                .addPipeline(new PipelineOption("AprilTag", 0, true, 0));
 
         swerve = new SwerveDriveSubsystem();
 
@@ -193,7 +195,7 @@ public class Robot extends TimedRobot {
     public static Command resetAllCommand() {
         return Commands.runOnce(() -> {
             Robot.swerve.reset();
-            Robot.climber.reset();
+            //Robot.climber.reset();
             Robot.arm.reset();
             //Robot.wrist.reset();
         });
@@ -244,11 +246,11 @@ public class Robot extends TimedRobot {
         xbox.rightBumper().whileTrue(new RightClimbDownCommand());
 
         xbox.back().whileTrue(Commands.runEnd(
-                () -> Robot.climber.moveLeftUp(),
+                () -> Robot.climber.moveLeft(UP),
                 () -> Robot.climber.stopLeft()
         ));
         xbox.start().whileTrue(Commands.runEnd(
-                () -> Robot.climber.moveRightUp(),
+                () -> Robot.climber.moveRight(UP),
                 () -> Robot.climber.stopRight()
         ));
 

@@ -5,7 +5,7 @@ import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.subsystems.base.BaseSubsystem;
-import frc.robot.subsystems.SubsystemConfig;
+import frc.robot.subsystems.base.SubsystemConfig;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonUtils;
 import org.photonvision.targeting.PhotonPipelineResult;
@@ -30,20 +30,23 @@ public class PhotonCameraModule extends BaseSubsystem {
     private final Supplier<PIDController> drivePID;
     private final Supplier<PIDController> turnPID;
     private final ArrayList<PipelineOption> pipelines;
-    private int selectedIndex = 0;
 
     private final Transform3d cameraTransform;
     private final PhotonCamera camera;
 
-    private Transform2d trackedPose = null;
-    private long lastFoundMillis = System.currentTimeMillis();
+    private Transform2d trackedPose;
     private AprilTagID aprilTag;
-
+    private long lastFoundMillis;
+    private int selectedIndex = 0;
 
     public String getCameraName() { return camera.getName(); }
-    public Optional<AprilTagID> getAprilTag() { return Optional.of(aprilTag); }
+
+    public Optional<AprilTagID> getAprilTag() { return Optional.ofNullable(aprilTag); }
+    public Optional<Transform2d> getTrackedDistance() { return Optional.ofNullable(trackedPose); }
+
     public PIDController getDriveController() { return drivePID.get(); }
     public PIDController getTurnController() { return turnPID.get(); }
+    public PipelineOption getPipeline() { return pipelines.get(selectedIndex); }
 
     public double getMaxDrivePower() { return getConstant(DRIVE_POWER_NAME); }
     public double getMaxTurnPower() { return getConstant(TURN_POWER_NAME); }
@@ -62,6 +65,8 @@ public class PhotonCameraModule extends BaseSubsystem {
         this.drivePID = registerPID(DRIVE_PID_NAME, PHOTON_DRIVE_PID);
         this.turnPID = registerPID(TURN_PID_NAME, PHOTON_TURN_PID);
         this.cameraTransform = transform;
+        this.trackedPose = new Transform2d();
+        this.lastFoundMillis = System.currentTimeMillis();
 
         registerConstant(TIMEOUT_NAME, 500);
         registerConstant(DRIVE_POWER_NAME, PHOTON_DRIVE_MAX_SPEED);
@@ -94,9 +99,6 @@ public class PhotonCameraModule extends BaseSubsystem {
         camera.setPipelineIndex(index);
         return true;
     }
-
-    public PipelineOption getPipeline() { return pipelines.get(selectedIndex); }
-    public Optional<Transform2d> getTrackedDistance() { return Optional.ofNullable(trackedPose); }
 
     @Override
     public void periodic() {

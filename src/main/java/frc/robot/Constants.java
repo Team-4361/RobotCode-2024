@@ -6,7 +6,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
-import frc.robot.subsystems.SubsystemConfig;
+import frc.robot.subsystems.base.SubsystemConfig;
 import frc.robot.util.math.GearRatio;
 import frc.robot.util.preset.PresetGroup;
 import frc.robot.util.preset.PresetMap;

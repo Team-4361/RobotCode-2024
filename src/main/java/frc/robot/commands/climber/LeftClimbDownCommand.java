@@ -2,8 +2,10 @@ package frc.robot.commands.climber;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
+import frc.robot.subsystems.ClimberSubsystem;
 
 import static frc.robot.Constants.Climber.CLIMBER_SENSOR_DELAY_MS;
+import static frc.robot.subsystems.ClimberSubsystem.MoveDirection.DOWN;
 
 public class LeftClimbDownCommand extends Command {
     public LeftClimbDownCommand() { }
@@ -12,9 +14,7 @@ public class LeftClimbDownCommand extends Command {
      * The initial subroutine of a command. Called once when the command is initially scheduled.
      */
     @Override
-    public void initialize() {
-        Robot.climber.moveLeftDown();
-    }
+    public void initialize() { Robot.climber.moveLeft(DOWN); }
 
     /**
      * The action to take when the command ends. Called when either the command finishes normally, or
@@ -26,9 +26,7 @@ public class LeftClimbDownCommand extends Command {
      * @param interrupted whether the command was interrupted/canceled
      */
     @Override
-    public void end(boolean interrupted) {
-        Robot.climber.stopLeft();
-    }
+    public void end(boolean interrupted) { Robot.climber.stopLeft(); }
 
     /**
      * Whether the command has finished. Once a command finishes, the scheduler will call its end()
@@ -38,6 +36,7 @@ public class LeftClimbDownCommand extends Command {
      */
     @Override
     public boolean isFinished() {
-        return Robot.climber.isLeftRetracted() && Robot.climber.getLeftActivatedDuration() >= CLIMBER_SENSOR_DELAY_MS;
+        return Robot.climber.isLeftRetracted() &&
+                Robot.climber.getLeftActivatedDuration() >= CLIMBER_SENSOR_DELAY_MS;
     }
 }
