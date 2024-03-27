@@ -30,12 +30,14 @@ public class TunableNumber implements IUpdatable {
         this.nextMillis = System.currentTimeMillis();
         this.enabled = enabled;
 
-        SmartDashboard.putNumber(dashString, value);
+        if (enabled)
+            SmartDashboard.putNumber(dashString, value);
     }
 
     public void setValue(double value) {
         this.value = value;
-        SmartDashboard.putNumber(dashString, value);
+        if (enabled)
+            SmartDashboard.putNumber(dashString, value);
     }
 
     public void setEnabled(boolean enabled) { this.enabled = enabled; }

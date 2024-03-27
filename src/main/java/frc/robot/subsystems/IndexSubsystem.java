@@ -19,7 +19,7 @@ public class IndexSubsystem extends BaseSubsystem {
     public void setTargetSpeed(double speed) { setConstant("Speed", speed); }
     public double getTargetSpeed() { return getConstant("Speed"); }
 
-    public void startNormal() { startAll(); }
+    public void startNormal() { startAll(getTargetSpeed()); }
     public void startReverse() { startAll(-getTargetSpeed());}
 }
 

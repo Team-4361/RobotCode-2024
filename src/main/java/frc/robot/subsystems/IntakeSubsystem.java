@@ -30,7 +30,7 @@ public class IntakeSubsystem extends BaseSubsystem {
         registerConstant("Speed", INTAKE_SPEED);
     }
     public boolean hasNote() { return !sensorActivated; }
-    public void startNormal() { startAll(); }
+    public void startNormal() { startAll(getTargetSpeed()); }
     public void startReverse() { startAll(-getTargetSpeed());}
 
 

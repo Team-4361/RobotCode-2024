@@ -142,7 +142,8 @@ public class SwerveDriveSubsystem extends BaseSubsystem {
                 });
     }
 
-    public ChassisSpeeds calculateSpeedsToPose(Pose2d currentPose, Pose2d desiredPose, boolean usePhoton) {
+    /*
+    public ChassisSpeeds calculateSpeedsToPose(Translation2d currentPose, Translation2d desiredPose, boolean usePhoton) {
         PIDController driveController, turnController;
         double mX, mO;
 
@@ -174,10 +175,7 @@ public class SwerveDriveSubsystem extends BaseSubsystem {
                 jO * MAX_SPEED_MPS
         );
     }
-
-    public ChassisSpeeds calculateSpeedsToPose(Pose2d desiredPose, boolean usePhoton) {
-       return calculateSpeedsToPose(getPose(), desiredPose, usePhoton);
-    }
+     */
 
     public void setStates(SwerveModuleState[] states) { swerveDrive.setModuleStates(states, false); }
 

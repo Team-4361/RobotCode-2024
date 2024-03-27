@@ -38,25 +38,30 @@ public class BaseSubsystem extends SubsystemBase {
     public void setTuningEnabled(boolean enabled) { this.tuningEnabled = enabled; }
     public boolean isEnabled() { return this.enabled; }
 
-    public void registerConstant(String name, double value) {
-        TunableNumber tune = new TunableNumber(name, value, tuningEnabled);
+    public void registerConstant(String constantName, double value) {
+        TunableNumber tune = new TunableNumber(
+                this.name + "/" + constantName,
+                value,
+                tuningEnabled
+        );
         numberTunes.add(tune);
     }
 
     public Supplier<PIDController> registerPID(String name, PIDConstants constants) {
-        TunablePID tune = new TunablePID(name, constants, tuningEnabled);
+        String pidName = this.name + "/" + name;
+        TunablePID tune = new TunablePID(pidName, constants, tuningEnabled);
         PIDController controller = GlobalUtils.generateController(constants);
         tune.addConsumer(controller::setP, controller::setI, controller::setD);
 
         pidTunes.add(tune);
-        controllers.put(name, controller);
+        controllers.put(pidName, controller);
         return () -> controllers.get(name);
     }
 
     public double getConstant(String name) { return getConstant(name, 0); }
     public double getConstant(String name, double defaultValue) {
         for (TunableNumber number : numberTunes) {
-            if (number.getName().equalsIgnoreCase(name)) {
+            if (number.getName().equalsIgnoreCase(this.name + "/" + name)) {
                 return number.getValue();
             }
         }
@@ -65,7 +70,7 @@ public class BaseSubsystem extends SubsystemBase {
 
     public Optional<PIDController> getPID(String name) {
         for (Map.Entry<String, PIDController> entry : controllers.entrySet()) {
-            if (entry.getKey().equalsIgnoreCase(name)) {
+            if (entry.getKey().equalsIgnoreCase(this.name + "/" + name)) {
                 return Optional.of(entry.getValue());
             }
         }
@@ -75,7 +80,7 @@ public class BaseSubsystem extends SubsystemBase {
     @SuppressWarnings("UnusedReturnValue")
     public boolean setConstant(String name, double value) {
         for (TunableNumber number : numberTunes) {
-            if (number.getName().equalsIgnoreCase(name)) {
+            if (number.getName().equalsIgnoreCase(this.name + "/" + name)) {
                 number.setValue(value);
                 return true;
             }
@@ -116,12 +121,14 @@ public class BaseSubsystem extends SubsystemBase {
     public void setDashUpdate(Runnable runnable) { this.dashUpdate = runnable; }
 
     public double getRPM() {
+        if (motors.length == 0)
+            return 0;
         double sum = 0;
         for (CANSparkMax motor : motors) {
             RelativeEncoder encoder = motor.getEncoder();
             sum += Math.abs(encoder.getVelocity());
         }
-        return sum/ motors.length;
+        return sum / motors.length;
     }
 
     public boolean isTuningEnabled() { return this.tuningEnabled; }
@@ -137,7 +144,8 @@ public class BaseSubsystem extends SubsystemBase {
     }
 
     protected void stopAll() { startAll(0); }
-    protected void startAll() { startAll(getConstant("Speed")); }
+
+    @SuppressWarnings("UnusedReturnValue")
     protected boolean setIndex(int idx, double speed) {
         if (idx > motors.length-1)
             return false;

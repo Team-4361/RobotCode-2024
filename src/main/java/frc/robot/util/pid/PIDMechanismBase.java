@@ -192,7 +192,7 @@ public abstract class PIDMechanismBase implements IUpdatable {
         motor.enableVoltageCompensation(12.0);
 
         if (tuningEnabled) {
-            pidTune = new TunablePID(moduleName + ": PID", constants);
+            pidTune = new TunablePID(moduleName + ": PID", constants, true);
             pidTune.addConsumer(controller::setP, controller::setI, controller::setD);
         } else {
             pidTune = null;

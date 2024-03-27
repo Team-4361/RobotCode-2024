@@ -30,7 +30,7 @@ public class ShooterSubsystem extends BaseSubsystem {
     public long getDelayMS() { return (long) getConstant("DelayMS"); }
     public double getTargetSpeed() { return getConstant("Speed"); }
     public boolean atTarget(double rpm) { return getRPM() >= rpm;}
-    public void start() { this.startAll(); }
+    public void start() { this.startAll(getTargetSpeed()); }
     public void stop() { this.stopAll(); }
 
     public void setTargetSpeed(double speed) { setConstant("Speed", speed); }
