@@ -9,7 +9,7 @@ import frc.robot.util.pid.PIDRotationalMechanism;
 import frc.robot.util.pid.PIDRotationalMechanism.RotationUnit;
 import frc.robot.util.preset.PresetMap;
 
-import static frc.robot.Constants.Debug.TRAP_ARM_TUNING_ENABLED;
+import static frc.robot.Constants.Systems.FINGER;
 import static frc.robot.Constants.TrapFinger.*;
 
 /**
@@ -25,8 +25,8 @@ public class FingerSubsystem extends SubsystemBase {
                 ARM_EXTENSION_MOTOR_ID,
                 ARM_EXTENSION_PID,
                 MotorModel.NEO,
-                "Arm",
-                TRAP_ARM_TUNING_ENABLED,
+                FINGER.name(),
+                FINGER.tuningEnabled(),
                 GearRatio.DIRECT_DRIVE,
                 RotationUnit.ROTATIONS,
                 false

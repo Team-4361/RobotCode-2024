@@ -12,25 +12,28 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
+import frc.robot.subsystems.base.BaseSubsystem;
 import frc.robot.util.math.GlobalUtils;
 import frc.robot.util.pid.TunableNumber;
 import frc.robot.util.pid.TunablePID;
 import swervelib.SwerveDrive;
 import swervelib.SwerveModule;
 import swervelib.parser.SwerveParser;
-import swervelib.telemetry.SwerveDriveTelemetry;
 import swervelib.telemetry.Alert;
+import swervelib.telemetry.SwerveDriveTelemetry;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 import static edu.wpi.first.wpilibj.Filesystem.getDeployDirectory;
 import static frc.robot.Constants.Chassis.*;
 import static frc.robot.Constants.Debug.SWERVE_TUNING_ENABLED;
-import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.*;
+import static frc.robot.Constants.Systems.SWERVE;
+import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.HIGH;
+import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.MACHINE;
 
 /**
  * This {@link SwerveDriveSubsystem} is designed to be used for controlling the {@link SwerveModule}s, and utilizing
@@ -40,13 +43,13 @@ import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.*;
  * @since 0.0.0
  * @author Eric Gold
  */
-public class SwerveDriveSubsystem extends SubsystemBase {
+public class SwerveDriveSubsystem extends BaseSubsystem {
     private final Alert focDisabledAlert;
-    private final PIDController autoDriveController;
-    private final PIDController autoTurnController;
-    private final TunablePID autoDriveTune;
-    private final TunablePID autoTurnTune;
-    private final TunableNumber autoSpeedTune;
+    private final Supplier<PIDController> autoDrivePID;
+    private final Supplier<PIDController> autoTurnPID;
+    //private final TunablePID autoDriveTune;
+    //private final TunablePID autoTurnTune;
+    //private final TunableNumber autoSpeedTune;
     private final SwerveDrive swerveDrive;
 
     public boolean fieldOriented = true;
@@ -56,8 +59,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
     private double maxAutoDriveSpeed = AUTO_DRIVE_MAX_SPEED;
 
-    public PIDController getAutoDriveController() { return this.autoDriveController; }
-    public PIDController getAutoTurnController()  { return this.autoTurnController;  }
+    public PIDController getAutoDrivePID() { return autoDrivePID.get(); }
+    public PIDController getAutoTurnPID() { return autoTurnPID.get(); }
 
     public void setMaxAutoDriveSpeed(double speed) { this.maxAutoDriveSpeed = speed; }
     public double getMaxAutoDriveSpeed() { return maxAutoDriveSpeed; }
@@ -72,14 +75,17 @@ public class SwerveDriveSubsystem extends SubsystemBase {
      * Constructs a new {@link SwerveDriveSubsystem} with the specified modules.
      */
     public SwerveDriveSubsystem() {
+        super(
+                SWERVE,
+        )
         try {
             swerveDrive = new SwerveParser(new File(getDeployDirectory(), "swerve"))
                     .createSwerveDrive(MAX_SPEED_MPS);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        this.autoDriveController = GlobalUtils.generateController(AUTO_DRIVE_PID);
-        this.autoTurnController = GlobalUtils.generateController(AUTO_TURN_PID);
+        this.autoDrivePID = GlobalUtils.generateController(AUTO_DRIVE_PID);
+        this.autoTurnPID = GlobalUtils.generateController(AUTO_TURN_PID);
         this.focDisabledAlert = new Alert("Swerve FOC disabled!", Alert.AlertType.WARNING);
 
         swerveDrive.setHeadingCorrection(false);
@@ -93,8 +99,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
             this.autoSpeedTune = new TunableNumber("Swerve: AD Speed", AUTO_DRIVE_MAX_SPEED);
 
             autoSpeedTune.addConsumer(this::setMaxAutoDriveSpeed);
-            autoDriveTune.addConsumer(autoDriveController::setP, autoDriveController::setI, autoDriveController::setD);
-            autoTurnTune.addConsumer(autoTurnController::setP, autoTurnController::setI, autoTurnController::setD);
+            autoDriveTune.addConsumer(autoDrivePID::setP, autoDrivePID::setI, autoDrivePID::setD);
+            autoTurnTune.addConsumer(autoTurnPID::setP, autoTurnPID::setI, autoTurnPID::setD);
         } else {
             autoDriveTune = null;
             autoTurnTune = null;
@@ -135,8 +141,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
             mX = Robot.shooterCamera.getMaxDriveSpeed();
             mO = PHOTON_TURN_MAX_SPEED;
         } else {
-            driveController = Robot.swerve.getAutoDriveController();
-            turnController = Robot.swerve.getAutoTurnController();
+            driveController = Robot.swerve.getAutoDrivePID();
+            turnController = Robot.swerve.getAutoTurnPID();
             mX = Robot.swerve.getMaxAutoDriveSpeed();
             mO = AUTO_TURN_MAX_SPEED;
         }

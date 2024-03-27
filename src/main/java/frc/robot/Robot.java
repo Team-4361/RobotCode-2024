@@ -25,7 +25,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -56,6 +55,7 @@ import static frc.robot.Constants.Power.POWER_MODULE_TYPE;
 import static frc.robot.Constants.Presets.TRAP_PRESET_GROUP;
 import static frc.robot.Constants.Shooter.SHOOT_SPEED;
 import static frc.robot.Constants.ShooterCamera.*;
+import static frc.robot.Constants.Systems.SHOOT_CAMERA;
 import static frc.robot.util.auto.AprilTagID.BLUE_SPEAKER_MID;
 import static frc.robot.util.auto.AprilTagID.RED_SPEAKER_MID;
 import static frc.robot.util.math.GlobalUtils.deadband;
@@ -68,16 +68,16 @@ import static frc.robot.util.math.GlobalUtils.deadband;
  * project.
  */
 public class Robot extends TimedRobot {
-    public static PowerDistribution pdh;
     public static CommandXboxController xbox;
     public static CommandJoystick leftStick;
     public static CommandJoystick rightStick;
+
+    public static PowerDistribution pdh;
     public static SwerveDriveSubsystem swerve;
     public static PhotonCameraModule shooterCamera;
     public static ShooterSubsystem shooter;
     public static IntakeSubsystem intake;
     public static IndexSubsystem index;
-    //public static TrapWristSubsystem wrist;
     public static ClimberSubsystem climber;
     public static FingerSubsystem arm;
 
@@ -88,8 +88,7 @@ public class Robot extends TimedRobot {
         int height = 240;
         Thread camThread = new Thread(
                 () -> {
-                    try {
-                        UsbCamera camera = CameraServer.startAutomaticCapture();
+                    try (UsbCamera camera = CameraServer.startAutomaticCapture()) {
                         if (!RobotBase.isSimulation()) {
                             camera.setResolution(width, height);
                             camera.setFPS(60);
@@ -152,9 +151,7 @@ public class Robot extends TimedRobot {
         climber = new ClimberSubsystem();
         arm = new FingerSubsystem();
 
-        shooterCamera = new PhotonCameraModule(
-                SHOOT_CAMERA_NAME,
-                SHOOT_CAMERA_TRANSFORM
+        shooterCamera = new PhotonCameraModule(SHOOT_CAMERA, BACK_CAMERA_TRANSFORM)
         );
 
         swerve = new SwerveDriveSubsystem();

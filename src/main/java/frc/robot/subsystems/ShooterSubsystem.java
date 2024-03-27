@@ -3,9 +3,10 @@ package frc.robot.subsystems;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Robot;
+import frc.robot.subsystems.base.BaseSubsystem;
 
-import static frc.robot.Constants.Debug.SHOOTER_TUNING_ENABLED;
 import static frc.robot.Constants.Shooter.*;
+import static frc.robot.Constants.Systems.SHOOTER;
 import static java.util.Map.entry;
 import static java.util.Map.ofEntries;
 
@@ -18,22 +19,21 @@ public class ShooterSubsystem extends BaseSubsystem {
 
     /**Constructs a new {@link ShooterSubsystem} using all <code>CONSTANTS</code> values. */
     public ShooterSubsystem() {
-        super(
-                "Shooter",
-                SHOOT_SPEED,
-                SHOOTER_TUNING_ENABLED,
-                ofEntries(
-                        entry(SHOOT_LEFT_MOTOR_ID, true),
-                        entry(SHOOT_RIGHT_MOTOR_ID, false)
-                )
+        super(SHOOTER, ofEntries(
+                entry(SHOOT_LEFT_MOTOR_ID, true),
+                entry(SHOOT_RIGHT_MOTOR_ID, false))
         );
         registerConstant("DelayMS", SHOOT_END_DELAY_MS);
+        registerConstant("Speed", SHOOT_SPEED);
     }
 
     public long getDelayMS() { return (long) getConstant("DelayMS"); }
+    public double getTargetSpeed() { return getConstant("Speed"); }
     public boolean atTarget(double rpm) { return getRPM() >= rpm;}
     public void start() { this.startAll(); }
     public void stop() { this.stopAll(); }
+
+    public void setTargetSpeed(double speed) { setConstant("Speed", speed); }
 
     @Override
     public void periodic() {
@@ -51,10 +51,6 @@ public class ShooterSubsystem extends BaseSubsystem {
         }
     }
 
-    /**
-     * Sets the target of the {@link ShooterSubsystem} to the Shoot RPM.
-     */
-    public void setEnabled(boolean enabled) {
-        this.fireMode = enabled;
-    }
+    /** Sets the target of the {@link ShooterSubsystem} to the Shoot RPM. */
+    public void setEnabled(boolean enabled) { this.fireMode = enabled; }
 }

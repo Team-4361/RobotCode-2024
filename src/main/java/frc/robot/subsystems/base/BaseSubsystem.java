@@ -1,4 +1,4 @@
-package frc.robot.subsystems;
+package frc.robot.subsystems.base;
 
 import com.pathplanner.lib.util.PIDConstants;
 import com.revrobotics.CANSparkMax;
@@ -7,6 +7,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.SubsystemConfig;
 import frc.robot.util.math.GlobalUtils;
 import frc.robot.util.pid.TunableNumber;
 import frc.robot.util.pid.TunablePID;
@@ -27,15 +28,16 @@ public class BaseSubsystem extends SubsystemBase {
     private final ArrayList<TunablePID> pidTunes;
     private final String name;
     private final CANSparkMax[] motors;
+    private final boolean enabled;
+
     private long nextUpdate = System.currentTimeMillis();
     private Runnable dashUpdate = () -> {};
     private boolean tuningEnabled;
 
     public static ArrayList<String> initSystems = new ArrayList<>();
 
-    public double getTargetSpeed() { return getConstant("Speed"); }
-    public void setTargetSpeed(double speed) { setConstant("Speed", speed); }
     public void setTuningEnabled(boolean enabled) { this.tuningEnabled = enabled; }
+    public boolean isEnabled() { return this.enabled; }
 
     public void registerConstant(String name, double value) {
         TunableNumber tune = new TunableNumber(name, value, tuningEnabled);
@@ -52,13 +54,14 @@ public class BaseSubsystem extends SubsystemBase {
         return () -> controllers.get(name);
     }
 
-    public double getConstant(String name) {
+    public double getConstant(String name) { return getConstant(name, 0); }
+    public double getConstant(String name, double defaultValue) {
         for (TunableNumber number : numberTunes) {
             if (number.getName().equalsIgnoreCase(name)) {
                 return number.getValue();
             }
         }
-        return 0;
+        return defaultValue;
     }
 
     public Optional<PIDController> getPID(String name) {
@@ -81,17 +84,16 @@ public class BaseSubsystem extends SubsystemBase {
         return false;
     }
 
-    public BaseSubsystem(String name,
-                         double speed,
-                         boolean tuningEnabled,
+    public BaseSubsystem(SubsystemConfig config,
                          Map<Integer, Boolean> ids) {
-        this.name = name;
+        this.name = config.name();
+        this.enabled = config.enabled();
+        this.tuningEnabled = config.tuningEnabled();
+
         this.motors = new CANSparkMax[ids.size()];
         this.numberTunes = new ArrayList<>();
-        this.tuningEnabled = tuningEnabled;
         this.pidTunes = new ArrayList<>();
         this.controllers = new HashMap<>();
-        registerConstant("Speed", speed);
 
         if (initSystems.contains(name)) {
             // Do not double-initialize!
@@ -99,7 +101,7 @@ public class BaseSubsystem extends SubsystemBase {
             return;
         }
 
-        if (!ids.isEmpty()) {
+        if (!ids.isEmpty() && enabled) {
             AtomicInteger i = new AtomicInteger(0);
             ids.forEach((id, flip) -> {
                 motors[i.get()] = new CANSparkMax(id, kBrushless);
@@ -146,6 +148,8 @@ public class BaseSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        if (!enabled)
+            return;
         if (System.currentTimeMillis() >= nextUpdate) {
             if (tuningEnabled) {
                 for (TunableNumber tune : numberTunes)

@@ -3,11 +3,12 @@ package frc.robot.subsystems;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.subsystems.base.BaseSubsystem;
 
 import java.util.Map;
 
-import static frc.robot.Constants.Debug.INTAKE_TUNING_ENABLED;
 import static frc.robot.Constants.Intake.*;
+import static frc.robot.Constants.Systems.INTAKE;
 import static java.util.Map.entry;
 
 public class IntakeSubsystem extends BaseSubsystem {
@@ -15,13 +16,8 @@ public class IntakeSubsystem extends BaseSubsystem {
     private boolean sensorActivated;
 
     public IntakeSubsystem(){
-        super(
-                "Intake",
-                INTAKE_SPEED,
-                INTAKE_TUNING_ENABLED,
-                Map.ofEntries(
-                        entry(INTAKE_MOTOR_ID, false)
-                )
+        super(INTAKE, Map.ofEntries(
+                entry(INTAKE_MOTOR_ID, false))
         );
         this.sensor = new DigitalInput(INTAKE_SENSOR_PORT);
         setDashUpdate(()-> {
@@ -31,8 +27,13 @@ public class IntakeSubsystem extends BaseSubsystem {
 
             SmartDashboard.putBoolean("Intake: Has Note", hasNote());
         });
+        registerConstant("Speed", INTAKE_SPEED);
     }
     public boolean hasNote() { return !sensorActivated; }
     public void startNormal() { startAll(); }
     public void startReverse() { startAll(-getTargetSpeed());}
+
+
+    public void setTargetSpeed(double speed) { setConstant("Speed", speed); }
+    public double getTargetSpeed() { return getConstant("Speed"); }
 }

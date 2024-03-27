@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import frc.robot.subsystems.SubsystemConfig;
 import frc.robot.util.math.GearRatio;
 import frc.robot.util.preset.PresetGroup;
 import frc.robot.util.preset.PresetMap;
@@ -22,6 +23,7 @@ import static edu.wpi.first.wpilibj.PowerDistribution.ModuleType.kRev;
  * @since 0.0.0
  */
 public class Constants {
+    /*
     public static class Debug {
         public static final boolean PHOTON_TUNING_ENABLED = false;
         public static final boolean SHOOTER_TUNING_ENABLED = false; // FIXME: caused issues with slow shoot.
@@ -31,6 +33,45 @@ public class Constants {
         public static final boolean TRAP_ARM_TUNING_ENABLED = false;
         public static final boolean PHOTON_ENABLED = false;
         public static final boolean SWERVE_TUNING_ENABLED = true;
+    }
+     */
+
+    public static class Systems {
+        public static final SubsystemConfig SHOOT_CAMERA = new SubsystemConfig(
+                "ShooterCamera",
+                true,
+                false
+        );
+        public static final SubsystemConfig SHOOTER = new SubsystemConfig(
+                "Shooter",
+                true,
+                false
+        );
+        public static final SubsystemConfig INDEX = new SubsystemConfig(
+                "Index",
+                true,
+                false
+        );
+        public static final SubsystemConfig INTAKE = new SubsystemConfig(
+                "Intake",
+                true,
+                false
+        );
+        public static final SubsystemConfig FINGER = new SubsystemConfig(
+                "Finger",
+                true,
+                false
+        );
+        public static final SubsystemConfig CLIMBER = new SubsystemConfig(
+                "Climber",
+                true,
+                false
+        );
+        public static final SubsystemConfig SWERVE = new SubsystemConfig(
+                "Swerve",
+                true,
+                true
+        );
     }
 
     public static class Power {
@@ -96,7 +137,7 @@ public class Constants {
     public static class ShooterCamera {
         public static final String SHOOT_CAMERA_NAME = "Microsoft_LifeCam_HD-3000";
 
-        public static final Transform3d SHOOT_CAMERA_TRANSFORM = new Transform3d(
+        public static final Transform3d BACK_CAMERA_TRANSFORM = new Transform3d(
                 new Translation3d(0, 0, 0.30),
                 new Rotation3d(0, 0, 0)
         );

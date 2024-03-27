@@ -61,11 +61,11 @@ public class DriveToAprilTagCommand extends Command {
      */
     @Override
     public void execute() {
-        Optional<Pose2d> storedPose = Robot.shooterCamera.getTrackedPose();
+        Optional<Pose2d> storedPose = Robot.shooterCamera.getTrackedDistance();
         boolean bad = storedPose.isEmpty();
         if (ids.length > 0 && ids[0] != 0) {
             for (int id : ids) {
-                if (Robot.shooterCamera.getAprilTagID() != id) {
+                if (Robot.shooterCamera.getAprilTag() != id) {
                     bad = true;
                     break;
                 }

@@ -1,105 +1,140 @@
 package frc.robot.util.auto;
 
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.*;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.subsystems.BaseSubsystem;
-import frc.robot.util.math.GlobalUtils;
-import frc.robot.util.pid.TunableNumber;
-import frc.robot.util.pid.TunablePID;
+import frc.robot.subsystems.base.BaseSubsystem;
+import frc.robot.subsystems.SubsystemConfig;
 import org.photonvision.PhotonCamera;
-import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.PhotonUtils;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
-import frc.robot.Robot;
-
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.IdentityHashMap;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 import static frc.robot.Constants.Chassis.*;
-import static frc.robot.Constants.Debug.PHOTON_ENABLED;
-import static frc.robot.Constants.Debug.PHOTON_TUNING_ENABLED;
 
+@SuppressWarnings("unused")
 public class PhotonCameraModule extends BaseSubsystem {
-
-    public static final AprilTagFieldLayout FIELD_LAYOUT =
-            AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
 
     protected static final String DRIVE_PID_NAME = "DrivePID";
     protected static final String TURN_PID_NAME = "TurnPID";
 
     private final Supplier<PIDController> drivePID;
     private final Supplier<PIDController> turnPID;
+    private final ArrayList<PipelineOption> pipelines;
+    private int selectedIndex = 0;
+
     private final Transform3d cameraTransform;
     private final PhotonCamera camera;
 
-    private Pose2d trackedPose = new Pose2d();
+    private Transform2d trackedPose = null;
     private long lastFoundMillis = System.currentTimeMillis();
-    private int aprilTagID = 0;
+    private AprilTagID aprilTag;
 
-    public double getMaxDriveSpeed() { return getTargetSpeed(); }
     public void setMaxDriveSpeed(double speed) { setTargetSpeed(speed); }
 
+    public String getCameraName() { return camera.getName(); }
+    public Optional<AprilTagID> getAprilTag() { return Optional.of(aprilTag); }
     public PIDController getDriveController() { return drivePID.get(); }
     public PIDController getTurnController() { return turnPID.get(); }
+    public double getMaxDriveSpeed() { return getTargetSpeed(); }
 
-    public PhotonCameraModule(String name, Transform3d transform) {
-        super(
-                name,
-                PHOTON_DRIVE_MAX_SPEED,
-                PHOTON_TUNING_ENABLED,
-                new HashMap<>()
-        );
-        this.camera = new PhotonCamera(name);
+    public PhotonCameraModule(SubsystemConfig config, Transform3d transform) {
+        super(config, PHOTON_DRIVE_MAX_SPEED, new HashMap<>());
+
+        this.camera = new PhotonCamera(config.name());
+        this.pipelines = new ArrayList<>();
+
         this.drivePID = registerPID(DRIVE_PID_NAME, PHOTON_DRIVE_PID);
         this.turnPID = registerPID(TURN_PID_NAME, PHOTON_TURN_PID);
         this.cameraTransform = transform;
+
+        registerConstant("Timeout", 500);
     }
 
-    public Transform3d getCameraTransform() { return this.cameraTransform; }
-    public Optional<Pose2d> getTrackedPose() { return Optional.ofNullable(trackedPose); }
+    @SuppressWarnings("unusedReturn")
+    public PhotonCameraModule addPipeline(PipelineOption pipeline) {
+        pipelines.add(pipeline);
+        return this;
+    }
 
-    public void update() {
-        if (!PHOTON_ENABLED || RobotBase.isSimulation())
+    public boolean setPipeline(PipelineOption pipe) { return setPipeline(pipe.name()); }
+
+    public boolean setPipeline(String name) {
+        for (int i=0; i<pipelines.size(); i++) {
+            if (pipelines.get(i).name().equalsIgnoreCase(name)) {
+                selectedIndex = i;
+                camera.setPipelineIndex(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean setPipeline(int index) {
+        if (index > pipelines.size()-1 || index < 0)
+            return false;
+        selectedIndex = index;
+        camera.setPipelineIndex(index);
+        return true;
+    }
+
+    public PipelineOption getPipeline() { return pipelines.get(selectedIndex); }
+    public Optional<Transform2d> getTrackedDistance() { return Optional.ofNullable(trackedPose); }
+
+    @Override
+    public void periodic() {
+        super.periodic();
+
+        if (!isEnabled() || RobotBase.isSimulation())
             return;
 
         PhotonPipelineResult result = camera.getLatestResult();
 
         if (result.hasTargets()) {
             PhotonTrackedTarget target = result.getBestTarget();
-            aprilTagID = target.getFiducialId();
-            lastFoundMillis = System.currentTimeMillis();
-            trackedPose = poseEstimator
-                    .getReferencePose()
-                    .toPose2d();
 
-            // Update the pose estimator with the information.
-            Robot.swerve.addVisionMeasurement(trackedPose, Timer.getFPGATimestamp());
+            // If we are using AprilTags, calculate the transform from the "cameraToTarget"
+            PipelineOption pipe = getPipeline();
+            double fX, fY;
+            Rotation2d fO;
 
-            Optional<AprilTagID> name = AprilTagID.fromID(aprilTagID);
-            if (name.isPresent()) {
-                SmartDashboard.putString("Found Tag", name.get().toString());
+            if (pipe.isAprilTag()) {
+                AprilTagID.fromID(target.getFiducialId())
+                        .ifPresent(o -> aprilTag = o);
+
+                Transform3d transform = target.getBestCameraToTarget();
+                fX = transform.getX();
+                fY = transform.getY();
+                fO = transform.getRotation().toRotation2d();
             } else {
-                SmartDashboard.putString("Found Tag", "NONE");
+                // We are using the shape method. Do the theorem to calculate.
+                fX = PhotonUtils.calculateDistanceToTargetMeters(
+                        cameraTransform.getZ(),
+                        pipe.targetHeight(),
+                        cameraTransform
+                                .getRotation()
+                                .toRotation2d()
+                                .getRadians(),
+                        Units.degreesToRadians(target.getPitch())
+                );
+                fY = 0;
+                fO = Rotation2d.fromDegrees(target.getYaw());
+                aprilTag = null;
             }
+
+            lastFoundMillis = System.currentTimeMillis();
+            trackedPose = new Transform2d(new Translation2d(fX, fY), fO);
         } else {
-            if (System.currentTimeMillis() >= lastFoundMillis+500) {
+            if (System.currentTimeMillis() >=
+                    lastFoundMillis + getConstant("Timeout")) {
                 trackedPose = null;
-                SmartDashboard.putString("Found Tag", "NONE");
             }
         }
     }
-
-    public String getCameraName() { return this.cameraName; }
-    public boolean isTargetFound() { return trackedPose != null; }
-    public long getLastFoundMillis() { return this.lastFoundMillis; }
-    public int getAprilTagID() { return this.aprilTagID; }
 }
