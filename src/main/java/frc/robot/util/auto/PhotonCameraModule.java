@@ -145,7 +145,7 @@ public class PhotonCameraModule extends BaseSubsystem {
             trackedPose = new Transform2d(new Translation2d(fX, fY), fO);
         } else {
             if (System.currentTimeMillis() >=
-                    lastFoundMillis + getConstant("Timeout")) {
+                    lastFoundMillis + getConstant(TIMEOUT_NAME)) {
                 trackedPose = null;
             }
         }
