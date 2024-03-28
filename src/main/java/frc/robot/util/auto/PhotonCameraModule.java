@@ -4,6 +4,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.base.BaseSubsystem;
 import frc.robot.subsystems.base.SubsystemConfig;
 import org.photonvision.PhotonCamera;
@@ -27,8 +28,8 @@ public class PhotonCameraModule extends BaseSubsystem {
     protected static final String TURN_POWER_NAME = "TurnPower";
     protected static final String TIMEOUT_NAME = "Timeout";
 
-    private final Supplier<PIDController> drivePID;
-    private final Supplier<PIDController> turnPID;
+    private final PIDController drivePID;
+    private final PIDController turnPID;
     private final ArrayList<PipelineOption> pipelines;
 
     private final Transform3d cameraTransform;
@@ -44,8 +45,8 @@ public class PhotonCameraModule extends BaseSubsystem {
     public Optional<AprilTagID> getAprilTag() { return Optional.ofNullable(aprilTag); }
     public Optional<Transform2d> getTrackedDistance() { return Optional.ofNullable(trackedPose); }
 
-    public PIDController getDriveController() { return drivePID.get(); }
-    public PIDController getTurnController() { return turnPID.get(); }
+    public PIDController getDriveController() { return drivePID; }
+    public PIDController getTurnController() { return turnPID; }
     public PipelineOption getPipeline() { return pipelines.get(selectedIndex); }
 
     public double getMaxDrivePower() { return getConstant(DRIVE_POWER_NAME); }
@@ -71,6 +72,12 @@ public class PhotonCameraModule extends BaseSubsystem {
         registerConstant(TIMEOUT_NAME, 500);
         registerConstant(DRIVE_POWER_NAME, PHOTON_DRIVE_MAX_SPEED);
         registerConstant(TURN_POWER_NAME, PHOTON_TURN_MAX_SPEED);
+
+        turnPID.enableContinuousInput(-180, 180);
+
+        setDashUpdate(() -> {
+            SmartDashboard.putString("Photon Pose", trackedPose == null ? "NONE" : trackedPose.toString());
+        });
     }
 
     @SuppressWarnings("unusedReturn")
@@ -127,6 +134,7 @@ public class PhotonCameraModule extends BaseSubsystem {
                 fO = transform.getRotation().toRotation2d();
             } else {
                 // We are using the shape method. Do the theorem to calculate.
+                /*
                 fX = PhotonUtils.calculateDistanceToTargetMeters(
                         cameraTransform.getZ(),
                         pipe.targetHeight(),
@@ -136,13 +144,19 @@ public class PhotonCameraModule extends BaseSubsystem {
                                 .getRadians(),
                         Units.degreesToRadians(target.getPitch())
                 );
-                fY = 0;
-                fO = Rotation2d.fromDegrees(target.getYaw());
+                 */
+                fX = target.getPitch();
+                fY = -target.getYaw();
+                fO = Rotation2d.fromDegrees(0);
+                //fO = Rotation2d.fromDegrees(target.getYaw());
                 aprilTag = null;
             }
 
             lastFoundMillis = System.currentTimeMillis();
-            trackedPose = new Transform2d(new Translation2d(fX, fY), fO);
+            trackedPose = new Transform2d(
+                    new Translation2d(fX, fY),
+                    fO
+            );
         } else {
             if (System.currentTimeMillis() >=
                     lastFoundMillis + getConstant(TIMEOUT_NAME)) {

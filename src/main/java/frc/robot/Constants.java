@@ -54,7 +54,7 @@ public class Constants {
         );
         public static final SubsystemConfig INTAKE = new SubsystemConfig(
                 "Intake",
-                true,
+                false,
                 false
         );
         public static final SubsystemConfig FINGER = new SubsystemConfig(
@@ -64,7 +64,7 @@ public class Constants {
         );
         public static final SubsystemConfig CLIMBER = new SubsystemConfig(
                 "Climber",
-                true,
+                false,
                 false
         );
         public static final SubsystemConfig SWERVE = new SubsystemConfig(
@@ -180,8 +180,8 @@ public class Constants {
         public static final double AUTO_DRIVE_MAX_SPEED = 0.5;
         public static final double AUTO_TURN_MAX_SPEED = 0.2;
 
-        public static final PIDConstants PHOTON_DRIVE_PID = new PIDConstants(0.05, 0, 0);
-        public static final PIDConstants PHOTON_TURN_PID = new PIDConstants(0.02, 0, 0);
+        public static final PIDConstants PHOTON_DRIVE_PID = new PIDConstants(0.3, 0, 0);
+        public static final PIDConstants PHOTON_TURN_PID = new PIDConstants(0.002, 0, 0);
 
         //public static final PIDConstants AUTO_DRIVE_PID = new PIDConstants(0.3, 0, 0);
         //public static final PIDConstants AUTO_TURN_PID = new PIDConstants(0.23, 0, 0);

@@ -23,7 +23,7 @@ import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 
 public class BaseSubsystem extends SubsystemBase {
     private final ArrayList<TunableNumber> numberTunes;
-    private final HashMap<String, PIDController> controllers;
+    //private final HashMap<String, PIDController> controllers;
     private final ArrayList<TunablePID> pidTunes;
     private final String name;
     private final CANSparkMax[] motors;
@@ -47,15 +47,14 @@ public class BaseSubsystem extends SubsystemBase {
         numberTunes.add(tune);
     }
 
-    public Supplier<PIDController> registerPID(String name, PIDConstants constants) {
+    public PIDController registerPID(String name, PIDConstants constants) {
         String pidName = this.name + "/" + name;
         TunablePID tune = new TunablePID(pidName, constants, tuningEnabled);
         PIDController controller = GlobalUtils.generateController(constants);
         tune.addConsumer(controller::setP, controller::setI, controller::setD);
 
         pidTunes.add(tune);
-        controllers.put(pidName, controller);
-        return () -> controllers.get(name);
+        return controller;
     }
 
     public double getConstant(String name) { return getConstant(name, 0); }
@@ -68,6 +67,7 @@ public class BaseSubsystem extends SubsystemBase {
         return defaultValue;
     }
 
+    /*
     public Optional<PIDController> getPID(String name) {
         for (Map.Entry<String, PIDController> entry : controllers.entrySet()) {
             if (entry.getKey().equalsIgnoreCase(this.name + "/" + name)) {
@@ -76,6 +76,8 @@ public class BaseSubsystem extends SubsystemBase {
         }
         return Optional.empty();
     }
+
+     */
 
     @SuppressWarnings("UnusedReturnValue")
     public boolean setConstant(String name, double value) {
@@ -97,7 +99,7 @@ public class BaseSubsystem extends SubsystemBase {
         this.motors = new CANSparkMax[ids.size()];
         this.numberTunes = new ArrayList<>();
         this.pidTunes = new ArrayList<>();
-        this.controllers = new HashMap<>();
+        //this.controllers = new HashMap<>();
 
         if (initSystems.contains(name)) {
             // Do not double-initialize!
@@ -168,6 +170,7 @@ public class BaseSubsystem extends SubsystemBase {
             }
             if (dashUpdate != null)
                 dashUpdate.run();
+            // TODO: make it a method overriden?
 
             nextUpdate = System.currentTimeMillis() + 1000;
         }

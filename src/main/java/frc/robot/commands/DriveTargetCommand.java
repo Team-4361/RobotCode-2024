@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.util.auto.PhotonCameraModule;
 
@@ -60,6 +61,7 @@ public class DriveTargetCommand extends Command {
             firstTarget = false;
 
         currentDistance = storedPose.get();
+        Robot.swerve.setChassisSpeeds(calculateSpeeds());
     }
 
     public boolean atTarget() {
@@ -86,16 +88,17 @@ public class DriveTargetCommand extends Command {
         double jY = MathUtil.clamp(driveController.calculate(currentDistance.getY(), targetDistance.getY()), -mXY, mXY);
         double jO = MathUtil.clamp(
                 turnController.calculate(
-                        currentDistance.getRotation().getRadians(),
-                        targetDistance.getRotation().getRadians()
+                        currentDistance.getRotation().getDegrees(),
+                        targetDistance.getRotation().getDegrees()%180
                 ),
                 -mO,
                 mO
         );
-        return new ChassisSpeeds(
+        return ChassisSpeeds.fromFieldRelativeSpeeds(
                 jX * Robot.swerve.getMaximumVelocity(),
                 jY * Robot.swerve.getMaximumVelocity(),
-                jO * Robot.swerve.getMaximumAngularVelocity()
+                jO * Robot.swerve.getMaximumAngularVelocity(),
+                Robot.swerve.getPose().getRotation()
         );
     }
     

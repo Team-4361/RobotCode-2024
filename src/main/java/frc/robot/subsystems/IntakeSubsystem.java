@@ -13,27 +13,30 @@ import static java.util.Map.entry;
 
 public class IntakeSubsystem extends BaseSubsystem {
     private final DigitalInput sensor;
-    private boolean sensorActivated;
+    private boolean sensorActivated = false;
 
     public IntakeSubsystem(){
         super(INTAKE, Map.ofEntries(
                 entry(INTAKE_MOTOR_ID, false))
         );
-        this.sensor = new DigitalInput(INTAKE_SENSOR_PORT);
-        setDashUpdate(()-> {
-            if (!RobotBase.isSimulation()) {
-                sensorActivated = sensor.get();
-            }
+        if (isEnabled()) {
+            this.sensor = new DigitalInput(INTAKE_SENSOR_PORT);
+            setDashUpdate(() -> {
+                if (!RobotBase.isSimulation()) {
+                    sensorActivated = sensor.get();
+                }
 
-            SmartDashboard.putBoolean("Intake: Has Note", hasNote());
-        });
+                SmartDashboard.putBoolean("Intake: Has Note", hasNote());
+            });
+        } else {
+            this.sensor = null;
+        }
         registerConstant("Speed", INTAKE_SPEED);
     }
     public boolean hasNote() { return !sensorActivated; }
     public void startNormal() { startAll(getTargetSpeed()); }
     public void startReverse() { startAll(-getTargetSpeed());}
-
-
+    
     public void setTargetSpeed(double speed) { setConstant("Speed", speed); }
     public double getTargetSpeed() { return getConstant("Speed"); }
 }

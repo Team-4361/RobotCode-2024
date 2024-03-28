@@ -42,8 +42,8 @@ import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.MACHIN
  */
 public class SwerveDriveSubsystem extends BaseSubsystem {
     private final Alert focDisabledAlert;
-    private final Supplier<PIDController> autoDrivePID;
-    private final Supplier<PIDController> autoTurnPID;
+    private final PIDController autoDrivePID;
+    private final PIDController autoTurnPID;
     //private final TunablePID autoDriveTune;
     //private final TunablePID autoTurnTune;
     //private final TunableNumber autoSpeedTune;
@@ -56,8 +56,8 @@ public class SwerveDriveSubsystem extends BaseSubsystem {
 
     private double maxAutoDriveSpeed = AUTO_DRIVE_MAX_SPEED;
 
-    public PIDController getAutoDrivePID() { return autoDrivePID.get(); }
-    public PIDController getAutoTurnPID() { return autoTurnPID.get(); }
+    public PIDController getAutoDrivePID() { return autoDrivePID; }
+    public PIDController getAutoTurnPID() { return autoTurnPID; }
 
     public void setMaxAutoDriveSpeed(double speed) { this.maxAutoDriveSpeed = speed; }
     public double getMaxAutoDriveSpeed() { return maxAutoDriveSpeed; }

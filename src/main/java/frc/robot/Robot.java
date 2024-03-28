@@ -158,7 +158,7 @@ public class Robot extends TimedRobot {
                 .addPipeline(new PipelineOption("AprilTag", 0, true, 0))
                 .addPipeline(new PipelineOption("Note", 1, false, 0));
 
-        shooterCamera.setPipeline(0);
+        shooterCamera.setPipeline(1);
 
         swerve = new SwerveDriveSubsystem();
 
@@ -236,9 +236,9 @@ public class Robot extends TimedRobot {
 
         leftStick.button(4).whileTrue(new DriveTargetCommand(shooterCamera,
                 new Transform2d(
-                        new Translation2d(2, 0),
+                        new Translation2d(0.2, 0),
                         new Rotation2d(0)
-                ), false
+                ), true
         ));
 
         xbox.b().whileTrue(new IntakeNoteCommand());
