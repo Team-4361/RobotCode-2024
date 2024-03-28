@@ -233,7 +233,7 @@ public class Robot extends TimedRobot {
                 () -> Robot.swerve.fieldOriented = false,
                 () -> Robot.swerve.fieldOriented = true
         ));
-        leftStick.button(3).whileTrue(new DriveTargetCommand(shooterCamera,
+        leftStick.button(3).whileTrue(new DriveTargetCommand(shooterCamera, 1,
                 new Transform2d(
                         new Translation2d(0.2, 0),
                         new Rotation2d(0)

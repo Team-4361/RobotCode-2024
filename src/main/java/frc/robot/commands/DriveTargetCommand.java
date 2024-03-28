@@ -24,14 +24,16 @@ public class DriveTargetCommand extends Command {
     private long initTimeout = System.currentTimeMillis() + 5000;
 
     public DriveTargetCommand(PhotonCameraModule module,
+                              int pipeline,
                               Transform2d targetDistance,
                               boolean stopOnEnd) {
-        addRequirements(Robot.swerve);
+        addRequirements(Robot.swerve, module);
         this.camera = module;
         this.targetDistance = targetDistance;
         this.noTarget = false;
         this.firstTarget = false;
         this.stopOnEnd = stopOnEnd;
+        module.setPipeline(pipeline);
     }
 
     @Override
