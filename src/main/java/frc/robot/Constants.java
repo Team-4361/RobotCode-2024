@@ -41,8 +41,13 @@ public class Constants {
      */
 
     public static class Systems {
-        public static final SubsystemConfig SHOOT_CAMERA = new SubsystemConfig(
-                "ShooterCamera",
+        public static final SubsystemConfig FRONT_CAMERA = new SubsystemConfig(
+                "FrontCamera",
+                true,
+                true
+        );
+        public static final SubsystemConfig SHOOTER_CAMERA = new SubsystemConfig(
+                "ShootCamera",
                 true,
                 true
         );
@@ -139,16 +144,13 @@ public class Constants {
     }
 
     public static class ShooterCamera {
-        public static final String SHOOT_CAMERA_NAME = "Microsoft_LifeCam_HD-3000";
-
-        public static final Transform3d BACK_CAMERA_TRANSFORM = new Transform3d(
-                new Translation3d(0, 0, 0.30),
+        public static final Transform3d SHOOT_CAMERA_TRANSFORM = new Transform3d(
+                new Translation3d(0, 0, 0),
                 new Rotation3d(0, 0, 0)
         );
-
-        public static final List<PipelineOption> SHOOT_PIPELINES = new ArrayList<>();
+        public static final List<PipelineOption> SHOOTER_PIPELINES = new ArrayList<>();
         static {
-            SHOOT_PIPELINES.add(new PipelineOption(
+            SHOOTER_PIPELINES.add(new PipelineOption(
                     "AprilTag",
                     0,
                     true,
@@ -156,9 +158,28 @@ public class Constants {
                     new PIDConstants(0.3, 0, 0),
                     new PIDConstants(0.01, 0, 0)
             ));
-            SHOOT_PIPELINES.add(new PipelineOption(
+        }
+    }
+
+    public static class FrontCamera {
+        public static final Transform3d FRONT_CAMERA_TRANSFORM = new Transform3d(
+                new Translation3d(
+                        Units.inchesToMeters(11),
+                        0,
+                        Units.inchesToMeters(18)
+                ),
+                new Rotation3d(
+                        Units.degreesToRadians(-30.0),
+                        0,
+                        0
+                )
+        );
+
+        public static final List<PipelineOption> FRONT_PIPELINES = new ArrayList<>();
+        static {
+            FRONT_PIPELINES.add(new PipelineOption(
                     "Note",
-                    1,
+                    0,
                     false,
                     0,
                     new PIDConstants(0.3, 0, 0),
@@ -194,9 +215,6 @@ public class Constants {
 
         public static final double PHOTON_DRIVE_MAX_SPEED = 0.5;
         public static final double PHOTON_TURN_MAX_SPEED = 0.2;
-
-        public static final PIDConstants PHOTON_DRIVE_PID = new PIDConstants(0.3, 0, 0);
-        public static final PIDConstants PHOTON_TURN_PID = new PIDConstants(0.002, 0, 0);
 
         public static final PIDConstants AUTO_DRIVE_PID = new PIDConstants(5.25, 0, 0);
         public static final PIDConstants AUTO_TURN_PID = new PIDConstants(4, 0, 0);

@@ -6,7 +6,6 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.util.auto.PhotonCameraModule;
 
@@ -48,7 +47,7 @@ public class DriveTargetCommand extends Command {
      */
     @Override
     public void execute() {
-        Optional<Transform2d> storedPose = Robot.shooterCamera.getTrackedDistance();
+        Optional<Transform2d> storedPose = Robot.frontCamera.getTrackedDistance();
 
         if (storedPose.isEmpty()) {
             Robot.swerve.stop();

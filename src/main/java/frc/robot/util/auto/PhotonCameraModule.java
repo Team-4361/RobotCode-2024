@@ -68,8 +68,8 @@ public class PhotonCameraModule extends BaseSubsystem {
 
         this.pipelines.addAll(pipelines);
 
-        this.drivePID = registerPID(DRIVE_PID_NAME, PHOTON_DRIVE_PID);
-        this.turnPID = registerPID(TURN_PID_NAME, PHOTON_TURN_PID);
+        this.drivePID = registerPID(DRIVE_PID_NAME, new PIDConstants(0, 0, 0));
+        this.turnPID = registerPID(TURN_PID_NAME, new PIDConstants(0, 0, 0));
         this.lastFoundMillis = System.currentTimeMillis();
         this.cameraTransform = transform;
 
@@ -157,6 +157,7 @@ public class PhotonCameraModule extends BaseSubsystem {
                         Units.degreesToRadians(target.getPitch())
                 );
                  */
+                Rotation3d camRotation = cameraTransform.getRotation();
                 fX = target.getPitch();
                 fY = -target.getYaw();
                 fO = Rotation2d.fromDegrees(0);

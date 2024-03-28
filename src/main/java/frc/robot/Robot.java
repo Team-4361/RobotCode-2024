@@ -13,7 +13,6 @@ import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.CvSource;
 import edu.wpi.first.cscore.UsbCamera;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -39,7 +38,6 @@ import frc.robot.commands.shooter.ShootCommand;
 import frc.robot.commands.shooter.SlowShootCommand;
 import frc.robot.subsystems.*;
 import frc.robot.util.auto.PhotonCameraModule;
-import frc.robot.util.auto.PipelineOption;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
@@ -56,11 +54,12 @@ import static frc.robot.Constants.Power.POWER_CAN_ID;
 import static frc.robot.Constants.Power.POWER_MODULE_TYPE;
 import static frc.robot.Constants.Presets.TRAP_PRESET_GROUP;
 import static frc.robot.Constants.Shooter.SHOOT_SPEED;
-import static frc.robot.Constants.ShooterCamera.*;
-import static frc.robot.Constants.Systems.SHOOT_CAMERA;
+import static frc.robot.Constants.FrontCamera.*;
+import static frc.robot.Constants.ShooterCamera.SHOOTER_PIPELINES;
+import static frc.robot.Constants.ShooterCamera.SHOOT_CAMERA_TRANSFORM;
+import static frc.robot.Constants.Systems.FRONT_CAMERA;
+import static frc.robot.Constants.Systems.SHOOTER_CAMERA;
 import static frc.robot.subsystems.ClimberSubsystem.MoveDirection.UP;
-import static frc.robot.util.auto.AprilTagID.BLUE_SPEAKER_MID;
-import static frc.robot.util.auto.AprilTagID.RED_SPEAKER_MID;
 import static frc.robot.util.math.GlobalUtils.deadband;
 
 
@@ -77,6 +76,7 @@ public class Robot extends TimedRobot {
 
     public static PowerDistribution pdh;
     public static SwerveDriveSubsystem swerve;
+    public static PhotonCameraModule frontCamera;
     public static PhotonCameraModule shooterCamera;
     public static ShooterSubsystem shooter;
     public static IntakeSubsystem intake;
@@ -154,8 +154,8 @@ public class Robot extends TimedRobot {
         climber = new ClimberSubsystem();
         arm = new FingerSubsystem();
 
-        shooterCamera = new PhotonCameraModule(SHOOT_CAMERA, BACK_CAMERA_TRANSFORM, SHOOT_PIPELINES);
-
+        frontCamera = new PhotonCameraModule(FRONT_CAMERA, FRONT_CAMERA_TRANSFORM, FRONT_PIPELINES);
+        shooterCamera = new PhotonCameraModule(SHOOTER_CAMERA, SHOOT_CAMERA_TRANSFORM, SHOOTER_PIPELINES);
         swerve = new SwerveDriveSubsystem();
 
         NamedCommands.registerCommand("IntakeCommand", new IntakeNoteCommand());
@@ -233,9 +233,15 @@ public class Robot extends TimedRobot {
                 () -> Robot.swerve.fieldOriented = false,
                 () -> Robot.swerve.fieldOriented = true
         ));
-        leftStick.button(3).whileTrue(new DriveTargetCommand(shooterCamera, 1,
+        leftStick.button(3).whileTrue(new DriveTargetCommand(frontCamera, 0,
                 new Transform2d(
                         new Translation2d(0.2, 0),
+                        new Rotation2d(0)
+                ), true
+        ));
+        leftStick.button(2).whileTrue(new DriveTargetCommand(shooterCamera, 0,
+                new Transform2d(
+                        new Translation2d(1, 0),
                         new Rotation2d(0)
                 ), true
         ));
