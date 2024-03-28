@@ -177,12 +177,20 @@ public class SwerveDriveSubsystem extends BaseSubsystem {
                                 DoubleSupplier translationY,
                                 DoubleSupplier angularRotationX) {
         return run(() -> {
+            double tX = translationX.getAsDouble();
+            double tY = translationY.getAsDouble();
+            double tO = angularRotationX.getAsDouble();
+            if (Robot.swerve.slowMode) {
+                tX /= 3;
+                tY /= 3;
+                tO /= 3;
+            }
             swerveDrive.drive(
                 new Translation2d(
-                        Math.pow(translationX.getAsDouble(), 3) * swerveDrive.getMaximumVelocity(),
-                        Math.pow(translationY.getAsDouble(), 3) * swerveDrive.getMaximumVelocity()
+                        Math.pow(tX, 3) * swerveDrive.getMaximumVelocity(),
+                        Math.pow(tY, 3) * swerveDrive.getMaximumVelocity()
                 ),
-                Math.pow(angularRotationX.getAsDouble(), 3) * swerveDrive.getMaximumAngularVelocity(),
+                Math.pow(tO, 3) * swerveDrive.getMaximumAngularVelocity(),
                 fieldOriented,
                 false
             );
