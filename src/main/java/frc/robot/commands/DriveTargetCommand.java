@@ -32,6 +32,7 @@ public class DriveTargetCommand extends Command {
         this.noTarget = false;
         this.firstTarget = false;
         this.stopOnEnd = stopOnEnd;
+        this.currentDistance = new Transform2d();
         module.setPipeline(pipeline);
     }
 

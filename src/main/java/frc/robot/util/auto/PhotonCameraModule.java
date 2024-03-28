@@ -42,41 +42,70 @@ public class PhotonCameraModule extends BaseSubsystem {
     private long lastFoundMillis;
     private int selectedIndex = 0;
 
-    public String getCameraName() { return camera.getName(); }
+    public String getCameraName() {
+        return camera.getName();
+    }
 
-    public Optional<AprilTagID> getAprilTag() { return Optional.ofNullable(aprilTag); }
-    public Optional<Transform2d> getTrackedDistance() { return Optional.ofNullable(trackedPose); }
+    public Optional<AprilTagID> getAprilTag() {
+        return Optional.ofNullable(aprilTag);
+    }
 
-    public PIDController getDriveController() { return drivePID; }
-    public PIDController getTurnController() { return turnPID; }
-    public PipelineOption getPipeline() { return pipelines.get(selectedIndex); }
+    public Optional<Transform2d> getTrackedDistance() {
+        return Optional.ofNullable(trackedPose);
+    }
 
-    public double getMaxDrivePower() { return getConstant(DRIVE_POWER_NAME); }
-    public double getMaxTurnPower() { return getConstant(TURN_POWER_NAME); }
+    public PIDController getDriveController() {
+        return drivePID;
+    }
 
-    public void setMaxDrivePower(double power) { setConstant(DRIVE_POWER_NAME, power); }
-    public void setMaxTurnPower(double power)  { setConstant(TURN_POWER_NAME, power);  }
+    public PIDController getTurnController() {
+        return turnPID;
+    }
+
+    public PipelineOption getPipeline() {
+        return pipelines.get(selectedIndex);
+    }
+
+    public double getMaxDrivePower() {
+        return getConstant(DRIVE_POWER_NAME);
+    }
+
+    public double getMaxTurnPower() {
+        return getConstant(TURN_POWER_NAME);
+    }
+
+    public void setMaxDrivePower(double power) {
+        setConstant(DRIVE_POWER_NAME, power);
+    }
+
+    public void setMaxTurnPower(double power) {
+        setConstant(TURN_POWER_NAME, power);
+    }
 
     // TODO: implement timeout!!!
 
     public PhotonCameraModule(SubsystemConfig config, Transform3d transform, List<PipelineOption> pipelines) {
         super(config, new HashMap<>());
 
-        this.camera = new PhotonCamera(config.name());
         this.pipelines = new ArrayList<>();
         this.trackedPose = new Transform2d();
-
+        this.lastFoundMillis = System.currentTimeMillis();
+        this.cameraTransform = transform;
         this.pipelines.addAll(pipelines);
 
         this.drivePID = registerPID(DRIVE_PID_NAME, new PIDConstants(0, 0, 0));
         this.turnPID = registerPID(TURN_PID_NAME, new PIDConstants(0, 0, 0));
-        this.lastFoundMillis = System.currentTimeMillis();
-        this.cameraTransform = transform;
 
         registerConstant(TIMEOUT_NAME, 500);
         registerConstant(DRIVE_POWER_NAME, PHOTON_DRIVE_MAX_SPEED);
         registerConstant(TURN_POWER_NAME, PHOTON_TURN_MAX_SPEED);
-        setPipeline(0);
+
+        if (isEnabled()) {
+            this.camera = new PhotonCamera(config.name());
+            setPipeline(0);
+        } else {
+            this.camera = null;
+        }
 
         turnPID.enableContinuousInput(-180, 180);
 
@@ -90,10 +119,12 @@ public class PhotonCameraModule extends BaseSubsystem {
         return this;
     }
 
-    public boolean setPipeline(PipelineOption pipe) { return setPipeline(pipe.name()); }
+    public boolean setPipeline(PipelineOption pipe) {
+        return setPipeline(pipe.name());
+    }
 
     public boolean setPipeline(String name) {
-        for (int i=0; i<pipelines.size(); i++) {
+        for (int i = 0; i < pipelines.size(); i++) {
             if (pipelines.get(i).name().equalsIgnoreCase(name)) {
                 setPipeline(i);
                 return true;
@@ -104,10 +135,11 @@ public class PhotonCameraModule extends BaseSubsystem {
 
     @SuppressWarnings("UnusedReturnValue")
     public boolean setPipeline(int index) {
-        if (index > pipelines.size()-1 || index < 0)
+        if (index > pipelines.size() - 1 || index < 0)
             return false;
         selectedIndex = index;
-        camera.setPipelineIndex(index);
+        if (camera != null)
+            camera.setPipelineIndex(index);
 
         // Update the Drive and Turn PID constants with their updated values.
         PipelineOption pipeline = getPipeline();
@@ -126,55 +158,53 @@ public class PhotonCameraModule extends BaseSubsystem {
         if (!isEnabled() || RobotBase.isSimulation())
             return;
 
-        PhotonPipelineResult result = camera.getLatestResult();
-
-        if (result.hasTargets()) {
-            PhotonTrackedTarget target = result.getBestTarget();
-
-            // If we are using AprilTags, calculate the transform from the "cameraToTarget"
-            PipelineOption pipe = getPipeline();
-            double fX, fY;
-            Rotation2d fO;
-
-            if (pipe.isAprilTag()) {
-                AprilTagID.fromID(target.getFiducialId())
-                        .ifPresent(o -> aprilTag = o);
-
-                Transform3d transform = target.getBestCameraToTarget();
-                fX = transform.getX();
-                fY = transform.getY();
-                fO = transform.getRotation().toRotation2d();
-            } else {
-                // We are using the shape method. Do the theorem to calculate.
-                /*
-                fX = PhotonUtils.calculateDistanceToTargetMeters(
-                        cameraTransform.getZ(),
-                        pipe.targetHeight(),
-                        cameraTransform
-                                .getRotation()
-                                .toRotation2d()
-                                .getRadians(),
-                        Units.degreesToRadians(target.getPitch())
-                );
-                 */
-                Rotation3d camRotation = cameraTransform.getRotation();
-                fX = target.getPitch();
-                fY = -target.getYaw();
-                fO = Rotation2d.fromDegrees(0);
-                //fO = Rotation2d.fromDegrees(target.getYaw());
-                aprilTag = null;
-            }
-
-            lastFoundMillis = System.currentTimeMillis();
-            trackedPose = new Transform2d(
-                    new Translation2d(fX, fY),
-                    fO
-            );
-        } else {
-            if (System.currentTimeMillis() >=
-                    lastFoundMillis + getConstant(TIMEOUT_NAME)) {
+        try {
+            if (camera == null) {
                 trackedPose = null;
+                return;
             }
+
+            PhotonPipelineResult result = camera.getLatestResult();
+
+            if (result.hasTargets()) {
+                PhotonTrackedTarget target = result.getBestTarget();
+
+                // If we are using AprilTags, calculate the transform from the "cameraToTarget"
+                PipelineOption pipe = getPipeline();
+                double fX, fY;
+                Rotation2d fO;
+
+                if (pipe.isAprilTag()) {
+                    AprilTagID.fromID(target.getFiducialId())
+                            .ifPresent(o -> aprilTag = o);
+
+                    Transform3d transform = target.getBestCameraToTarget();
+                    fX = transform.getX();
+                    fY = transform.getY();
+                    fO = transform.getRotation().toRotation2d();
+                } else {
+                    // We are using the shape method. Do the theorem to calculate.
+                    Rotation3d camRotation = cameraTransform.getRotation();
+                    fX = target.getPitch();
+                    fY = -target.getYaw();
+                    fO = Rotation2d.fromDegrees(0);
+                    //fO = Rotation2d.fromDegrees(target.getYaw());
+                    aprilTag = null;
+                }
+
+                lastFoundMillis = System.currentTimeMillis();
+                trackedPose = new Transform2d(
+                        new Translation2d(fX, fY),
+                        fO
+                );
+            } else {
+                if (System.currentTimeMillis() >=
+                        lastFoundMillis + getConstant(TIMEOUT_NAME)) {
+                    trackedPose = null;
+                }
+            }
+        } catch (Exception exception) {
+            trackedPose = null;
         }
     }
 }

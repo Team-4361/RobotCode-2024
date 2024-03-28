@@ -43,7 +43,7 @@ public class Constants {
     public static class Systems {
         public static final SubsystemConfig FRONT_CAMERA = new SubsystemConfig(
                 "FrontCamera",
-                true,
+                false,
                 true
         );
         public static final SubsystemConfig SHOOTER_CAMERA = new SubsystemConfig(
