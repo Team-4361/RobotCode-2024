@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 /**
  * This {@link PresetMap} is designed to hold various fixed positions of a mechanism. Functionality
  * is almost identical to a HashMap, except for (a) elements are stored in a consistent order -- and (b)
- * the index is saved and noted with various supporting methods.
+ * the cameraIndex is saved and noted with various supporting methods.
  *
  * @param <T> The type of values to hold.
  * @since 0.0.1
@@ -132,7 +132,7 @@ public class PresetMap<T> extends LinkedHashMap<String, T> implements IPresetCon
     }
 
     /**
-     * @param idx The index to check for.
+     * @param idx The cameraIndex to check for.
      * @return The assigned {@link String} name for the Preset or empty {@link String} if invalid.
      */
     public String getSelectedName(int idx) {

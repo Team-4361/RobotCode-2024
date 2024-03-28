@@ -7,9 +7,13 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import frc.robot.subsystems.base.SubsystemConfig;
+import frc.robot.util.auto.PipelineOption;
 import frc.robot.util.math.GearRatio;
 import frc.robot.util.preset.PresetGroup;
 import frc.robot.util.preset.PresetMap;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static edu.wpi.first.wpilibj.PowerDistribution.ModuleType.kRev;
 
@@ -92,7 +96,7 @@ public class Constants {
         public static final PIDConstants SHOOT_PID = new PIDConstants(0.1, 0, 0);
     }
 
-    /** This {@link Indexer} class represents all values regarding the {@link Robot}'s index mechanism. */
+    /** This {@link Indexer} class represents all values regarding the {@link Robot}'s cameraIndex mechanism. */
     public static class Indexer {
         public static final int INDEX_LEFT_MOTOR_ID = 11;
         public static final int INDEX_RIGHT_MOTOR_ID = 15;
@@ -141,6 +145,26 @@ public class Constants {
                 new Translation3d(0, 0, 0.30),
                 new Rotation3d(0, 0, 0)
         );
+
+        public static final List<PipelineOption> SHOOT_PIPELINES = new ArrayList<>();
+        static {
+            SHOOT_PIPELINES.add(new PipelineOption(
+                    "AprilTag",
+                    0,
+                    true,
+                    0,
+                    new PIDConstants(0.3, 0, 0),
+                    new PIDConstants(0.01, 0, 0)
+            ));
+            SHOOT_PIPELINES.add(new PipelineOption(
+                    "Note",
+                    1,
+                    false,
+                    0,
+                    new PIDConstants(0.3, 0, 0),
+                    new PIDConstants(0.002, 0, 0)
+            ));
+        }
     }
 
     public static class Presets {
@@ -164,12 +188,6 @@ public class Constants {
         );
     }
 
-    public static class FrontCamera {
-
-    }
-
-
-
     public static class Chassis {
         public static final double SIDE_LENGTH_METERS = Units.inchesToMeters(30);
         public static final double MAX_SPEED_MPS = 4.602;
@@ -177,14 +195,8 @@ public class Constants {
         public static final double PHOTON_DRIVE_MAX_SPEED = 0.5;
         public static final double PHOTON_TURN_MAX_SPEED = 0.2;
 
-        public static final double AUTO_DRIVE_MAX_SPEED = 0.5;
-        public static final double AUTO_TURN_MAX_SPEED = 0.2;
-
         public static final PIDConstants PHOTON_DRIVE_PID = new PIDConstants(0.3, 0, 0);
         public static final PIDConstants PHOTON_TURN_PID = new PIDConstants(0.002, 0, 0);
-
-        //public static final PIDConstants AUTO_DRIVE_PID = new PIDConstants(0.3, 0, 0);
-        //public static final PIDConstants AUTO_TURN_PID = new PIDConstants(0.23, 0, 0);
 
         public static final PIDConstants AUTO_DRIVE_PID = new PIDConstants(5.25, 0, 0);
         public static final PIDConstants AUTO_TURN_PID = new PIDConstants(4, 0, 0);

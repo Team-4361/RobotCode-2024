@@ -1,5 +1,6 @@
 package frc.robot.util.auto;
 
+import com.pathplanner.lib.util.PIDConstants;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.util.Units;
@@ -14,6 +15,7 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -57,27 +59,29 @@ public class PhotonCameraModule extends BaseSubsystem {
 
     // TODO: implement timeout!!!
 
-    public PhotonCameraModule(SubsystemConfig config, Transform3d transform) {
+    public PhotonCameraModule(SubsystemConfig config, Transform3d transform, List<PipelineOption> pipelines) {
         super(config, new HashMap<>());
 
         this.camera = new PhotonCamera(config.name());
         this.pipelines = new ArrayList<>();
+        this.trackedPose = new Transform2d();
+
+        this.pipelines.addAll(pipelines);
 
         this.drivePID = registerPID(DRIVE_PID_NAME, PHOTON_DRIVE_PID);
         this.turnPID = registerPID(TURN_PID_NAME, PHOTON_TURN_PID);
-        this.cameraTransform = transform;
-        this.trackedPose = new Transform2d();
         this.lastFoundMillis = System.currentTimeMillis();
+        this.cameraTransform = transform;
 
         registerConstant(TIMEOUT_NAME, 500);
         registerConstant(DRIVE_POWER_NAME, PHOTON_DRIVE_MAX_SPEED);
         registerConstant(TURN_POWER_NAME, PHOTON_TURN_MAX_SPEED);
+        setPipeline(0);
 
         turnPID.enableContinuousInput(-180, 180);
 
-        setDashUpdate(() -> {
-            SmartDashboard.putString("Photon Pose", trackedPose == null ? "NONE" : trackedPose.toString());
-        });
+        setDashUpdate(() ->
+                SmartDashboard.putString("Photon Pose", trackedPose == null ? "NONE" : trackedPose.toString()));
     }
 
     @SuppressWarnings("unusedReturn")
@@ -91,19 +95,27 @@ public class PhotonCameraModule extends BaseSubsystem {
     public boolean setPipeline(String name) {
         for (int i=0; i<pipelines.size(); i++) {
             if (pipelines.get(i).name().equalsIgnoreCase(name)) {
-                selectedIndex = i;
-                camera.setPipelineIndex(i);
+                setPipeline(i);
                 return true;
             }
         }
         return false;
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public boolean setPipeline(int index) {
         if (index > pipelines.size()-1 || index < 0)
             return false;
         selectedIndex = index;
         camera.setPipelineIndex(index);
+
+        // Update the Drive and Turn PID constants with their updated values.
+        PipelineOption pipeline = getPipeline();
+        PIDConstants dpConstants = pipeline.drivePID();
+        PIDConstants tpConstants = pipeline.turnPID();
+
+        drivePID.setPID(dpConstants.kP, dpConstants.kI, dpConstants.kD);
+        turnPID.setPID(tpConstants.kP, tpConstants.kI, tpConstants.kD);
         return true;
     }
 

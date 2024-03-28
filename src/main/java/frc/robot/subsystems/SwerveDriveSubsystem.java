@@ -42,25 +42,12 @@ import static swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity.MACHIN
  */
 public class SwerveDriveSubsystem extends BaseSubsystem {
     private final Alert focDisabledAlert;
-    private final PIDController autoDrivePID;
-    private final PIDController autoTurnPID;
-    //private final TunablePID autoDriveTune;
-    //private final TunablePID autoTurnTune;
-    //private final TunableNumber autoSpeedTune;
     private final SwerveDrive swerveDrive;
 
     public boolean fieldOriented = true;
     public boolean slowMode = false;
 
     public boolean hasResetGyro = false;
-
-    private double maxAutoDriveSpeed = AUTO_DRIVE_MAX_SPEED;
-
-    public PIDController getAutoDrivePID() { return autoDrivePID; }
-    public PIDController getAutoTurnPID() { return autoTurnPID; }
-
-    public void setMaxAutoDriveSpeed(double speed) { this.maxAutoDriveSpeed = speed; }
-    public double getMaxAutoDriveSpeed() { return maxAutoDriveSpeed; }
 
     public Pose2d getPose() { return swerveDrive.getPose(); }
     public ChassisSpeeds getRobotVelocity() { return swerveDrive.getRobotVelocity(); }
@@ -80,32 +67,12 @@ public class SwerveDriveSubsystem extends BaseSubsystem {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        this.autoDrivePID = registerPID("AutoDrive", AUTO_DRIVE_PID);
-        this.autoTurnPID = registerPID("AutoTurn", AUTO_TURN_PID);
         this.focDisabledAlert = new Alert("Swerve FOC disabled!", Alert.AlertType.WARNING);
-
-        registerConstant("ADSpeed", AUTO_DRIVE_MAX_SPEED);
 
         swerveDrive.setHeadingCorrection(false);
         swerveDrive.setCosineCompensator(false);
         swerveDrive.setMotorIdleMode(true);
         SwerveDriveTelemetry.verbosity = isTuningEnabled() ? HIGH : MACHINE;
-
-        /*
-        if (SWERVE_TUNING_ENABLED) {
-            this.autoDriveTune = new TunablePID("Swerve: Auto Drive PID", AUTO_DRIVE_PID);
-            this.autoTurnTune = new TunablePID("Swerve: Auto Turn PID", AUTO_TURN_PID);
-            this.autoSpeedTune = new TunableNumber("Swerve: AD Speed", AUTO_DRIVE_MAX_SPEED);
-
-            autoSpeedTune.addConsumer(this::setMaxAutoDriveSpeed);
-            autoDriveTune.addConsumer(autoDrivePID::setP, autoDrivePID::setI, autoDrivePID::setD);
-            autoTurnTune.addConsumer(autoTurnPID::setP, autoTurnPID::setI, autoTurnPID::setD);
-        } else {
-            autoDriveTune = null;
-            autoTurnTune = null;
-            autoSpeedTune = null;
-        }
-         */
 
         setDashUpdate(() -> {
             if (isTuningEnabled()) {

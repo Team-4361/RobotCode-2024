@@ -154,11 +154,7 @@ public class Robot extends TimedRobot {
         climber = new ClimberSubsystem();
         arm = new FingerSubsystem();
 
-        shooterCamera = new PhotonCameraModule(SHOOT_CAMERA, BACK_CAMERA_TRANSFORM)
-                .addPipeline(new PipelineOption("AprilTag", 0, true, 0))
-                .addPipeline(new PipelineOption("Note", 1, false, 0));
-
-        shooterCamera.setPipeline(1);
+        shooterCamera = new PhotonCameraModule(SHOOT_CAMERA, BACK_CAMERA_TRANSFORM, SHOOT_PIPELINES);
 
         swerve = new SwerveDriveSubsystem();
 
@@ -231,10 +227,13 @@ public class Robot extends TimedRobot {
         Robot.swerve.setDefaultCommand(teleopFlightDriveCommand);
 
         leftStick.button(11).onTrue(Robot.resetAllCommand());
-        //leftStick.button(12).onTrue(swerve.toggleFieldOrientedCommand());
         leftStick.trigger().whileTrue(swerve.toggleSlowModeCommand());
 
-        leftStick.button(4).whileTrue(new DriveTargetCommand(shooterCamera,
+        leftStick.button(4).whileTrue(Commands.runEnd(
+                () -> Robot.swerve.fieldOriented = false,
+                () -> Robot.swerve.fieldOriented = true
+        ));
+        leftStick.button(3).whileTrue(new DriveTargetCommand(shooterCamera,
                 new Transform2d(
                         new Translation2d(0.2, 0),
                         new Rotation2d(0)
