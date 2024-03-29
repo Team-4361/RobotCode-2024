@@ -140,8 +140,8 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void robotInit() {
-        if (!RobotBase.isSimulation())
-            startDriverCamera();
+        //if (!RobotBase.isSimulation())
+        //    startDriverCamera();
 
         leftStick = new CommandJoystick(LEFT_STICK_ID);
         rightStick = new CommandJoystick(RIGHT_STICK_ID);
