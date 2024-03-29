@@ -93,8 +93,8 @@ public class PhotonCameraModule extends BaseSubsystem {
         this.cameraTransform = transform;
         this.pipelines.addAll(pipelines);
 
-        this.drivePID = registerPID(DRIVE_PID_NAME, new PIDConstants(0, 0, 0));
-        this.turnPID = registerPID(TURN_PID_NAME, new PIDConstants(0, 0, 0));
+        this.drivePID = registerPID(DRIVE_PID_NAME, pipelines.get(0).drivePID());
+        this.turnPID = registerPID(TURN_PID_NAME, pipelines.get(0).turnPID());
 
         registerConstant(TIMEOUT_NAME, 500);
         registerConstant(DRIVE_POWER_NAME, PHOTON_DRIVE_MAX_SPEED);

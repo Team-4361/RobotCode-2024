@@ -19,6 +19,7 @@ public class DriveTargetCommand extends Command {
     private Transform2d currentDistance;
     private boolean noTarget;
     private boolean firstTarget;
+    private final int pipeline;
 
     private long initTimeout = System.currentTimeMillis() + 5000;
 
@@ -26,18 +27,19 @@ public class DriveTargetCommand extends Command {
                               int pipeline,
                               Transform2d targetDistance,
                               boolean stopOnEnd) {
-        addRequirements(Robot.swerve, module);
+        addRequirements(Robot.swerve);
         this.camera = module;
         this.targetDistance = targetDistance;
         this.noTarget = false;
         this.firstTarget = false;
         this.stopOnEnd = stopOnEnd;
-        this.currentDistance = new Transform2d();
-        module.setPipeline(pipeline);
+        this.pipeline = pipeline;
+        this.currentDistance = null;
     }
 
     @Override
     public void initialize() {
+        camera.setPipeline(pipeline);
         initTimeout = System.currentTimeMillis() + 5000;
         noTarget = false;
         firstTarget = true;
@@ -48,13 +50,13 @@ public class DriveTargetCommand extends Command {
      */
     @Override
     public void execute() {
-        Optional<Transform2d> storedPose = Robot.frontCamera.getTrackedDistance();
+        Optional<Transform2d> storedPose = camera.getTrackedDistance();
 
         if (storedPose.isEmpty()) {
             Robot.swerve.stop();
             if (!firstTarget && System.currentTimeMillis() > initTimeout) {
                 noTarget = true;
-                currentDistance = new Transform2d();
+                currentDistance = null;
             }
             return;
         }
@@ -67,6 +69,8 @@ public class DriveTargetCommand extends Command {
     }
 
     public boolean atTarget() {
+        if (currentDistance == null)
+            return false;
         return MathUtil.isNear(currentDistance.getX(), targetDistance.getX(), 0.1) &&
                 MathUtil.isNear(currentDistance.getY(), targetDistance.getY(), 0.1) &&
                 MathUtil.isNear(
@@ -80,6 +84,9 @@ public class DriveTargetCommand extends Command {
     }
 
     private ChassisSpeeds calculateSpeeds() {
+        if (currentDistance == null)
+            return new ChassisSpeeds();
+
         PIDController driveController = camera.getDriveController();
         PIDController turnController = camera.getTurnController();
 
@@ -96,12 +103,22 @@ public class DriveTargetCommand extends Command {
                 -mO,
                 mO
         );
+
         return ChassisSpeeds.fromFieldRelativeSpeeds(
                 jX * Robot.swerve.getMaximumVelocity(),
                 jY * Robot.swerve.getMaximumVelocity(),
                 jO * Robot.swerve.getMaximumAngularVelocity(),
                 Robot.swerve.getPose().getRotation()
         );
+
+        /*
+        return new ChassisSpeeds(
+                jX * Robot.swerve.getMaximumVelocity(),
+                jY * Robot.swerve.getMaximumVelocity(),
+                jO * Robot.swerve.getMaximumAngularVelocity()
+        );
+
+         */
     }
     
     /**

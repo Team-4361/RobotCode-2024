@@ -181,9 +181,9 @@ public class SwerveDriveSubsystem extends BaseSubsystem {
             double tY = translationY.getAsDouble();
             double tO = angularRotationX.getAsDouble();
             if (Robot.swerve.slowMode) {
-                tX /= 3;
-                tY /= 3;
-                tO /= 3;
+                tX /= 2;
+                tY /= 2;
+                tO /= 2;
             }
             swerveDrive.drive(
                 new Translation2d(

@@ -43,18 +43,18 @@ public class Constants {
     public static class Systems {
         public static final SubsystemConfig FRONT_CAMERA = new SubsystemConfig(
                 "FrontCamera",
-                false,
+                true,
                 true
         );
         public static final SubsystemConfig SHOOTER_CAMERA = new SubsystemConfig(
                 "ShootCamera",
-                true,
-                true
+                false,
+                false
         );
         public static final SubsystemConfig SHOOTER = new SubsystemConfig(
                 "Shooter",
                 true,
-                false
+                true
         );
         public static final SubsystemConfig INDEX = new SubsystemConfig(
                 "Index",
@@ -63,7 +63,7 @@ public class Constants {
         );
         public static final SubsystemConfig INTAKE = new SubsystemConfig(
                 "Intake",
-                false,
+                true,
                 false
         );
         public static final SubsystemConfig FINGER = new SubsystemConfig(
@@ -73,7 +73,7 @@ public class Constants {
         );
         public static final SubsystemConfig CLIMBER = new SubsystemConfig(
                 "Climber",
-                false,
+                true,
                 false
         );
         public static final SubsystemConfig SWERVE = new SubsystemConfig(
@@ -91,8 +91,8 @@ public class Constants {
 
     /** This {@link Shooter} class represents all values regarding the {@link Robot}'s shooting mechanism. */
     public static class Shooter {
-        public static final int SHOOT_LEFT_MOTOR_ID = 10;
-        public static final int SHOOT_RIGHT_MOTOR_ID = 16;
+        public static final int SHOOT_LEFT_MOTOR_ID = 16;
+        public static final int SHOOT_RIGHT_MOTOR_ID = 17;
         public static final long SHOOT_END_DELAY_MS = 750;
         public static final double SHOOT_SPEED = 1;
         public static final double SHOOT_IDLE_SPEED = 0;
@@ -128,7 +128,7 @@ public class Constants {
     }
 
     public static class TrapFinger {
-        public static final int ARM_EXTENSION_MOTOR_ID = 18;
+        public static final int ARM_EXTENSION_MOTOR_ID = 10;
         public static final double ARM_MAX_ROTATION = 12;
         public static final GearRatio ARM_GEAR_RATIO = GearRatio.from(12, 1);
         public static final PIDConstants ARM_EXTENSION_PID = new PIDConstants(0.015, 0, 0);
@@ -156,7 +156,7 @@ public class Constants {
                     true,
                     0,
                     new PIDConstants(0.3, 0, 0),
-                    new PIDConstants(0.01, 0, 0)
+                    new PIDConstants(0.001, 0, 0)
             ));
         }
     }
