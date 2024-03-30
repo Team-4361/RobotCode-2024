@@ -95,32 +95,20 @@ public class DriveTargetCommand extends Command {
 
         double jX = -MathUtil.clamp(driveController.calculate(currentDistance.getX(), targetDistance.getX()), -mXY, mXY);
         double jY = -MathUtil.clamp(driveController.calculate(currentDistance.getY(), targetDistance.getY()), -mXY, mXY);
-        double jO = MathUtil.clamp(
+        double jO = -MathUtil.clamp(
                 turnController.calculate(
                         currentDistance.getRotation().getDegrees(),
-                        targetDistance.getRotation().getDegrees()%180
+                        targetDistance.getRotation().getDegrees()
                 ),
                 -mO,
                 mO
         );
 
-        
-        return ChassisSpeeds.fromFieldRelativeSpeeds(
-                jX * Robot.swerve.getMaximumVelocity(),
-                jY * Robot.swerve.getMaximumVelocity(),
-                jO * Robot.swerve.getMaximumAngularVelocity(),
-                Robot.swerve.getPose().getRotation()
-        );
-        
-
-        /* 
         return new ChassisSpeeds(
                 jX * Robot.swerve.getMaximumVelocity(),
                 jY * Robot.swerve.getMaximumVelocity(),
                 jO * Robot.swerve.getMaximumAngularVelocity()
         );
-        */
-        
     }
     
     /**

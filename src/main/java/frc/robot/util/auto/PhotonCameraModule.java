@@ -42,47 +42,19 @@ public class PhotonCameraModule extends BaseSubsystem {
     private long lastFoundMillis;
     private int selectedIndex = 0;
 
-    public String getCameraName() {
-        return camera.getName();
-    }
+    public String getCameraName() { return camera.getName(); }
 
-    public Optional<AprilTagID> getAprilTag() {
-        return Optional.ofNullable(aprilTag);
-    }
+    public Optional<AprilTagID> getAprilTag() { return Optional.ofNullable(aprilTag); }
+    public Optional<Transform2d> getTrackedDistance() { return Optional.ofNullable(trackedPose); }
 
-    public Optional<Transform2d> getTrackedDistance() {
-        return Optional.ofNullable(trackedPose);
-    }
+    public PIDController getDriveController() { return drivePID; }
+    public PIDController getTurnController() { return turnPID; }
+    public PipelineOption getPipeline() { return pipelines.get(selectedIndex); }
 
-    public PIDController getDriveController() {
-        return drivePID;
-    }
-
-    public PIDController getTurnController() {
-        return turnPID;
-    }
-
-    public PipelineOption getPipeline() {
-        return pipelines.get(selectedIndex);
-    }
-
-    public double getMaxDrivePower() {
-        return getConstant(DRIVE_POWER_NAME);
-    }
-
-    public double getMaxTurnPower() {
-        return getConstant(TURN_POWER_NAME);
-    }
-
-    public void setMaxDrivePower(double power) {
-        setConstant(DRIVE_POWER_NAME, power);
-    }
-
-    public void setMaxTurnPower(double power) {
-        setConstant(TURN_POWER_NAME, power);
-    }
-
-    // TODO: implement timeout!!!
+    public double getMaxDrivePower() { return getConstant(DRIVE_POWER_NAME); }
+    public double getMaxTurnPower() { return getConstant(TURN_POWER_NAME); }
+    public void setMaxDrivePower(double power) { setConstant(DRIVE_POWER_NAME, power); }
+    public void setMaxTurnPower(double power) { setConstant(TURN_POWER_NAME, power); }
 
     public PhotonCameraModule(SubsystemConfig config, Transform3d transform, List<PipelineOption> pipelines) {
         super(config, new HashMap<>());
@@ -100,14 +72,7 @@ public class PhotonCameraModule extends BaseSubsystem {
         registerConstant(DRIVE_POWER_NAME, PHOTON_DRIVE_MAX_SPEED);
         registerConstant(TURN_POWER_NAME, PHOTON_TURN_MAX_SPEED);
 
-        if (isEnabled()) {
-            this.camera = new PhotonCamera(config.name());
-            setPipeline(0);
-        } else {
-            this.camera = null;
-        }
-
-        turnPID.enableContinuousInput(-180, 180);
+        this.camera = isEnabled() ? new PhotonCamera(config.name()) : null;
 
         setDashUpdate(() ->
                 SmartDashboard.putString("Photon Pose", trackedPose == null ? "NONE" : trackedPose.toString()));
@@ -119,9 +84,7 @@ public class PhotonCameraModule extends BaseSubsystem {
         return this;
     }
 
-    public boolean setPipeline(PipelineOption pipe) {
-        return setPipeline(pipe.name());
-    }
+    public boolean setPipeline(PipelineOption pipe) { return setPipeline(pipe.name()); }
 
     public boolean setPipeline(String name) {
         for (int i = 0; i < pipelines.size(); i++) {
@@ -183,12 +146,24 @@ public class PhotonCameraModule extends BaseSubsystem {
                     fY = transform.getY();
                     fO = transform.getRotation().toRotation2d();
                 } else {
-                    // We are using the shape method. Do the theorem to calculate.
+                    // We are using the shape method. Do the theorem to calculate
+                    /*
                     Rotation3d camRotation = cameraTransform.getRotation();
                     fX = target.getPitch();
-                    fY = -target.getYaw();
+                    fY = target.getYaw();
                     fO = Rotation2d.fromDegrees(0);
                     //fO = Rotation2d.fromDegrees(target.getYaw());
+                     */
+                    fX = PhotonUtils.calculateDistanceToTargetMeters(
+                            cameraTransform.getZ(),
+                            pipe.targetHeight(),
+                            cameraTransform
+                                    .getRotation()
+                                    .getY(),
+                            0
+                    );
+                    fO = Rotation2d.fromDegrees(target.getYaw());
+                    fY = 0;
                     aprilTag = null;
                 }
 
