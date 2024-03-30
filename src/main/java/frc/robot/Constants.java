@@ -53,27 +53,27 @@ public class Constants {
         );
         public static final SubsystemConfig SHOOTER = new SubsystemConfig(
                 "Shooter",
-                true,
+                false,
                 true
         );
         public static final SubsystemConfig INDEX = new SubsystemConfig(
                 "Index",
-                true,
+                false,
                 false
         );
         public static final SubsystemConfig INTAKE = new SubsystemConfig(
                 "Intake",
-                true,
+                false,
                 false
         );
         public static final SubsystemConfig FINGER = new SubsystemConfig(
                 "Finger",
-                true,
+                false,
                 false
         );
         public static final SubsystemConfig CLIMBER = new SubsystemConfig(
                 "Climber",
-                true,
+                false,
                 false
         );
         public static final SubsystemConfig SWERVE = new SubsystemConfig(

@@ -115,6 +115,8 @@ public class BaseSubsystem extends SubsystemBase {
             return 0;
         double sum = 0;
         for (CANSparkMax motor : motors) {
+            if (motor == null)
+                continue;
             RelativeEncoder encoder = motor.getEncoder();
             sum += Math.abs(encoder.getVelocity());
         }
@@ -124,13 +126,19 @@ public class BaseSubsystem extends SubsystemBase {
     public boolean isTuningEnabled() { return this.tuningEnabled; }
 
     public void stop() {
-        for (CANSparkMax motor : motors)
+        for (CANSparkMax motor : motors) {
+            if (motor == null)
+                continue;
             motor.stopMotor();
+        }
     }
 
     protected void startAll(double speed) {
-        for (CANSparkMax motor : motors)
+        for (CANSparkMax motor : motors) {
+            if (motor == null)
+                continue;
             motor.set(speed);
+        }
     }
 
     protected void stopAll() { startAll(0); }
@@ -139,6 +147,8 @@ public class BaseSubsystem extends SubsystemBase {
     protected boolean setIndex(int idx, double speed) {
         if (idx > motors.length-1)
             return false;
+        if (motors[idx] == null)
+            return true;
         motors[idx].set(speed);
         return true;
     }
@@ -153,8 +163,11 @@ public class BaseSubsystem extends SubsystemBase {
                     tune.update();
                 for (TunablePID pidTune : pidTunes)
                     pidTune.update();
-                for (int i = 0; i < motors.length; i++)
+                for (int i = 0; i < motors.length; i++) {
+                    if (motors[i] == null)
+                        continue;
                     SmartDashboard.putNumber(name + "/Motor " + i + " Amps", motors[i].getOutputCurrent());
+                }
             }
             if (dashUpdate != null)
                 dashUpdate.run();
