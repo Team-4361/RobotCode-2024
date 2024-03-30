@@ -32,7 +32,7 @@ public class SlowShootCommand extends Command {
 
         Robot.shooter.setEnabled(true);
 
-        endMillis = System.currentTimeMillis() + 1350;
+        endMillis = System.currentTimeMillis() + 500;
     }
 
     /**

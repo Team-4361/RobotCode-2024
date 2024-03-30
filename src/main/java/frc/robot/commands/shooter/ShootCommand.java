@@ -46,7 +46,7 @@ public class ShootCommand extends Command {
      */
     @Override
     public void execute() { 
-        if (Robot.shooter.getRPM() >= (shootSpeed*4950) || System.currentTimeMillis() >= (timeoutMillis-1500)) {
+        if (Robot.shooter.getRPM() >= (shootSpeed*4900) || System.currentTimeMillis() >= (timeoutMillis-1500)) {
             Robot.index.startNormal();
             Robot.intake.startNormal();
             if (endMillis == 0)

@@ -38,7 +38,7 @@ public class ShooterSubsystem extends BaseSubsystem {
     @Override
     public void periodic() {
         SmartDashboard.putNumber("Shooter RPM", getRPM());
-        SmartDashboard.putBoolean("Shooter At Target", atTarget(5000));
+        SmartDashboard.putBoolean("Shooter At Target", atTarget(4900));
 
         if (DriverStation.isAutonomousEnabled()) {
             start();

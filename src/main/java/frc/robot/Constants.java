@@ -79,7 +79,7 @@ public class Constants {
         public static final SubsystemConfig SWERVE = new SubsystemConfig(
                 "Swerve",
                 true,
-                false
+                true
         );
     }
 
@@ -129,7 +129,7 @@ public class Constants {
 
     public static class TrapFinger {
         public static final int ARM_EXTENSION_MOTOR_ID = 10;
-        public static final double ARM_MAX_ROTATION = 12;
+        public static final double ARM_MAX_ROTATION = 102;
         public static final GearRatio ARM_GEAR_RATIO = GearRatio.from(12, 1);
         public static final PIDConstants ARM_EXTENSION_PID = new PIDConstants(0.015, 0, 0);
     }
@@ -182,6 +182,14 @@ public class Constants {
                     0,
                     false,
                     0,
+                    new PIDConstants(0.1, 0, 0),
+                    new PIDConstants(0.0001, 0, 0)
+            ));
+            FRONT_PIPELINES.add(new PipelineOption(
+                    "AprilTag",
+                    1,
+                    true,
+                    0,
                     new PIDConstants(0.3, 0, 0),
                     new PIDConstants(0.002, 0, 0)
             ));
@@ -216,7 +224,7 @@ public class Constants {
         public static final double PHOTON_DRIVE_MAX_SPEED = 0.5;
         public static final double PHOTON_TURN_MAX_SPEED = 0.2;
 
-        public static final PIDConstants AUTO_DRIVE_PID = new PIDConstants(5.25, 0, 0);
-        public static final PIDConstants AUTO_TURN_PID = new PIDConstants(4, 0, 0);
+        public static final PIDConstants AUTO_DRIVE_PID = new PIDConstants(7, 0, 0.15);
+        public static final PIDConstants AUTO_TURN_PID = new PIDConstants(4.25, 0, 0);
     }
 }

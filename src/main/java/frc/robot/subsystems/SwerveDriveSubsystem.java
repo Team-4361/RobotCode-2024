@@ -69,7 +69,7 @@ public class SwerveDriveSubsystem extends BaseSubsystem {
         }
         this.focDisabledAlert = new Alert("Swerve FOC disabled!", Alert.AlertType.WARNING);
 
-        swerveDrive.setHeadingCorrection(false);
+        swerveDrive.setHeadingCorrection(true);
         swerveDrive.setCosineCompensator(false);
         swerveDrive.setMotorIdleMode(true);
         SwerveDriveTelemetry.verbosity = isTuningEnabled() ? HIGH : MACHINE;
@@ -192,7 +192,7 @@ public class SwerveDriveSubsystem extends BaseSubsystem {
                 ),
                 Math.pow(tO, 3) * swerveDrive.getMaximumAngularVelocity(),
                 fieldOriented,
-                false
+                true
             );
         });
     }

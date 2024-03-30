@@ -93,8 +93,8 @@ public class DriveTargetCommand extends Command {
         double mXY = camera.getMaxDrivePower();
         double mO = camera.getMaxTurnPower();
 
-        double jX = MathUtil.clamp(driveController.calculate(currentDistance.getX(), targetDistance.getX()), -mXY, mXY);
-        double jY = MathUtil.clamp(driveController.calculate(currentDistance.getY(), targetDistance.getY()), -mXY, mXY);
+        double jX = -MathUtil.clamp(driveController.calculate(currentDistance.getX(), targetDistance.getX()), -mXY, mXY);
+        double jY = -MathUtil.clamp(driveController.calculate(currentDistance.getY(), targetDistance.getY()), -mXY, mXY);
         double jO = MathUtil.clamp(
                 turnController.calculate(
                         currentDistance.getRotation().getDegrees(),
@@ -104,21 +104,23 @@ public class DriveTargetCommand extends Command {
                 mO
         );
 
+        
         return ChassisSpeeds.fromFieldRelativeSpeeds(
                 jX * Robot.swerve.getMaximumVelocity(),
                 jY * Robot.swerve.getMaximumVelocity(),
                 jO * Robot.swerve.getMaximumAngularVelocity(),
                 Robot.swerve.getPose().getRotation()
         );
+        
 
-        /*
+        /* 
         return new ChassisSpeeds(
                 jX * Robot.swerve.getMaximumVelocity(),
                 jY * Robot.swerve.getMaximumVelocity(),
                 jO * Robot.swerve.getMaximumAngularVelocity()
         );
-
-         */
+        */
+        
     }
     
     /**
