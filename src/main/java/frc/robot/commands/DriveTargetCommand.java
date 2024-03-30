@@ -12,34 +12,33 @@ import frc.robot.util.auto.PhotonCameraModule;
 import java.util.Optional;
 
 public class DriveTargetCommand extends Command {
-    private final Transform2d targetDistance;
     private final PhotonCameraModule camera;
     private final boolean stopOnEnd;
 
-    private Transform2d currentDistance;
     private boolean noTarget;
     private boolean firstTarget;
     private final int pipeline;
+    private final Transform2d target;
 
     private long initTimeout = System.currentTimeMillis() + 5000;
 
     public DriveTargetCommand(PhotonCameraModule module,
                               int pipeline,
-                              Transform2d targetDistance,
+                              Transform2d target,
                               boolean stopOnEnd) {
-        addRequirements(Robot.swerve);
+        addRequirements(Robot.swerve, module);
         this.camera = module;
-        this.targetDistance = targetDistance;
         this.noTarget = false;
         this.firstTarget = false;
+        this.target = target;
         this.stopOnEnd = stopOnEnd;
         this.pipeline = pipeline;
-        this.currentDistance = null;
     }
 
     @Override
     public void initialize() {
         camera.setPipeline(pipeline);
+        camera.setTarget(target);
         initTimeout = System.currentTimeMillis() + 5000;
         noTarget = false;
         firstTarget = true;
@@ -50,13 +49,10 @@ public class DriveTargetCommand extends Command {
      */
     @Override
     public void execute() {
-        Optional<Transform2d> storedPose = camera.getTrackedDistance();
-
-        if (storedPose.isEmpty()) {
+        if (!camera.hasTarget()) {
             Robot.swerve.stop();
             if (!firstTarget && System.currentTimeMillis() > initTimeout) {
                 noTarget = true;
-                currentDistance = null;
             }
             return;
         }
@@ -64,51 +60,7 @@ public class DriveTargetCommand extends Command {
         if (firstTarget)
             firstTarget = false;
 
-        currentDistance = storedPose.get();
-        Robot.swerve.setChassisSpeeds(calculateSpeeds());
-    }
-
-    public boolean atTarget() {
-        if (currentDistance == null)
-            return false;
-        return MathUtil.isNear(currentDistance.getX(), targetDistance.getX(), 0.1) &&
-                MathUtil.isNear(currentDistance.getY(), targetDistance.getY(), 0.1) &&
-                MathUtil.isNear(
-                        currentDistance
-                                .getRotation()
-                                .getRadians(),
-                        targetDistance
-                                .getRotation()
-                                .getRadians(),
-                        0.1);
-    }
-
-    private ChassisSpeeds calculateSpeeds() {
-        if (currentDistance == null)
-            return new ChassisSpeeds();
-
-        PIDController driveController = camera.getDriveController();
-        PIDController turnController = camera.getTurnController();
-
-        double mXY = camera.getMaxDrivePower();
-        double mO = camera.getMaxTurnPower();
-
-        double jX = -MathUtil.clamp(driveController.calculate(currentDistance.getX(), targetDistance.getX()), -mXY, mXY);
-        double jY = -MathUtil.clamp(driveController.calculate(currentDistance.getY(), targetDistance.getY()), -mXY, mXY);
-        double jO = -MathUtil.clamp(
-                turnController.calculate(
-                        currentDistance.getRotation().getDegrees(),
-                        targetDistance.getRotation().getDegrees()
-                ),
-                -mO,
-                mO
-        );
-
-        return new ChassisSpeeds(
-                jX * Robot.swerve.getMaximumVelocity(),
-                jY * Robot.swerve.getMaximumVelocity(),
-                jO * Robot.swerve.getMaximumAngularVelocity()
-        );
+        Robot.swerve.setChassisSpeeds(camera.getNextTargetSpeeds());
     }
     
     /**
@@ -136,11 +88,5 @@ public class DriveTargetCommand extends Command {
      * @return whether the command has finished.
      */
     @Override
-    public boolean isFinished() {
-        if (stopOnEnd) {
-            return noTarget || atTarget();
-        } else {
-            return false;
-        }
-    }
+    public boolean isFinished() { return stopOnEnd && (noTarget || camera.atTarget()); }
 }

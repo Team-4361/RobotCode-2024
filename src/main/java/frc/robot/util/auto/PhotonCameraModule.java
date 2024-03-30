@@ -1,15 +1,16 @@
 package frc.robot.util.auto;
 
 import com.pathplanner.lib.util.PIDConstants;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.*;
-import edu.wpi.first.math.util.Units;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.Robot;
 import frc.robot.subsystems.base.BaseSubsystem;
 import frc.robot.subsystems.base.SubsystemConfig;
 import org.photonvision.PhotonCamera;
-import org.photonvision.PhotonUtils;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
@@ -17,7 +18,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 import static frc.robot.Constants.Chassis.*;
 
@@ -38,14 +38,17 @@ public class PhotonCameraModule extends BaseSubsystem {
     private final PhotonCamera camera;
 
     private Transform2d trackedPose;
+    private Transform2d targetPose;
     private AprilTagID aprilTag;
     private long lastFoundMillis;
+    private long nextCheckMillis;
     private int selectedIndex = 0;
 
     public String getCameraName() { return camera.getName(); }
 
     public Optional<AprilTagID> getAprilTag() { return Optional.ofNullable(aprilTag); }
     public Optional<Transform2d> getTrackedDistance() { return Optional.ofNullable(trackedPose); }
+    public Optional<Transform2d> getTarget() { return Optional.ofNullable(targetPose); }
 
     public PIDController getDriveController() { return drivePID; }
     public PIDController getTurnController() { return turnPID; }
@@ -55,6 +58,8 @@ public class PhotonCameraModule extends BaseSubsystem {
     public double getMaxTurnPower() { return getConstant(TURN_POWER_NAME); }
     public void setMaxDrivePower(double power) { setConstant(DRIVE_POWER_NAME, power); }
     public void setMaxTurnPower(double power) { setConstant(TURN_POWER_NAME, power); }
+
+    public boolean hasTarget() { return trackedPose != null; }
 
     public PhotonCameraModule(SubsystemConfig config, Transform3d transform, List<PipelineOption> pipelines) {
         super(config, new HashMap<>());
@@ -76,8 +81,10 @@ public class PhotonCameraModule extends BaseSubsystem {
 
         turnPID.enableContinuousInput(0, 180);
 
-        setDashUpdate(() ->
-                SmartDashboard.putString(getCameraName() + "/Photon Pose", trackedPose == null ? "NONE" : trackedPose.toString()));
+        setDashUpdate(() -> {
+            SmartDashboard.putString(getCameraName() + "/Photon Pose", trackedPose == null ? "NONE" : trackedPose.toString());
+            SmartDashboard.putBoolean(getCameraName() + "/Rot Target", atRotationTarget());
+        });
     }
 
     @SuppressWarnings("unusedReturn")
@@ -96,6 +103,53 @@ public class PhotonCameraModule extends BaseSubsystem {
             }
         }
         return false;
+    }
+
+    public void setTarget(Transform2d target) { this.targetPose = target; }
+
+    public boolean atRotationTarget() {
+        if (targetPose == null || trackedPose == null)
+            return false;
+        return MathUtil.isNear(
+                trackedPose
+                        .getRotation()
+                        .getDegrees()%180,
+                targetPose
+                        .getRotation()
+                        .getDegrees()%180,
+                2);
+    }
+
+    public boolean atTarget() {
+        if (targetPose == null || trackedPose == null)
+            return false;
+        return MathUtil.isNear(trackedPose.getX(), targetPose.getX(), 0.1) &&
+                MathUtil.isNear(trackedPose.getY(), targetPose.getY(), 0.1) &&
+                atRotationTarget();
+    }
+
+    public ChassisSpeeds getNextTargetSpeeds() {
+        if (trackedPose == null || targetPose == null)
+            return new ChassisSpeeds();
+
+        double mXY = getMaxDrivePower();
+        double mO = getMaxTurnPower();
+        double jX = -MathUtil.clamp(drivePID.calculate(trackedPose.getX(), targetPose.getX()), -mXY, mXY);
+        double jY = -MathUtil.clamp(drivePID.calculate(trackedPose.getY(), targetPose.getY()), -mXY, mXY);
+        double jO = -MathUtil.clamp(
+                turnPID.calculate(
+                        trackedPose.getRotation().getDegrees(),
+                        targetPose.getRotation().getDegrees()
+                ),
+                -mO,
+                mO
+        );
+
+        return new ChassisSpeeds(
+                jX * Robot.swerve.getMaximumVelocity(),
+                jY * Robot.swerve.getMaximumVelocity(),
+                jO * Robot.swerve.getMaximumAngularVelocity()
+        );
     }
 
     @SuppressWarnings("UnusedReturnValue")
@@ -118,6 +172,7 @@ public class PhotonCameraModule extends BaseSubsystem {
             syncDashboardPID(DRIVE_PID_NAME, drivePID);
             syncDashboardPID(TURN_PID_NAME, turnPID);
             trackedPose = null;
+            nextCheckMillis = System.currentTimeMillis() + (long)getConstant(TIMEOUT_NAME);
         }
         return true;
     }
@@ -127,6 +182,9 @@ public class PhotonCameraModule extends BaseSubsystem {
         super.periodic();
 
         if (!isEnabled() || RobotBase.isSimulation())
+            return;
+
+        if (System.currentTimeMillis() < nextCheckMillis)
             return;
 
         try {
@@ -192,5 +250,6 @@ public class PhotonCameraModule extends BaseSubsystem {
         } catch (Exception exception) {
             trackedPose = null;
         }
+        nextCheckMillis = System.currentTimeMillis();
     }
 }

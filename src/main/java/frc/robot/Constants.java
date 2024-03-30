@@ -68,7 +68,7 @@ public class Constants {
         public static final SubsystemConfig SWERVE = new SubsystemConfig(
                 "Swerve",
                 MK4_CHASSIS,
-                true
+                false
         );
     }
 
@@ -171,7 +171,7 @@ public class Constants {
                     0,
                     false,
                     0,
-                    new PIDConstants(0.01, 0, 0),
+                    new PIDConstants(0.02, 0, 0),
                     new PIDConstants(0.0045, 0, 0)
             ));
             FRONT_PIPELINES.add(new PipelineOption(
