@@ -240,7 +240,7 @@ public class Robot extends TimedRobot {
                 ), true
         ));
 
-        leftStick.button(5).whileTrue(new DriveTargetCommand(frontCamera, 1,
+        leftStick.button(5).whileTrue(new DriveTargetCommand(shooterCamera, 0,
                 new Transform2d(
                         new Translation2d(1, 0),
                         new Rotation2d(0)
