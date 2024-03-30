@@ -67,18 +67,6 @@ public class BaseSubsystem extends SubsystemBase {
         return defaultValue;
     }
 
-    /*
-    public Optional<PIDController> getPID(String name) {
-        for (Map.Entry<String, PIDController> entry : controllers.entrySet()) {
-            if (entry.getKey().equalsIgnoreCase(this.name + "/" + name)) {
-                return Optional.of(entry.getValue());
-            }
-        }
-        return Optional.empty();
-    }
-
-     */
-
     @SuppressWarnings("UnusedReturnValue")
     public boolean setConstant(String name, double value) {
         for (TunableNumber number : numberTunes) {
