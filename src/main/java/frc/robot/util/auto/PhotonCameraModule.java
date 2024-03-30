@@ -74,8 +74,10 @@ public class PhotonCameraModule extends BaseSubsystem {
 
         this.camera = isEnabled() ? new PhotonCamera(config.name()) : null;
 
+        turnPID.enableContinuousInput(0, 180);
+
         setDashUpdate(() ->
-                SmartDashboard.putString("Photon Pose", trackedPose == null ? "NONE" : trackedPose.toString()));
+                SmartDashboard.putString(getCameraName() + "/Photon Pose", trackedPose == null ? "NONE" : trackedPose.toString()));
     }
 
     @SuppressWarnings("unusedReturn")
@@ -109,8 +111,14 @@ public class PhotonCameraModule extends BaseSubsystem {
         PIDConstants dpConstants = pipeline.drivePID();
         PIDConstants tpConstants = pipeline.turnPID();
 
-        drivePID.setPID(dpConstants.kP, dpConstants.kI, dpConstants.kD);
-        turnPID.setPID(tpConstants.kP, tpConstants.kI, tpConstants.kD);
+        if (camera != null && index != camera.getPipelineIndex()) {
+            drivePID.setPID(dpConstants.kP, dpConstants.kI, dpConstants.kD);
+            turnPID.setPID(tpConstants.kP, tpConstants.kI, tpConstants.kD);
+
+            syncDashboardPID(DRIVE_PID_NAME, drivePID);
+            syncDashboardPID(TURN_PID_NAME, turnPID);
+            trackedPose = null;
+        }
         return true;
     }
 
@@ -147,23 +155,26 @@ public class PhotonCameraModule extends BaseSubsystem {
                     fO = transform.getRotation().toRotation2d();
                 } else {
                     // We are using the shape method. Do the theorem to calculate
-                    /*
+
                     Rotation3d camRotation = cameraTransform.getRotation();
                     fX = target.getPitch();
-                    fY = target.getYaw();
-                    fO = Rotation2d.fromDegrees(0);
+                    fY = 0;
+                    fO = Rotation2d.fromDegrees(-target.getYaw());
                     //fO = Rotation2d.fromDegrees(target.getYaw());
-                     */
+
+                    /*
                     fX = PhotonUtils.calculateDistanceToTargetMeters(
                             cameraTransform.getZ(),
                             pipe.targetHeight(),
                             cameraTransform
                                     .getRotation()
                                     .getY(),
-                            0
+                            Units.degreesToRadians(target.getPitch())
                     );
                     fO = Rotation2d.fromDegrees(target.getYaw());
                     fY = 0;
+
+                     */
                     aprilTag = null;
                 }
 

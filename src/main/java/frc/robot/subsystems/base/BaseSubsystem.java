@@ -57,6 +57,17 @@ public class BaseSubsystem extends SubsystemBase {
         return controller;
     }
 
+    @SuppressWarnings("UnusedReturnValue")
+    public boolean syncDashboardPID(String name, PIDController controller) {
+        for (TunablePID pid : pidTunes) {
+            if (pid.getName().equalsIgnoreCase(this.name + "/" + name)) {
+                pid.setPID(controller.getP(), controller.getI(), controller.getD());
+                return true;
+            }
+        }
+        return false;
+    }
+
     public double getConstant(String name) { return getConstant(name, 0); }
     public double getConstant(String name, double defaultValue) {
         for (TunableNumber number : numberTunes) {

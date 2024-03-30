@@ -27,20 +27,9 @@ import static edu.wpi.first.wpilibj.PowerDistribution.ModuleType.kRev;
  * @since 0.0.0
  */
 public class Constants {
-    /*
-    public static class Debug {
-        public static final boolean PHOTON_TUNING_ENABLED = false;
-        public static final boolean SHOOTER_TUNING_ENABLED = false; // FIXME: caused issues with slow shoot.
-        public static final boolean INDEX_TUNING_ENABLED = false;
-        public static final boolean INTAKE_TUNING_ENABLED = false;
-        public static final boolean CLIMBER_TUNING_ENABLED = false;
-        public static final boolean TRAP_ARM_TUNING_ENABLED = false;
-        public static final boolean PHOTON_ENABLED = false;
-        public static final boolean SWERVE_TUNING_ENABLED = true;
-    }
-     */
-
     public static class Systems {
+        public static boolean MK4_CHASSIS = false;
+
         public static final SubsystemConfig FRONT_CAMERA = new SubsystemConfig(
                 "FrontCamera",
                 true,
@@ -53,32 +42,32 @@ public class Constants {
         );
         public static final SubsystemConfig SHOOTER = new SubsystemConfig(
                 "Shooter",
-                false,
+                MK4_CHASSIS,
                 true
         );
         public static final SubsystemConfig INDEX = new SubsystemConfig(
                 "Index",
-                false,
+                MK4_CHASSIS,
                 false
         );
         public static final SubsystemConfig INTAKE = new SubsystemConfig(
                 "Intake",
-                false,
+                MK4_CHASSIS,
                 false
         );
         public static final SubsystemConfig FINGER = new SubsystemConfig(
                 "Finger",
-                false,
+                MK4_CHASSIS,
                 false
         );
         public static final SubsystemConfig CLIMBER = new SubsystemConfig(
                 "Climber",
-                false,
+                MK4_CHASSIS,
                 false
         );
         public static final SubsystemConfig SWERVE = new SubsystemConfig(
                 "Swerve",
-                true,
+                MK4_CHASSIS,
                 true
         );
     }
@@ -182,8 +171,8 @@ public class Constants {
                     0,
                     false,
                     0,
-                    new PIDConstants(0.1, 0, 0),
-                    new PIDConstants(0.0001, 0, 0)
+                    new PIDConstants(0.01, 0, 0),
+                    new PIDConstants(0.0045, 0, 0)
             ));
             FRONT_PIPELINES.add(new PipelineOption(
                     "AprilTag",

@@ -19,6 +19,12 @@ public class TunablePID implements IUpdatable {
         tuneD = new TunableNumber(name + ": D", constants.kD, enabled);
     }
 
+    public void setPID(double kP, double kI, double kD) {
+        tuneP.setValue(kP);
+        tuneI.setValue(kI);
+        tuneD.setValue(kD);
+    }
+
     public void setEnabled(boolean enabled) {
         tuneP.setEnabled(enabled);
         tuneI.setEnabled(enabled);
