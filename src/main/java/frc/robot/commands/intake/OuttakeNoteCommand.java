@@ -5,11 +5,12 @@ import frc.robot.Robot;
 
 import static frc.robot.Constants.Indexer.INDEX_SPEED;
 import static frc.robot.Constants.Intake.INTAKE_SPEED;
+import static frc.robot.Constants.Shooter.SHOOT_SPEED;
+import static frc.robot.Constants.Shooter.SLOW_SHOOT_SPEED;
 
 public class OuttakeNoteCommand extends Command {
-
     public OuttakeNoteCommand() {
-        addRequirements(Robot.intake, Robot.index);
+        addRequirements(Robot.intake, Robot.index, Robot.shooter);
     }
 
     /**
@@ -19,9 +20,11 @@ public class OuttakeNoteCommand extends Command {
     public void initialize() {
         Robot.intake.setTargetSpeed(INTAKE_SPEED);
         Robot.index.setTargetSpeed(INDEX_SPEED);
+        Robot.shooter.setTargetSpeed(-SLOW_SHOOT_SPEED);
 
         Robot.intake.startReverse();
         Robot.index.startReverse();
+        Robot.shooter.setEnabled(true);
     }
 
     /**
@@ -37,6 +40,7 @@ public class OuttakeNoteCommand extends Command {
     public void end(boolean interrupted) {
         Robot.intake.stop();
         Robot.index.stop();
+        Robot.shooter.setEnabled(false);
     }
 
     /**
@@ -45,8 +49,5 @@ public class OuttakeNoteCommand extends Command {
      *
      * @return whether the command has finished.
      */
-    @Override
-    public boolean isFinished() {
-        return false;
-    }
+    @Override public boolean isFinished() { return false; }
 }

@@ -23,7 +23,6 @@ import static com.revrobotics.CANSparkLowLevel.MotorType.kBrushless;
 
 public class BaseSubsystem extends SubsystemBase {
     private final ArrayList<TunableNumber> numberTunes;
-    //private final HashMap<String, PIDController> controllers;
     private final ArrayList<TunablePID> pidTunes;
     private final String name;
     private final CANSparkMax[] motors;
@@ -91,6 +90,7 @@ public class BaseSubsystem extends SubsystemBase {
 
     public BaseSubsystem(SubsystemConfig config,
                          Map<Integer, Boolean> ids) {
+
         this.name = config.name();
         this.enabled = config.enabled();
         this.tuningEnabled = config.tuningEnabled();
@@ -98,7 +98,6 @@ public class BaseSubsystem extends SubsystemBase {
         this.motors = new CANSparkMax[ids.size()];
         this.numberTunes = new ArrayList<>();
         this.pidTunes = new ArrayList<>();
-        //this.controllers = new HashMap<>();
 
         if (initSystems.contains(name)) {
             // Do not double-initialize!
@@ -182,7 +181,6 @@ public class BaseSubsystem extends SubsystemBase {
             }
             if (dashUpdate != null)
                 dashUpdate.run();
-            // TODO: make it a method overriden?
 
             nextUpdate = System.currentTimeMillis() + 1000;
         }

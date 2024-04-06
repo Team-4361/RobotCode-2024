@@ -1,7 +1,6 @@
 package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -24,7 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
 
 import static edu.wpi.first.wpilibj.Filesystem.getDeployDirectory;
 import static frc.robot.Constants.Chassis.*;
@@ -49,11 +47,16 @@ public class SwerveDriveSubsystem extends BaseSubsystem {
 
     public boolean hasResetGyro = false;
 
+    //private final PIDController autoDrivePID, autoTurnPID;
+
     public Pose2d getPose() { return swerveDrive.getPose(); }
     public ChassisSpeeds getRobotVelocity() { return swerveDrive.getRobotVelocity(); }
     public void setChassisSpeeds(ChassisSpeeds speeds) { swerveDrive.setChassisSpeeds(speeds); }
 
     public void lockPose() { swerveDrive.lockPose(); }
+
+    //public PIDController getAutoDrivePID() { return this.autoDrivePID; }
+    //public PIDController getAutoTurnPID() { return this.autoTurnPID; }
 
     /**
      * Constructs a new {@link SwerveDriveSubsystem} with the specified modules.
@@ -73,6 +76,9 @@ public class SwerveDriveSubsystem extends BaseSubsystem {
         swerveDrive.setCosineCompensator(false);
         swerveDrive.setMotorIdleMode(true);
         SwerveDriveTelemetry.verbosity = isTuningEnabled() ? HIGH : MACHINE;
+
+//        this.autoDrivePID = registerPID("AutoDrivePID", AUTO_DRIVE_PID);
+//        this.autoTurnPID = registerPID("AutoTurnPID", AUTO_TURN_PID);
 
         setDashUpdate(() -> {
             if (isTuningEnabled()) {

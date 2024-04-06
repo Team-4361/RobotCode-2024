@@ -37,8 +37,8 @@ public class Constants {
         );
         public static final SubsystemConfig SHOOTER_CAMERA = new SubsystemConfig(
                 "ShootCamera",
-                true,
-                true
+                false,
+                false
         );
         public static final SubsystemConfig SHOOTER = new SubsystemConfig(
                 "Shooter",
@@ -205,7 +205,7 @@ public class Constants {
         public static final double PHOTON_DRIVE_MAX_SPEED = 0.5;
         public static final double PHOTON_TURN_MAX_SPEED = 0.2;
 
-        public static final PIDConstants AUTO_DRIVE_PID = new PIDConstants(7, 0, 0.15);
-        public static final PIDConstants AUTO_TURN_PID = new PIDConstants(4.25, 0, 0);
+        public static final PIDConstants AUTO_DRIVE_PID = new PIDConstants(7.5, 0, 0);
+        public static final PIDConstants AUTO_TURN_PID = new PIDConstants(2.5, 0, 0);
     }
 }

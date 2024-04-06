@@ -98,7 +98,7 @@ public class Robot extends TimedRobot {
                         }
 
                         CvSink cvSink = CameraServer.getVideo();
-                        CvSource outputStream = CameraServer.putVideo("Front Camera", width, height);
+                        CvSource outputStream = CameraServer.putVideo("Front Camera Driver", width, height);
                         Mat mat = new Mat();
                         double thickness = 4.0;
 
@@ -140,8 +140,8 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void robotInit() {
-        //if (!RobotBase.isSimulation())
-        //    startDriverCamera();
+        if (!RobotBase.isSimulation())
+            startDriverCamera();
 
         leftStick = new CommandJoystick(LEFT_STICK_ID);
         rightStick = new CommandJoystick(RIGHT_STICK_ID);
@@ -240,28 +240,28 @@ public class Robot extends TimedRobot {
                 ), true
         ));
 
-        leftStick.button(5).whileTrue(new DriveTargetCommand(shooterCamera, 0,
-                new Transform2d(
-                        new Translation2d(1, 0),
-                        new Rotation2d(0)
-                ), true
-        ));
+        // leftStick.button(5).whileTrue(new DriveTargetCommand(shooterCamera, 0,
+        //         new Transform2d(
+        //                 new Translation2d(1, 0),
+        //                 new Rotation2d(0)
+        //         ), true
+        // ));
 
         xbox.b().whileTrue(new IntakeNoteCommand());
         xbox.a().onTrue(new ShootCommand());
         xbox.y().whileTrue(new SlowShootCommand(false));
         xbox.x().whileTrue(new OuttakeNoteCommand());
 
-        xbox.leftBumper().whileTrue(new LeftClimbDownCommand());
-        xbox.rightBumper().whileTrue(new RightClimbDownCommand());
+        xbox.leftBumper().whileTrue(new RightClimbDownCommand());
+        xbox.rightBumper().whileTrue(new LeftClimbDownCommand());
 
         xbox.back().whileTrue(Commands.runEnd(
-                () -> Robot.climber.moveLeft(UP),
-                () -> Robot.climber.stopLeft()
-        ));
-        xbox.start().whileTrue(Commands.runEnd(
                 () -> Robot.climber.moveRight(UP),
                 () -> Robot.climber.stopRight()
+        ));
+        xbox.start().whileTrue(Commands.runEnd(
+                () -> Robot.climber.moveLeft(UP),
+                () -> Robot.climber.stopLeft()
         ));
 
         xbox.rightTrigger().whileTrue(Commands.runEnd(

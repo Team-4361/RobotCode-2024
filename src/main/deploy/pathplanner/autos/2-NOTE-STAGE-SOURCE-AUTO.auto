@@ -18,19 +18,19 @@
           }
         },
         {
-          "type": "race",
+          "type": "deadline",
           "data": {
             "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "IntakeCommand"
-                }
-              },
               {
                 "type": "path",
                 "data": {
                   "pathName": "OFFSET-BOTTOM-1"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "IntakeCommand"
                 }
               }
             ]
