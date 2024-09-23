@@ -32,11 +32,11 @@
     },
     {
       "anchor": {
-        "x": 2.6,
+        "x": 2.8,
         "y": 4.1
       },
       "prevControl": {
-        "x": 2.5500000000000003,
+        "x": 2.75,
         "y": 4.1
       },
       "nextControl": null,
@@ -44,7 +44,13 @@
       "linkedName": null
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 1.05,
+      "rotationDegrees": 0,
+      "rotateFast": false
+    }
+  ],
   "constraintZones": [
     {
       "name": "New Constraints Zone",

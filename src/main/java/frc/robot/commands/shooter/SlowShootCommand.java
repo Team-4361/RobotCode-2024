@@ -27,12 +27,13 @@ public class SlowShootCommand extends Command {
         Robot.index.setTargetSpeed(SLOW_INDEX_SPEED);
         Robot.intake.setTargetSpeed(SLOW_INTAKE_SPEED);
         Robot.shooter.setTargetSpeed(SLOW_SHOOT_SPEED);
+
         Robot.intake.startNormal();
         Robot.index.startNormal();
 
         Robot.shooter.setEnabled(true);
 
-        endMillis = System.currentTimeMillis() + 500;
+        endMillis = System.currentTimeMillis() + 250;
     }
 
     /**

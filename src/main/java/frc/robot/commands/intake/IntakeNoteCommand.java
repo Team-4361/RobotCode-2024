@@ -25,7 +25,7 @@ public class IntakeNoteCommand extends Command {
     @Override
     public void execute() {
         if (Robot.intake.hasNote() && endMillis < 0) {
-            endMillis = System.currentTimeMillis() + 250;
+            endMillis = System.currentTimeMillis() + 200;
         }
     }
 

@@ -3,57 +3,57 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 0.7,
-        "y": 6.72
+        "x": 0.72,
+        "y": 4.38
       },
       "prevControl": null,
       "nextControl": {
-        "x": 0.7249999999999999,
-        "y": 6.7633012701892214
+        "x": 0.7449999999999999,
+        "y": 4.336698729810778
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 0.9379964659226954,
-        "y": 6.95
+        "x": 2.1,
+        "y": 2.15
       },
       "prevControl": {
-        "x": 0.9129964659226955,
-        "y": 6.9066987298107785
+        "x": 2.0749999999999997,
+        "y": 2.1933012701892216
       },
       "nextControl": {
-        "x": 0.9629964659226953,
-        "y": 6.993301270189222
+        "x": 2.125,
+        "y": 2.106698729810778
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 0.94,
-        "y": 6.982475952641917
+        "x": 2.1,
+        "y": 2.15
       },
       "prevControl": {
-        "x": 0.8899999999999999,
-        "y": 6.982475952641917
+        "x": 2.05,
+        "y": 2.15
       },
       "nextControl": {
-        "x": 0.99,
-        "y": 6.982475952641917
+        "x": 2.1500000000000004,
+        "y": 2.15
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.6,
-        "y": 6.95
+        "x": 3.25,
+        "y": 2.15
       },
       "prevControl": {
-        "x": 2.5,
-        "y": 6.95
+        "x": 3.1500000000000004,
+        "y": 2.15
       },
       "nextControl": null,
       "isLocked": false,
@@ -62,20 +62,25 @@
   ],
   "rotationTargets": [
     {
+      "waypointRelativePos": 1,
+      "rotationDegrees": -60.0,
+      "rotateFast": false
+    },
+    {
       "waypointRelativePos": 2,
       "rotationDegrees": 0,
       "rotateFast": false
     },
     {
-      "waypointRelativePos": 1,
-      "rotationDegrees": 60.0,
+      "waypointRelativePos": 3,
+      "rotationDegrees": 0,
       "rotateFast": false
     }
   ],
   "constraintZones": [
     {
       "name": "New Constraints Zone",
-      "minWaypointRelativePos": 2.6,
+      "minWaypointRelativePos": 2.7,
       "maxWaypointRelativePos": 3.0,
       "constraints": {
         "maxVelocity": 0.75,
@@ -100,7 +105,7 @@
   "reversed": false,
   "folder": "OFFSET-AUTO",
   "previewStartingState": {
-    "rotation": 60.0,
+    "rotation": -60.0,
     "velocity": 0
   },
   "useDefaultConstraints": true

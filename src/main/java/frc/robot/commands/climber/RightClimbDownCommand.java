@@ -12,7 +12,12 @@ public class RightClimbDownCommand extends Command {
     /**
      * The initial subroutine of a command. Called once when the command is initially scheduled.
      */
-    @Override public void initialize() { Robot.climber.moveRight(DOWN); }
+    @Override 
+    public void initialize() { 
+        if (!Robot.climber.isRightRetracted()) {
+            Robot.climber.moveRight(DOWN); 
+        }
+    }     
 
     /**
      * The action to take when the command ends. Called when either the command finishes normally, or

@@ -84,6 +84,7 @@ public class PhotonCameraModule extends BaseSubsystem {
         setDashUpdate(() -> {
             SmartDashboard.putString(getCameraName() + "/Photon Pose", trackedPose == null ? "NONE" : trackedPose.toString());
             SmartDashboard.putBoolean(getCameraName() + "/Rot Target", atRotationTarget());
+            SmartDashboard.putBoolean(getCameraName() + "/Object Visible", isDetected());
         });
     }
 
@@ -127,6 +128,8 @@ public class PhotonCameraModule extends BaseSubsystem {
                 MathUtil.isNear(trackedPose.getY(), targetPose.getY(), 0.1) &&
                 atRotationTarget();
     }
+
+    public boolean isDetected() { return trackedPose != null; }
 
     public ChassisSpeeds getNextTargetSpeeds() {
         if (trackedPose == null || targetPose == null)

@@ -28,7 +28,7 @@ import static edu.wpi.first.wpilibj.PowerDistribution.ModuleType.kRev;
  */
 public class Constants {
     public static class Systems {
-        public static boolean MK4_CHASSIS = false;
+        public static boolean MK4_CHASSIS = true;
 
         public static final SubsystemConfig FRONT_CAMERA = new SubsystemConfig(
                 "FrontCamera",
@@ -145,7 +145,7 @@ public class Constants {
                     true,
                     0,
                     new PIDConstants(0.3, 0, 0),
-                    new PIDConstants(0.001, 0, 0)
+                    new PIDConstants(0.002, 0, 0)
             ));
         }
     }
@@ -173,14 +173,6 @@ public class Constants {
                     0,
                     new PIDConstants(0.02, 0, 0),
                     new PIDConstants(0.0045, 0, 0)
-            ));
-            FRONT_PIPELINES.add(new PipelineOption(
-                    "AprilTag",
-                    1,
-                    true,
-                    0,
-                    new PIDConstants(0.3, 0, 0),
-                    new PIDConstants(0.002, 0, 0)
             ));
         }
     }
@@ -213,7 +205,7 @@ public class Constants {
         public static final double PHOTON_DRIVE_MAX_SPEED = 0.5;
         public static final double PHOTON_TURN_MAX_SPEED = 0.2;
 
-        public static final PIDConstants AUTO_DRIVE_PID = new PIDConstants(7, 0, 0.15);
-        public static final PIDConstants AUTO_TURN_PID = new PIDConstants(4.25, 0, 0);
+        public static final PIDConstants AUTO_DRIVE_PID = new PIDConstants(7.5, 0, 0);
+        public static final PIDConstants AUTO_TURN_PID = new PIDConstants(2.5, 0, 0);
     }
 }

@@ -61,8 +61,8 @@ public class ClimberSubsystem extends BaseSubsystem {
     public void stopLeft() { setIndex(0, 0); }
     public void stopRight() { setIndex(1, 0); }
 
-    public boolean isLeftRetracted() { return leftSensor != null && leftSensor.get(); }
-    public boolean isRightRetracted() { return rightSensor != null && rightSensor.get(); }
+    public boolean isLeftRetracted() { return false; /*leftSensor != null && leftSensor.get();*/ }
+    public boolean isRightRetracted() { return false; /*rightSensor != null && rightSensor.get();*/ }
 
     /**
      * This method is called periodically by the {@link CommandScheduler}. Useful for updating
