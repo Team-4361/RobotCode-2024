@@ -46,6 +46,7 @@ public class SwerveDriveSubsystem extends BaseSubsystem {
     public boolean slowMode = false;
 
     public boolean hasResetGyro = false;
+    public boolean xboxMode = false;
 
     //private final PIDController autoDrivePID, autoTurnPID;
 
